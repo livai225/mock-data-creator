@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/logo.png";
 
 const navLinks = [
   { href: "/", label: "Accueil" },
@@ -22,12 +23,9 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="container flex h-20 items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-            <span className="font-display text-xl font-bold text-secondary">AE</span>
-          </div>
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logo} alt="ARCH EXCELLENCE" className="h-14 w-auto" />
           <div className="hidden sm:block">
-            <p className="font-display text-xl font-bold text-foreground">ARCH EXCELLENCE</p>
             <p className="text-xs text-muted-foreground">Cabinet Comptable & Conseil</p>
           </div>
         </Link>

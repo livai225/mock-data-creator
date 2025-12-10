@@ -58,18 +58,17 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         // Custom colors
-        gold: {
-          DEFAULT: "hsl(var(--gold))",
-          light: "hsl(var(--gold-light))",
-          dark: "hsl(var(--gold-dark))",
+        orange: {
+          DEFAULT: "hsl(var(--orange))",
+          light: "hsl(var(--orange-light))",
+          dark: "hsl(var(--orange-dark))",
         },
-        navy: {
-          DEFAULT: "hsl(var(--navy))",
-          light: "hsl(var(--navy-light))",
-          dark: "hsl(var(--navy-dark))",
+        blue: {
+          DEFAULT: "hsl(var(--blue))",
+          light: "hsl(var(--blue-light))",
+          dark: "hsl(var(--blue-dark))",
         },
         ivory: "hsl(var(--ivory))",
-        sage: "hsl(var(--sage))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -109,9 +108,9 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
-        "pulse-gold": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(45 80% 50% / 0.3)" },
-          "50%": { boxShadow: "0 0 40px hsl(45 80% 50% / 0.5)" },
+        "pulse-orange": {
+          "0%, 100%": { boxShadow: "0 0 20px hsl(20 75% 47% / 0.3)" },
+          "50%": { boxShadow: "0 0 40px hsl(20 75% 47% / 0.5)" },
         },
       },
       animation: {
@@ -122,7 +121,7 @@ export default {
         "scale-in": "scale-in 0.4s ease-out forwards",
         "slide-left": "slide-left 0.5s ease-out forwards",
         "float": "float 6s ease-in-out infinite",
-        "pulse-gold": "pulse-gold 2s ease-in-out infinite",
+        "pulse-orange": "pulse-orange 2s ease-in-out infinite",
       },
     },
   },
