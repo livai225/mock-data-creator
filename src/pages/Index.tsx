@@ -51,9 +51,9 @@ export default function Index() {
         <div className="container relative py-24 lg:py-32">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-20 items-center">
             <div className="space-y-8 animate-fade-up">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/20 text-secondary text-sm font-medium">
-                <Zap className="h-4 w-4" />
-                Génération automatique de documents
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground text-sm font-medium backdrop-blur-sm">
+                <Zap className="h-4 w-4 text-secondary" />
+                <span>Génération automatique de documents</span>
               </div>
               
               <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight">
@@ -79,11 +79,11 @@ export default function Index() {
                 </Button>
               </div>
               
-              <div className="flex items-center gap-8 pt-4">
-                {stats.slice(0, 3).map((stat) => (
-                  <div key={stat.label}>
-                    <p className="text-2xl font-bold text-secondary">{stat.value}</p>
-                    <p className="text-sm text-primary-foreground/60">{stat.label}</p>
+              <div className="flex items-center gap-10 pt-6 border-t border-primary-foreground/20">
+                {stats.slice(0, 3).map((stat, index) => (
+                  <div key={stat.label} className="text-center">
+                    <p className="font-display text-3xl sm:text-4xl font-bold text-secondary">{stat.value}</p>
+                    <p className="text-sm text-primary-foreground/70 mt-1">{stat.label}</p>
                   </div>
                 ))}
               </div>
@@ -125,7 +125,7 @@ export default function Index() {
         <div className="container">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="font-display text-3xl sm:text-4xl font-bold mb-4">
-              Pourquoi choisir <span className="text-gradient-gold">ARCH EXCELLENCE</span> ?
+              Pourquoi choisir <span className="text-gradient-orange">ARCH EXCELLENCE</span> ?
             </h2>
             <p className="text-muted-foreground">
               Une solution complète et fiable pour tous vos besoins administratifs et juridiques.
