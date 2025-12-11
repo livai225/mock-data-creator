@@ -1,73 +1,173 @@
-# Welcome to your Lovable project
+# 🏢 ARCH EXCELLENCE - Plateforme de Création d'Entreprises
 
-## Project info
+Plateforme complète de génération automatique de documents administratifs pour la création d'entreprises en Côte d'Ivoire.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 📋 Description
 
-## How can I edit this code?
+ARCH EXCELLENCE est une solution full-stack permettant aux entrepreneurs de créer leur entreprise en ligne avec génération automatique de tous les documents conformes CEPICI et OHADA.
 
-There are several ways of editing your application.
+### Fonctionnalités principales
 
-**Use Lovable**
+- ✅ **Inscription/Connexion** avec authentification JWT
+- ✅ **Création d'entreprises** (SARL, EI, SNC, SCS, GIE)
+- ✅ **Génération automatique de documents** (Statuts, DSV, etc.)
+- ✅ **Dashboard utilisateur** pour suivre ses entreprises
+- ✅ **Dashboard admin** pour gérer les demandes
+- ✅ **Système de paiement** intégré
+- ✅ **Notifications** en temps réel
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 🛠️ Technologies
 
-Changes made via Lovable will be committed automatically to this repo.
+### Frontend
+- **React 18** + **TypeScript**
+- **Vite** - Build tool
+- **Tailwind CSS** - Styling
+- **shadcn/ui** - Composants UI
+- **React Router** - Navigation
+- **React Query** - State management
 
-**Use your preferred IDE**
+### Backend
+- **Node.js** + **Express**
+- **MySQL** - Base de données
+- **JWT** - Authentification
+- **bcryptjs** - Sécurité
+- **PDFKit** - Génération de PDF
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🚀 Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prérequis
+- Node.js 18+
+- MySQL 8+
+- npm ou yarn
 
-Follow these steps:
+### 1. Cloner le repository
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+git clone https://github.com/votre-username/mock-data-creator.git
+cd mock-data-creator
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 2. Installation du Frontend
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+# Installer les dépendances
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Démarrer le serveur de développement
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Le frontend sera accessible sur `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 3. Installation du Backend
 
-**Use GitHub Codespaces**
+```bash
+cd backend
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Installer les dépendances
+npm install
 
-## What technologies are used for this project?
+# Configurer les variables d'environnement
+cp .env.example .env
+# Éditer .env avec vos configurations
 
-This project is built with:
+# Créer la base de données
+mysql -u root -p < ../database/schema.sql
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Optionnel: Charger des données de test
+mysql -u root -p arch_excellence < ../database/seed.sql
 
-## How can I deploy this project?
+# Démarrer le serveur
+npm run dev
+```
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Le backend sera accessible sur `http://localhost:5000`
 
-## Can I connect a custom domain to my Lovable project?
+## 📁 Structure du projet
 
-Yes, you can!
+```
+mock-data-creator/
+├── src/                    # Frontend React
+│   ├── components/         # Composants réutilisables
+│   ├── pages/             # Pages de l'application
+│   ├── lib/               # Utilitaires et données
+│   └── assets/            # Images et ressources
+├── backend/               # Backend Node.js
+│   ├── src/
+│   │   ├── config/        # Configuration
+│   │   ├── controllers/   # Contrôleurs
+│   │   ├── models/        # Modèles de données
+│   │   ├── routes/        # Routes API
+│   │   ├── middleware/    # Middlewares
+│   │   └── utils/         # Utilitaires
+│   ├── uploads/           # Fichiers uploadés
+│   └── generated/         # PDFs générés
+├── database/              # Scripts SQL
+│   ├── schema.sql         # Schéma de la base
+│   └── seed.sql          # Données de test
+└── DEPLOYMENT.md          # Guide de déploiement
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🔐 API Endpoints
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Authentification
+- `POST /api/auth/register` - Inscription
+- `POST /api/auth/login` - Connexion
+- `GET /api/auth/me` - Profil utilisateur
+- `PUT /api/auth/profile` - Mise à jour profil
+
+### Entreprises
+- `POST /api/companies` - Créer une entreprise
+- `GET /api/companies` - Liste des entreprises
+- `GET /api/companies/:id` - Détails d'une entreprise
+- `PUT /api/companies/:id` - Modifier une entreprise
+- `DELETE /api/companies/:id` - Supprimer une entreprise
+
+### Admin
+- `GET /api/admin/dashboard` - Dashboard admin
+- `GET /api/admin/users` - Liste des utilisateurs
+- `GET /api/admin/companies` - Liste des entreprises
+- `PUT /api/admin/companies/:id/status` - Modifier statut
+
+## 🌐 Déploiement
+
+Consultez le fichier [DEPLOYMENT.md](./DEPLOYMENT.md) pour les instructions détaillées de déploiement sur VPS Contabo.
+
+### Résumé rapide
+
+1. **VPS** : Contabo (Ubuntu 22.04)
+2. **Serveur web** : Nginx
+3. **Base de données** : MySQL
+4. **Process manager** : PM2
+5. **SSL** : Let's Encrypt
+
+## 👤 Compte Admin par défaut
+
+**Email**: admin@archexcellence.ci  
+**Mot de passe**: Admin@123456
+
+⚠️ **Changez ce mot de passe en production !**
+
+## 📝 Scripts disponibles
+
+### Frontend
+```bash
+npm run dev       # Serveur de développement
+npm run build     # Build production
+npm run preview   # Prévisualiser le build
+npm run lint      # Linter
+```
+
+### Backend
+```bash
+npm run dev       # Serveur de développement (nodemon)
+npm start         # Serveur production
+```
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
+
+## 📄 License
+
+MIT
