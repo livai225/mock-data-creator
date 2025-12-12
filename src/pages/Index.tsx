@@ -206,12 +206,18 @@ export default function Index() {
           </div>
           
           <div className="mt-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              Pour les SA, SAS, Coopératives et SARL &gt; 10M FCFA, un accompagnement personnalisé est nécessaire.
-            </p>
-            <Button variant="outline-gold" asChild>
-              <Link to="/contact">Nous contacter pour ces formes</Link>
-            </Button>
+            <Card variant="elevated" className="mx-auto max-w-3xl text-left">
+              <CardContent className="pt-6">
+                <p className="text-muted-foreground">
+                  Pour les SA, SAS, Coopératives et SARL &gt; 10M FCFA, un accompagnement personnalisé est nécessaire.
+                </p>
+                <div className="mt-6">
+                  <Button variant="outline-gold" asChild>
+                    <Link to="/contact">Nous contacter pour ces formes</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
