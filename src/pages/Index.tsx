@@ -167,7 +167,7 @@ export default function Index() {
           
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {companyTypes.filter(c => !c.requiresNotary).map((company) => (
-              <Card key={company.id} variant="elevated" className="group hover:border-secondary/30">
+              <Card key={company.id} variant="elevated" className="group hover:border-secondary/30 flex flex-col h-full">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
                     <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-sm font-medium">
@@ -178,7 +178,7 @@ export default function Index() {
                   <CardTitle className="text-xl">{company.fullName}</CardTitle>
                   <CardDescription>{company.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 flex-1 flex flex-col">
                   <div className="space-y-2">
                     {company.documentsGenerated.slice(0, 4).map((doc) => (
                       <div key={doc} className="flex items-center gap-2 text-sm">
@@ -192,7 +192,7 @@ export default function Index() {
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center justify-between pt-4 border-t">
+                  <div className="flex items-center justify-between pt-4 border-t mt-auto">
                     <div>
                       <p className="text-2xl font-bold text-secondary">{company.price.toLocaleString()} <span className="text-sm font-normal">FCFA</span></p>
                     </div>
@@ -203,15 +203,21 @@ export default function Index() {
                 </CardContent>
               </Card>
             ))}
-          </div>
-          
-          <div className="mt-12 text-center">
-            <Card variant="elevated" className="mx-auto max-w-3xl text-left">
-              <CardContent className="pt-6">
-                <p className="text-muted-foreground">
+
+            <Card variant="elevated" className="group hover:border-secondary/30 flex flex-col h-full">
+              <CardHeader>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-sm font-medium">
+                    Info
+                  </span>
+                </div>
+                <CardTitle className="text-xl">Accompagnement personnalisé</CardTitle>
+                <CardDescription>
                   Pour les SA, SAS, Coopératives et SARL &gt; 10M FCFA, un accompagnement personnalisé est nécessaire.
-                </p>
-                <div className="mt-6">
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col">
+                <div className="flex items-center justify-center pt-4 border-t mt-auto">
                   <Button variant="outline-gold" asChild>
                     <Link to="/contact">Nous contacter pour ces formes</Link>
                   </Button>

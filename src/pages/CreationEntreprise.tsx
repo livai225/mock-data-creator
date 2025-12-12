@@ -1,8 +1,16 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +21,8 @@ import {
   ArrowLeft,
   AlertTriangle,
   FileText,
-  Download
+  Download,
+  ExternalLink
 } from "lucide-react";
 import { companyTypes, type CompanyTypeInfo } from "@/lib/mock-data";
 import { toast } from "sonner";
@@ -35,6 +44,8 @@ interface FormData {
 
 export default function CreationEntreprise() {
   const [step, setStep] = useState<Step>('type');
+  const [docsOpen, setDocsOpen] = useState(false);
+  const [pendingCompanyType, setPendingCompanyType] = useState<CompanyTypeInfo | null>(null);
   const [formData, setFormData] = useState<FormData>({
     companyType: null,
     companyName: '',
@@ -56,6 +67,68 @@ export default function CreationEntreprise() {
       setStep('info');
     }
   };
+
+  const checklist = useMemo(() => {
+    const base = [
+      "Pièce d'identité valide (CNI ou passeport)",
+      "Contacts (téléphone, email)",
+      "Adresse complète du siège + justificatif (contrat de bail / attestation de domiciliation)",
+      "Objet social (activité principale)",
+    ];
+
+    if (!pendingCompanyType) return base;
+
+    switch (pendingCompanyType.id) {
+      case "EI":
+        return [
+          ...base,
+          "Nom commercial / dénomination (si applicable)",
+          "Adresse du domicile du promoteur (si différente du siège)",
+        ];
+
+      case "SARL":
+        return [
+          ...base,
+          "Dénomination sociale",
+          "Capital social (≤ 10M FCFA si procédure standard)",
+          "Informations des associés (identité, parts, apports)",
+          "Identité du gérant",
+        ];
+
+      case "SNC":
+      case "SCS":
+        return [
+          ...base,
+          "Dénomination sociale",
+          "Informations des associés (identité, parts, apports)",
+          "Identité du ou des gérants",
+        ];
+
+      case "GIE":
+        return [
+          ...base,
+          "Dénomination du groupement",
+          "Liste des membres (identité et coordonnées)",
+          "But/objet du groupement",
+          "Organe de gestion (responsable/administrateur)",
+        ];
+
+      case "SA":
+      case "SAS":
+      case "COOPERATIVE":
+        return [
+          ...base,
+          "Dénomination sociale",
+          "Capital social et répartition des actions/parts",
+          "Identité des actionnaires/associés",
+          "Identité des dirigeants (DG/Président, etc.)",
+          "Note: un accompagnement personnalisé (notaire) est requis.",
+        ];
+
+      default:
+        return base;
+    }
+  }, [pendingCompanyType]);
 
   const handleAddAssocie = () => {
     setFormData({
@@ -166,7 +239,10 @@ export default function CreationEntreprise() {
                     className={`cursor-pointer transition-all hover:border-secondary ${
                       company.requiresNotary ? 'opacity-80' : ''
                     }`}
-                    onClick={() => handleSelectType(company)}
+                    onClick={() => {
+                      setPendingCompanyType(company);
+                      setDocsOpen(true);
+                    }}
                   >
                     <CardHeader>
                       <div className="flex items-center justify-between">
@@ -199,6 +275,65 @@ export default function CreationEntreprise() {
                   </Card>
                 ))}
               </div>
+
+              <Dialog open={docsOpen} onOpenChange={setDocsOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Documents à préparer</DialogTitle>
+                    <DialogDescription>
+                      {pendingCompanyType
+                        ? `Avant de continuer pour ${pendingCompanyType.fullName}, prépare les éléments suivants.`
+                        : "Prépare ces éléments pour renseigner les informations demandées et/ou poursuivre la procédure au CEPICI."}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-3">
+                    {checklist.map((item) => (
+                      <div key={item} className="flex items-start gap-2 text-sm">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 text-accent" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <DialogFooter className="sm:justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        window.open("https://www.cepici.gouv.ci/", "_blank", "noopener,noreferrer");
+                      }}
+                      type="button"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      CEPICI
+                    </Button>
+
+                    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setDocsOpen(false);
+                        }}
+                        type="button"
+                      >
+                        Fermer
+                      </Button>
+                      <Button
+                        variant="gold"
+                        onClick={() => {
+                          if (!pendingCompanyType) return;
+                          setDocsOpen(false);
+                          handleSelectType(pendingCompanyType);
+                        }}
+                        type="button"
+                        disabled={!pendingCompanyType}
+                      >
+                        Continuer
+                      </Button>
+                    </div>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           )}
 
