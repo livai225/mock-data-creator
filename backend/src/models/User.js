@@ -4,7 +4,14 @@ import bcrypt from 'bcryptjs';
 class User {
   // Créer un utilisateur
   static async create(userData) {
-    const { email, password, firstName, lastName, phone, role = 'user' } = userData;
+    const {
+      email,
+      password,
+      firstName = '',
+      lastName = '',
+      phone = null,
+      role = 'user'
+    } = userData;
     
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);

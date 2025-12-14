@@ -4,15 +4,19 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Download, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/auth/AuthContext";
 
 type LocationState = {
   docs?: string[];
   companyTypeName?: string;
 };
 
+const PENDING_KEY = "arch_excellence_pending_docs";
+
 export default function DocumentsGeneres() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, loading } = useAuth();
   const state = (location.state ?? {}) as LocationState;
 
   const docs = state.docs ?? [];
@@ -49,8 +53,23 @@ export default function DocumentsGeneres() {
             <Button
               variant="gold"
               onClick={() => {
-                // Placeholder for real downloads when document generation is implemented.
-                // For now we keep the UX: verification then download.
+                try {
+                  sessionStorage.setItem(
+                    PENDING_KEY,
+                    JSON.stringify({ docs, companyTypeName: state.companyTypeName }),
+                  );
+                } catch {
+                  // ignore
+                }
+
+                if (!loading && !isAuthenticated) {
+                  navigate("/connexion", {
+                    state: { redirectTo: "/espace/documents" },
+                  });
+                  return;
+                }
+
+                navigate("/espace/documents");
               }}
               type="button"
             >

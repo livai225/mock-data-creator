@@ -21,9 +21,6 @@ const registerValidation = [
     .withMessage('Le mot de passe doit contenir au moins 8 caractères')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage('Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'),
-  body('firstName').trim().notEmpty().withMessage('Le prénom est requis'),
-  body('lastName').trim().notEmpty().withMessage('Le nom est requis'),
-  body('phone').optional().isMobilePhone('any').withMessage('Numéro de téléphone invalide')
 ];
 
 // Validation pour la connexion
