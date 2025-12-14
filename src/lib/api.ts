@@ -1,4 +1,5 @@
-const API_URL = (import.meta as any).env?.VITE_API_URL ?? "http://localhost:5000";
+const env = (import.meta as any).env;
+const API_URL = env?.VITE_API_URL ?? (env?.DEV ? "http://localhost:5000" : "");
 
 export type ApiResult<T> = {
   success: boolean;
