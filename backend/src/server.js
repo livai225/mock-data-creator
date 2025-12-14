@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import dotenv from 'dotenv';
 import { testConnection } from './config/database.js';
+import User from './models/User.js';
 
 // Routes
 import authRoutes from './routes/auth.routes.js';
@@ -21,6 +22,23 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+const ensureDefaultAdmin = async () => {
+  const shouldSeed =
+    (process.env.NODE_ENV || 'development') === 'development' ||
+    process.env.SEED_DEFAULT_ADMIN === 'true';
+
+  if (!shouldSeed) return;
+
+  const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.com';
+  const password = process.env.DEFAULT_ADMIN_PASSWORD || '12345678';
+
+  const existing = await User.findByEmail(email);
+  if (existing) return;
+
+  await User.create({ email, password, role: 'admin' });
+  console.log(`[seed] Admin created: ${email}`);
+};
 
 // Middleware de sécurité
 app.use(helmet());
@@ -78,6 +96,8 @@ const startServer = async () => {
   try {
     // Tester la connexion à la base de données
     await testConnection();
+
+    await ensureDefaultAdmin();
     
     app.listen(PORT, () => {
       console.log('=================================');
