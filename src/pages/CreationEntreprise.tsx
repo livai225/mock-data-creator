@@ -262,7 +262,7 @@ export default function CreationEntreprise() {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-sm font-medium">
-                          {company.id}
+                          {company.name}
                         </span>
                         {company.requiresNotary && (
                           <span className="px-2 py-1 rounded-full bg-destructive/10 text-destructive text-xs">
