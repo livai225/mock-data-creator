@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Download, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
+import { generateDocumentsApi } from "@/lib/api";
 
 type LocationState = {
   docs?: string[];
@@ -16,8 +17,9 @@ const PENDING_KEY = "arch_excellence_pending_docs";
 export default function DocumentsGeneres() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, token } = useAuth();
   const state = (location.state ?? {}) as LocationState;
+  const [submitting, setSubmitting] = useState(false);
 
   const docs = state.docs ?? [];
 
@@ -28,6 +30,8 @@ export default function DocumentsGeneres() {
   }, [docs.length, navigate]);
 
   if (docs.length === 0) return null;
+
+  const downloadDisabled = useMemo(() => loading || submitting, [loading, submitting]);
 
   return (
     <Layout>
@@ -52,6 +56,7 @@ export default function DocumentsGeneres() {
 
             <Button
               variant="gold"
+              disabled={downloadDisabled}
               onClick={() => {
                 try {
                   sessionStorage.setItem(
@@ -69,12 +74,26 @@ export default function DocumentsGeneres() {
                   return;
                 }
 
-                navigate("/espace/documents");
+                if (!token) {
+                  navigate("/connexion", {
+                    state: { redirectTo: "/espace/documents" },
+                  });
+                  return;
+                }
+
+                setSubmitting(true);
+                generateDocumentsApi(token, { companyTypeName: state.companyTypeName, docs })
+                  .then(() => {
+                    navigate("/espace/documents");
+                  })
+                  .finally(() => {
+                    setSubmitting(false);
+                  });
               }}
               type="button"
             >
               <Download className="h-4 w-4" />
-              Télécharger
+              {submitting ? "Génération..." : "Télécharger"}
             </Button>
           </div>
 

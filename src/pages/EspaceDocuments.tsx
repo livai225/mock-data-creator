@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Download, LogOut } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
+import { downloadDocumentApi, getMyDocumentsApi, type UserDocument } from "@/lib/api";
 
 type PendingDocs = {
   docs: string[];
@@ -15,8 +16,11 @@ const PENDING_KEY = "arch_excellence_pending_docs";
 
 export default function EspaceDocuments() {
   const navigate = useNavigate();
-  const { isAuthenticated, loading, logout, user } = useAuth();
+  const { isAuthenticated, loading, logout, user, token } = useAuth();
   const [pending, setPending] = useState<PendingDocs | null>(null);
+  const [documents, setDocuments] = useState<UserDocument[]>([]);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -34,7 +38,20 @@ export default function EspaceDocuments() {
     }
   }, []);
 
-  const docs = useMemo(() => pending?.docs ?? [], [pending?.docs]);
+  useEffect(() => {
+    if (loading || !isAuthenticated || !token) return;
+
+    setDocsLoading(true);
+    getMyDocumentsApi(token)
+      .then((res) => {
+        setDocuments(res.data ?? []);
+      })
+      .finally(() => {
+        setDocsLoading(false);
+      });
+  }, [isAuthenticated, loading, token]);
+
+  const companyLabel = useMemo(() => pending?.companyTypeName ?? "", [pending?.companyTypeName]);
 
   if (loading) return null;
   if (!isAuthenticated) return null;
@@ -50,7 +67,7 @@ export default function EspaceDocuments() {
               </h1>
               <p className="text-primary-foreground/80 max-w-2xl">
                 {user?.email}
-                {pending?.companyTypeName ? ` • ${pending.companyTypeName}` : ""}
+                {companyLabel ? ` • ${companyLabel}` : ""}
               </p>
             </div>
             <Button
@@ -74,29 +91,46 @@ export default function EspaceDocuments() {
             <CardHeader>
               <CardTitle>Documents disponibles</CardTitle>
               <CardDescription>
-                Télécharge tes documents un par un. (L’enregistrement en base et les vrais fichiers PDF seront branchés ensuite.)
+                Télécharge tes documents un par un.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {docs.length === 0 ? (
+              {docsLoading ? (
+                <p className="text-sm text-muted-foreground">Chargement...</p>
+              ) : documents.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Aucun document à afficher pour le moment.</p>
               ) : (
-                docs.map((doc) => (
-                  <div key={doc} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                documents.map((doc) => (
+                  <div key={doc.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
                     <div className="flex items-start gap-2 text-sm">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 text-accent" />
-                      <span>{doc}</span>
+                      <span>{doc.doc_name}</span>
                     </div>
                     <Button
                       variant="gold"
                       size="sm"
                       type="button"
-                      onClick={() => {
-                        // Placeholder: will download real file when backend documents are connected.
+                      disabled={!token || downloadingId === doc.id}
+                      onClick={async () => {
+                        if (!token) return;
+                        setDownloadingId(doc.id);
+                        try {
+                          const blob = await downloadDocumentApi(token, doc.id);
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = doc.file_name || `${doc.doc_name}.pdf`;
+                          document.body.appendChild(a);
+                          a.click();
+                          a.remove();
+                          URL.revokeObjectURL(url);
+                        } finally {
+                          setDownloadingId(null);
+                        }
                       }}
                     >
                       <Download className="h-4 w-4" />
-                      Télécharger
+                      {downloadingId === doc.id ? "Téléchargement..." : "Télécharger"}
                     </Button>
                   </div>
                 ))

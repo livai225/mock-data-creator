@@ -1,14 +1,19 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
+import { documentLimiter } from '../middleware/rateLimiter.js';
+import {
+  generateDocuments,
+  getMyDocuments,
+  downloadDocument
+} from '../controllers/document.controller.js';
 
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
 router.use(protect);
 
-// Routes documents (à implémenter avec la génération PDF)
-router.get('/company/:companyId', (req, res) => {
-  res.json({ success: true, data: [] });
-});
+router.post('/generate', documentLimiter, generateDocuments);
+router.get('/my', getMyDocuments);
+router.get('/:id/download', downloadDocument);
 
 export default router;
