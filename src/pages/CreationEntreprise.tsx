@@ -27,8 +27,9 @@ import {
 import { companyTypes, type CompanyTypeInfo } from "@/lib/mock-data";
 import { toast } from "sonner";
 import { SARLPluriForm } from "@/components/forms/SARLPluriForm";
+import { SARLUForm } from "@/components/forms/SARLUForm";
 
-type Step = 'type' | 'info' | 'associes' | 'recap' | 'contact' | 'sarl-pluri';
+type Step = 'type' | 'info' | 'associes' | 'recap' | 'contact' | 'sarl-pluri' | 'sarlu';
 
 interface FormData {
   companyType: CompanyTypeInfo | null;
@@ -66,6 +67,8 @@ export default function CreationEntreprise() {
       setStep('contact');
     } else if (company.id === 'SARL_PLURI') {
       setStep('sarl-pluri');
+    } else if (company.id === 'SARLU') {
+      setStep('sarlu');
     } else {
       setStep('info');
     }
@@ -194,8 +197,8 @@ export default function CreationEntreprise() {
         </div>
       </section>
 
-      {/* Progress - Only for standard forms, not SARL Pluri */}
-      {step !== 'contact' && step !== 'sarl-pluri' && (
+      {/* Progress - Only for standard forms, not SARL Pluri or SARLU */}
+      {step !== 'contact' && step !== 'sarl-pluri' && step !== 'sarlu' && (
         <div className="bg-muted/50 py-6">
           <div className="container">
             <div className="flex items-center justify-between max-w-2xl mx-auto">
@@ -357,7 +360,13 @@ export default function CreationEntreprise() {
             />
           )}
 
-          {/* Step 2: Company Info */}
+          {/* SARL Unipersonnelle Form */}
+          {step === 'sarlu' && formData.companyType && (
+            <SARLUForm 
+              onBack={() => setStep('type')} 
+              price={formData.companyType.price}
+            />
+          )}
           {step === 'info' && formData.companyType && (
             <div className="space-y-8">
               <div className="flex items-center gap-4">

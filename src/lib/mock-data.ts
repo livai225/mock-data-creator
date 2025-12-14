@@ -78,7 +78,14 @@ export const companyTypes: CompanyTypeInfo[] = [
     capitalMin: 100000,
     capitalMax: 10000000,
     requiresNotary: false,
-    documentsGenerated: ['Statuts', 'DSV', 'Contrat de bail', 'Liste des dirigeants', 'PV de constitution', 'Formulaire CEPICI'],
+    documentsGenerated: [
+      'Statuts SARL',
+      'Déclaration de Souscription et Versement (DSV)',
+      'Contrat de bail commercial',
+      'Formulaire unique CEPICI',
+      'Liste des dirigeants/gérants',
+      'Déclaration sur l\'honneur (greffe)'
+    ],
     estimatedTime: '24-48h',
     price: 75000,
   },
