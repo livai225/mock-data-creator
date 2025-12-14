@@ -204,7 +204,7 @@ export default function Index() {
               </Card>
             ))}
 
-            <Card variant="elevated" className="group hover:border-secondary/30 flex flex-col h-full">
+            <Card variant="elevated" className="group hover:border-secondary/30 flex flex-col h-full md:col-span-2 lg:col-span-3">
               <CardHeader>
                 <div className="flex items-center justify-between mb-2">
                   <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-sm font-medium">
