@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,6 @@ import {
   Home,
   FileSignature
 } from "lucide-react";
-import { toast } from "sonner";
 import { 
   SARLUFormData, 
   SARLUStep, 
@@ -28,9 +28,12 @@ import {
 interface SARLUFormProps {
   onBack: () => void;
   price: number;
+  docs: string[];
+  companyTypeName: string;
 }
 
-export function SARLUForm({ onBack, price }: SARLUFormProps) {
+export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormProps) {
+  const navigate = useNavigate();
   const [step, setStep] = useState<SARLUStep>('societe');
   const [formData, setFormData] = useState<SARLUFormData>(defaultSARLUFormData);
 
@@ -57,8 +60,11 @@ export function SARLUForm({ onBack, price }: SARLUFormProps) {
   };
 
   const handleGenerate = () => {
-    toast.success("Documents générés avec succès!", {
-      description: "Vos 6 documents SARL Unipersonnelle sont prêts.",
+    navigate("/documents-generes", {
+      state: {
+        docs,
+        companyTypeName,
+      },
     });
   };
 
@@ -608,7 +614,7 @@ export function SARLUForm({ onBack, price }: SARLUFormProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cautionMois">Mois de caution *</Label>
+                  <Label htmlFor="cautionMois">Caution (mois) *</Label>
                   <Input
                     id="cautionMois"
                     type="number"
@@ -800,14 +806,7 @@ export function SARLUForm({ onBack, price }: SARLUFormProps) {
             <div className="border-t pt-6">
               <p className="font-semibold mb-4">Documents qui seront générés :</p>
               <div className="grid gap-2 md:grid-cols-2">
-                {[
-                  'Statuts SARL Unipersonnelle',
-                  'Déclaration de Souscription et Versement (DSV)',
-                  'Contrat de bail commercial',
-                  'Formulaire unique CEPICI',
-                  'Liste des dirigeants/gérants',
-                  'Déclaration sur l\'honneur (greffe)'
-                ].map((doc) => (
+                {docs.map((doc) => (
                   <div key={doc} className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-secondary" />
                     <span className="text-sm">{doc}</span>

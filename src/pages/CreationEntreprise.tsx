@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +45,7 @@ interface FormData {
 }
 
 export default function CreationEntreprise() {
+  const navigate = useNavigate();
   const [step, setStep] = useState<Step>('type');
   const [docsOpen, setDocsOpen] = useState(false);
   const [pendingCompanyType, setPendingCompanyType] = useState<CompanyTypeInfo | null>(null);
@@ -168,8 +169,12 @@ export default function CreationEntreprise() {
   };
 
   const handleGenerate = () => {
-    toast.success("Documents générés avec succès!", {
-      description: "Vos documents sont prêts à être téléchargés.",
+    const docs = formData.companyType?.documentsGenerated ?? [];
+    navigate("/documents-generes", {
+      state: {
+        docs,
+        companyTypeName: formData.companyType?.fullName,
+      },
     });
   };
 
@@ -357,6 +362,8 @@ export default function CreationEntreprise() {
             <SARLPluriForm 
               onBack={() => setStep('type')} 
               price={formData.companyType.price}
+              docs={formData.companyType.documentsGenerated}
+              companyTypeName={formData.companyType.fullName}
             />
           )}
 
@@ -365,6 +372,8 @@ export default function CreationEntreprise() {
             <SARLUForm 
               onBack={() => setStep('type')} 
               price={formData.companyType.price}
+              docs={formData.companyType.documentsGenerated}
+              companyTypeName={formData.companyType.fullName}
             />
           )}
           {step === 'info' && formData.companyType && (

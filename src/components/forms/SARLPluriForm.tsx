@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,9 +32,12 @@ import {
 interface SARLPluriFormProps {
   onBack: () => void;
   price: number;
+  docs: string[];
+  companyTypeName: string;
 }
 
-export function SARLPluriForm({ onBack, price }: SARLPluriFormProps) {
+export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPluriFormProps) {
+  const navigate = useNavigate();
   const [step, setStep] = useState<SARLPluriStep>('societe');
   const [formData, setFormData] = useState<SARLPluriFormData>(defaultSARLPluriFormData);
 
@@ -89,8 +93,11 @@ export function SARLPluriForm({ onBack, price }: SARLPluriFormProps) {
   };
 
   const handleGenerate = () => {
-    toast.success("Documents générés avec succès!", {
-      description: "Vos 5 documents SARL Pluripersonnelle sont prêts.",
+    navigate("/documents-generes", {
+      state: {
+        docs,
+        companyTypeName,
+      },
     });
   };
 
@@ -821,13 +828,7 @@ export function SARLPluriForm({ onBack, price }: SARLPluriFormProps) {
             <div className="border-t pt-6">
               <p className="font-semibold mb-4">Documents qui seront générés :</p>
               <div className="grid gap-2 md:grid-cols-2">
-                {[
-                  'Statuts SARL',
-                  'Contrat de bail commercial',
-                  'Formulaire unique CEPICI',
-                  'Liste des dirigeants/gérants',
-                  'Déclaration sur l\'honneur (greffe)'
-                ].map((doc) => (
+                {docs.map((doc) => (
                   <div key={doc} className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-secondary" />
                     <span className="text-sm">{doc}</span>
