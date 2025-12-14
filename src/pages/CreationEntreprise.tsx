@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import { companyTypes, type CompanyTypeInfo } from "@/lib/mock-data";
 import { toast } from "sonner";
 import { SARLPluriForm } from "@/components/forms/SARLPluriForm";
 import { SARLUForm } from "@/components/forms/SARLUForm";
+import { getPublicPricingApi, type PricingSetting } from "@/lib/api";
 
 type Step = 'type' | 'info' | 'associes' | 'recap' | 'contact' | 'sarl-pluri' | 'sarlu';
 
@@ -46,6 +47,7 @@ interface FormData {
 
 export default function CreationEntreprise() {
   const navigate = useNavigate();
+  const [pricing, setPricing] = useState<PricingSetting | null>(null);
   const [step, setStep] = useState<Step>('type');
   const [docsOpen, setDocsOpen] = useState(false);
   const [pendingCompanyType, setPendingCompanyType] = useState<CompanyTypeInfo | null>(null);
@@ -74,6 +76,20 @@ export default function CreationEntreprise() {
       setStep('info');
     }
   };
+
+  useEffect(() => {
+    getPublicPricingApi()
+      .then((res) => setPricing(res.data ?? null))
+      .catch(() => setPricing(null));
+  }, []);
+
+  const effectiveCompanyTypes = useMemo(() => {
+    const override = pricing?.companyTypePrices ?? {};
+    return companyTypes.map((ct) => ({
+      ...ct,
+      price: typeof override[ct.id] === 'number' ? override[ct.id] : ct.price,
+    }));
+  }, [pricing?.companyTypePrices]);
 
   const checklist = useMemo(() => {
     const base = [
@@ -252,7 +268,7 @@ export default function CreationEntreprise() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                {companyTypes.map((company) => (
+                {effectiveCompanyTypes.map((company) => (
                   <Card 
                     key={company.id} 
                     variant={company.requiresNotary ? 'outline' : 'gold'}

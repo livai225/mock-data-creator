@@ -145,6 +145,13 @@ class User {
     await query(sql, [id]);
   }
 
+  // Mettre à jour le rôle (admin)
+  static async updateRole(id, role) {
+    const sql = 'UPDATE users SET role = ? WHERE id = ?';
+    const result = await query(sql, [role, id]);
+    return result.affectedRows > 0;
+  }
+
   // Supprimer un utilisateur
   static async delete(id) {
     const sql = 'DELETE FROM users WHERE id = ?';

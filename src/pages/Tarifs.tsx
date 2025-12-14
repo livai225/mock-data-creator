@@ -1,11 +1,26 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Star, ArrowRight } from "lucide-react";
 import { pricingPlans } from "@/lib/mock-data";
+import { getPublicPricingApi, type PricingSetting } from "@/lib/api";
 
 export default function Tarifs() {
+  const [pricing, setPricing] = useState<PricingSetting | null>(null);
+
+  useEffect(() => {
+    getPublicPricingApi()
+      .then((res) => setPricing(res.data ?? null))
+      .catch(() => setPricing(null));
+  }, []);
+
+  const effectivePlans = useMemo(() => {
+    const overrides = new Map((pricing?.pricingPlans ?? []).map((p) => [p.id, p.price]));
+    return pricingPlans.map((p) => ({ ...p, price: overrides.get(p.id) ?? p.price }));
+  }, [pricing?.pricingPlans]);
+
   return (
     <Layout>
       {/* Header */}
@@ -28,7 +43,7 @@ export default function Tarifs() {
       <section className="py-20">
         <div className="container">
           <div className="grid gap-8 lg:grid-cols-3 max-w-6xl mx-auto">
-            {pricingPlans.map((plan, index) => (
+            {effectivePlans.map((plan, index) => (
               <Card 
                 key={plan.id}
                 variant={plan.popular ? "gold" : "elevated"}

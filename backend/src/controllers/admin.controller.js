@@ -2,6 +2,15 @@ import User from '../models/User.js';
 import Company from '../models/Company.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { query } from '../config/database.js';
+import SiteSetting from '../models/SiteSetting.js';
+
+const safeJsonParse = (valueJson) => {
+  try {
+    return JSON.parse(valueJson);
+  } catch {
+    return null;
+  }
+};
 
 // @desc    Obtenir le dashboard admin
 // @route   GET /api/admin/dashboard
@@ -257,6 +266,161 @@ export const getDetailedStats = async (req, res, next) => {
         monthlyStats,
         topUsers
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Lister tous les documents (admin)
+// @route   GET /api/admin/documents
+// @access  Private/Admin
+export const getAllDocuments = async (req, res, next) => {
+  try {
+    const { limit = 50, offset = 0, userId } = req.query;
+
+    let sql = `
+      SELECT d.id, d.user_id, d.company_id, d.doc_type, d.doc_name, d.file_name, d.mime_type, d.created_at,
+             u.email as user_email
+      FROM documents d
+      LEFT JOIN users u ON u.id = d.user_id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (userId) {
+      sql += ' AND d.user_id = ?';
+      params.push(parseInt(userId));
+    }
+
+    sql += ' ORDER BY d.created_at DESC LIMIT ? OFFSET ?';
+    params.push(parseInt(limit), parseInt(offset));
+
+    const docs = await query(sql, params);
+
+    const totalRows = await query(
+      `SELECT COUNT(*) as total FROM documents ${userId ? 'WHERE user_id = ?' : ''}`,
+      userId ? [parseInt(userId)] : [],
+    );
+
+    res.status(200).json({
+      success: true,
+      data: docs,
+      pagination: {
+        total: totalRows[0]?.total ?? 0,
+        count: docs.length,
+        limit: parseInt(limit),
+        offset: parseInt(offset)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Modifier le rôle d'un utilisateur (admin/user)
+// @route   PUT /api/admin/users/:id/role
+// @access  Private/Admin
+export const updateUserRole = async (req, res, next) => {
+  try {
+    const { role } = req.body;
+    const userId = parseInt(req.params.id);
+
+    if (!['user', 'admin'].includes(role)) {
+      return next(new AppError('Rôle invalide', 400));
+    }
+
+    if (req.user.id === userId) {
+      return next(new AppError('Impossible de modifier votre propre rôle', 400));
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new AppError('Utilisateur non trouvé', 404));
+    }
+
+    await User.updateRole(userId, role);
+
+    res.status(200).json({
+      success: true,
+      message: 'Rôle mis à jour avec succès'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Obtenir la bannière (admin)
+// @route   GET /api/admin/settings/banner
+// @access  Private/Admin
+export const getBannerSetting = async (req, res, next) => {
+  try {
+    const row = await SiteSetting.get('banner');
+    const value = row ? safeJsonParse(row.value_json) : null;
+    res.status(200).json({
+      success: true,
+      data: value ?? { enabled: false, message: '', variant: 'info' }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Mettre à jour la bannière (admin)
+// @route   PUT /api/admin/settings/banner
+// @access  Private/Admin
+export const updateBannerSetting = async (req, res, next) => {
+  try {
+    const { enabled = false, message = '', variant = 'info' } = req.body;
+
+    const saved = await SiteSetting.set('banner', {
+      enabled: Boolean(enabled),
+      message: String(message),
+      variant: String(variant)
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Bannière mise à jour',
+      data: safeJsonParse(saved.value_json)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Obtenir la tarification (admin)
+// @route   GET /api/admin/settings/pricing
+// @access  Private/Admin
+export const getPricingSetting = async (req, res, next) => {
+  try {
+    const row = await SiteSetting.get('pricing');
+    const value = row ? safeJsonParse(row.value_json) : null;
+    res.status(200).json({
+      success: true,
+      data: value ?? { pricingPlans: [], companyTypePrices: {} }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Mettre à jour la tarification (admin)
+// @route   PUT /api/admin/settings/pricing
+// @access  Private/Admin
+export const updatePricingSetting = async (req, res, next) => {
+  try {
+    const { pricingPlans = [], companyTypePrices = {} } = req.body;
+
+    const saved = await SiteSetting.set('pricing', {
+      pricingPlans,
+      companyTypePrices
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Tarification mise à jour',
+      data: safeJsonParse(saved.value_json)
     });
   } catch (error) {
     next(error);

@@ -26,6 +26,17 @@ export type UserDocument = {
   created_at: string;
 };
 
+export type SiteBanner = {
+  enabled: boolean;
+  message: string;
+  variant: "info" | "warning" | "success" | "danger";
+};
+
+export type PricingSetting = {
+  pricingPlans: Array<{ id: string; price: number }>;
+  companyTypePrices: Record<string, number>;
+};
+
 export async function apiRequest<T>(
   path: string,
   options: RequestInit & { token?: string } = {},
@@ -117,5 +128,65 @@ export async function downloadDocumentApi(token: string, id: number) {
   return apiRequestBlob(`/api/documents/${id}/download`, {
     method: "GET",
     token,
+  });
+}
+
+export async function getPublicBannerApi() {
+  return apiRequest<ApiResult<SiteBanner>>("/api/settings/banner", { method: "GET" });
+}
+
+export async function getPublicPricingApi() {
+  return apiRequest<ApiResult<PricingSetting>>("/api/settings/pricing", { method: "GET" });
+}
+
+export async function adminDashboardApi(token: string) {
+  return apiRequest<any>("/api/admin/dashboard", { method: "GET", token });
+}
+
+export async function adminUsersApi(token: string) {
+  return apiRequest<any>("/api/admin/users", { method: "GET", token });
+}
+
+export async function adminCompaniesApi(token: string) {
+  return apiRequest<any>("/api/admin/companies", { method: "GET", token });
+}
+
+export async function adminDocumentsApi(token: string) {
+  return apiRequest<any>("/api/admin/documents", { method: "GET", token });
+}
+
+export async function adminToggleUserStatusApi(token: string, userId: number) {
+  return apiRequest<any>(`/api/admin/users/${userId}/toggle-status`, { method: "PUT", token });
+}
+
+export async function adminUpdateUserRoleApi(token: string, userId: number, role: "user" | "admin") {
+  return apiRequest<any>(`/api/admin/users/${userId}/role`, {
+    method: "PUT",
+    token,
+    body: JSON.stringify({ role }),
+  });
+}
+
+export async function adminGetBannerApi(token: string) {
+  return apiRequest<ApiResult<SiteBanner>>("/api/admin/settings/banner", { method: "GET", token });
+}
+
+export async function adminUpdateBannerApi(token: string, payload: SiteBanner) {
+  return apiRequest<ApiResult<SiteBanner>>("/api/admin/settings/banner", {
+    method: "PUT",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminGetPricingApi(token: string) {
+  return apiRequest<ApiResult<PricingSetting>>("/api/admin/settings/pricing", { method: "GET", token });
+}
+
+export async function adminUpdatePricingApi(token: string, payload: PricingSetting) {
+  return apiRequest<ApiResult<PricingSetting>>("/api/admin/settings/pricing", {
+    method: "PUT",
+    token,
+    body: JSON.stringify(payload),
   });
 }

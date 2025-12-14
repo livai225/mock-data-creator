@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
+import { getPublicBannerApi, type SiteBanner } from "@/lib/api";
 
 const navLinks = [
   { href: "/", label: "Accueil" },
@@ -18,9 +19,37 @@ const navLinks = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const [banner, setBanner] = useState<SiteBanner | null>(null);
+
+  useEffect(() => {
+    getPublicBannerApi()
+      .then((res) => setBanner(res.data ?? null))
+      .catch(() => setBanner(null));
+  }, []);
+
+  const bannerClasses = useMemo(() => {
+    switch (banner?.variant) {
+      case "warning":
+        return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
+      case "success":
+        return "bg-emerald-500/10 text-emerald-700 border-emerald-500/20";
+      case "danger":
+        return "bg-destructive/10 text-destructive border-destructive/20";
+      case "info":
+      default:
+        return "bg-secondary/10 text-secondary border-secondary/20";
+    }
+  }, [banner?.variant]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      {banner?.enabled && banner.message ? (
+        <div className={cn("border-b", bannerClasses)}>
+          <div className="container py-2 text-center text-sm font-medium">
+            {banner.message}
+          </div>
+        </div>
+      ) : null}
       <div className="container flex h-20 items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
