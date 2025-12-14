@@ -1,6 +1,7 @@
 // Types de sociétés disponibles
 export type CompanyType = 
-  | 'SARL' 
+  | 'SARLU'
+  | 'SARL_PLURI'
   | 'EI' 
   | 'SNC' 
   | 'SCS' 
@@ -70,16 +71,34 @@ export interface Testimonial {
 // Données mockées
 export const companyTypes: CompanyTypeInfo[] = [
   {
-    id: 'SARL',
-    name: 'SARL',
-    fullName: 'Société à Responsabilité Limitée',
-    description: 'Forme juridique la plus courante pour les PME. Capital social flexible jusqu\'à 10 millions FCFA.',
+    id: 'SARLU',
+    name: 'SARL Unipersonnelle',
+    fullName: 'Société à Responsabilité Limitée Unipersonnelle',
+    description: 'Pour un entrepreneur unique avec responsabilité limitée au capital. Idéale pour les projets individuels.',
     capitalMin: 100000,
     capitalMax: 10000000,
     requiresNotary: false,
     documentsGenerated: ['Statuts', 'DSV', 'Contrat de bail', 'Liste des dirigeants', 'PV de constitution', 'Formulaire CEPICI'],
     estimatedTime: '24-48h',
     price: 75000,
+  },
+  {
+    id: 'SARL_PLURI',
+    name: 'SARL Pluripersonnelle',
+    fullName: 'Société à Responsabilité Limitée Pluripersonnelle',
+    description: 'Pour 2 à 100 associés. Forme juridique la plus courante pour les PME en Côte d\'Ivoire.',
+    capitalMin: 100000,
+    capitalMax: 10000000,
+    requiresNotary: false,
+    documentsGenerated: [
+      'Statuts SARL',
+      'Contrat de bail commercial',
+      'Formulaire unique CEPICI',
+      'Liste des dirigeants/gérants',
+      'Déclaration sur l\'honneur (greffe)'
+    ],
+    estimatedTime: '48-72h',
+    price: 95000,
   },
   {
     id: 'EI',

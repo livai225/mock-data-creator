@@ -26,8 +26,9 @@ import {
 } from "lucide-react";
 import { companyTypes, type CompanyTypeInfo } from "@/lib/mock-data";
 import { toast } from "sonner";
+import { SARLPluriForm } from "@/components/forms/SARLPluriForm";
 
-type Step = 'type' | 'info' | 'associes' | 'recap' | 'contact';
+type Step = 'type' | 'info' | 'associes' | 'recap' | 'contact' | 'sarl-pluri';
 
 interface FormData {
   companyType: CompanyTypeInfo | null;
@@ -63,6 +64,8 @@ export default function CreationEntreprise() {
     setFormData({ ...formData, companyType: company });
     if (company.requiresNotary) {
       setStep('contact');
+    } else if (company.id === 'SARL_PLURI') {
+      setStep('sarl-pluri');
     } else {
       setStep('info');
     }
@@ -86,13 +89,22 @@ export default function CreationEntreprise() {
           "Adresse du domicile du promoteur (si différente du siège)",
         ];
 
-      case "SARL":
+      case "SARLU":
         return [
           ...base,
           "Dénomination sociale",
           "Capital social (≤ 10M FCFA si procédure standard)",
-          "Informations des associés (identité, parts, apports)",
-          "Identité du gérant",
+          "Identité du gérant unique",
+        ];
+
+      case "SARL_PLURI":
+        return [
+          ...base,
+          "Dénomination sociale et sigle",
+          "Capital social et répartition des parts",
+          "Informations complètes de chaque associé (min. 2)",
+          "Identité du gérant (représentant légal)",
+          "Informations du bailleur (contrat de bail)",
         ];
 
       case "SNC":
@@ -182,8 +194,8 @@ export default function CreationEntreprise() {
         </div>
       </section>
 
-      {/* Progress */}
-      {step !== 'contact' && (
+      {/* Progress - Only for standard forms, not SARL Pluri */}
+      {step !== 'contact' && step !== 'sarl-pluri' && (
         <div className="bg-muted/50 py-6">
           <div className="container">
             <div className="flex items-center justify-between max-w-2xl mx-auto">
@@ -333,8 +345,16 @@ export default function CreationEntreprise() {
                     </div>
                   </DialogFooter>
                 </DialogContent>
-              </Dialog>
+            </Dialog>
             </div>
+          )}
+
+          {/* SARL Pluripersonnelle Form */}
+          {step === 'sarl-pluri' && formData.companyType && (
+            <SARLPluriForm 
+              onBack={() => setStep('type')} 
+              price={formData.companyType.price}
+            />
           )}
 
           {/* Step 2: Company Info */}
