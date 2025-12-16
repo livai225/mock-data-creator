@@ -12,6 +12,7 @@ import DocumentsGeneres from "./pages/DocumentsGeneres";
 import Connexion from "./pages/Connexion";
 import Inscription from "./pages/Inscription";
 import EspaceDocuments from "./pages/EspaceDocuments";
+import ClientDashboard from "./pages/ClientDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminCompanies from "./pages/admin/AdminCompanies";
