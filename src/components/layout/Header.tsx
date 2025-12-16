@@ -8,7 +8,6 @@ import { getPublicBannerApi, type SiteBanner } from "@/lib/api";
 
 const navLinks = [
   { href: "/", label: "Accueil" },
-  { href: "/creation-entreprise", label: "Créer mon entreprise" },
   { href: "/services", label: "Services" },
   { href: "/fiscalite", label: "Fiscalité" },
   { href: "/boutique", label: "E-Books" },
