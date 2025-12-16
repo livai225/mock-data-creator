@@ -125,6 +125,20 @@ export async function getMyDocumentsApi(token: string) {
   });
 }
 
+export async function getMyCompaniesApi(token: string) {
+  return apiRequest<ApiResult<any[]>>("/api/companies", {
+    method: "GET",
+    token,
+  });
+}
+
+export async function getMyStatsApi(token: string) {
+  return apiRequest<ApiResult<any>>("/api/companies/stats/me", {
+    method: "GET",
+    token,
+  });
+}
+
 export async function downloadDocumentApi(token: string, id: number) {
   return apiRequestBlob(`/api/documents/${id}/download`, {
     method: "GET",

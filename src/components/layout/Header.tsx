@@ -82,6 +82,23 @@ export function Header() {
             <Phone className="h-4 w-4" />
             01 51 25 29 99
           </a>
+          
+          {isAuthenticated ? (
+            <Button variant="ghost" className="hidden sm:flex gap-2" asChild>
+              <Link to={user?.role === 'admin' ? "/admin" : "/dashboard"}>
+                <User className="h-4 w-4" />
+                Mon Espace
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="ghost" className="hidden sm:flex gap-2" asChild>
+              <Link to="/connexion">
+                <LogIn className="h-4 w-4" />
+                Connexion
+              </Link>
+            </Button>
+          )}
+
           <Button variant="gold" className="hidden sm:flex" asChild>
             <Link to="/creation-entreprise">Créer mon entreprise</Link>
           </Button>
@@ -113,6 +130,27 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
+            
+            {isAuthenticated ? (
+              <Link
+                to={user?.role === 'admin' ? "/admin" : "/dashboard"}
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-4 py-3 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted flex items-center gap-2"
+              >
+                <User className="h-4 w-4" />
+                Mon Espace
+              </Link>
+            ) : (
+              <Link
+                to="/connexion"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-4 py-3 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted flex items-center gap-2"
+              >
+                <LogIn className="h-4 w-4" />
+                Connexion
+              </Link>
+            )}
+
             <Button variant="gold" className="mt-2" asChild>
               <Link to="/creation-entreprise" onClick={() => setMobileMenuOpen(false)}>
                 Créer mon entreprise

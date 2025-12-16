@@ -18,7 +18,8 @@ export default function Connexion() {
   const { login, loading } = useAuth();
 
   const state = (location.state ?? {}) as LocationState;
-  const redirectTo = state.redirectTo ?? "/espace/documents";
+  // Default redirect is now /dashboard for users
+  const redirectTo = state.redirectTo;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +33,7 @@ export default function Connexion() {
           <Card>
             <CardHeader>
               <CardTitle>Connexion</CardTitle>
-              <CardDescription>Connecte-toi pour accéder à tes documents.</CardDescription>
+              <CardDescription>Connecte-toi pour accéder à ton espace.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -64,8 +65,13 @@ export default function Connexion() {
                 onClick={async () => {
                   setSubmitting(true);
                   try {
-                    await login(email, password);
-                    navigate(redirectTo, { replace: true });
+                    const user = await login(email, password);
+                    
+                    if (user.role === 'admin') {
+                      navigate("/admin", { replace: true });
+                    } else {
+                      navigate(redirectTo ?? "/dashboard", { replace: true });
+                    }
                   } catch (e: any) {
                     toast.error(e?.message ?? "Connexion impossible");
                   } finally {

@@ -41,6 +41,7 @@ const App = () => (
             <Route path="/connexion" element={<Connexion />} />
             <Route path="/inscription" element={<Inscription />} />
             <Route path="/espace/documents" element={<EspaceDocuments />} />
+            <Route path="/dashboard" element={<ClientDashboard />} />
 
             <Route
               path="/admin"
