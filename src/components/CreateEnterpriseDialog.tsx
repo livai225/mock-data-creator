@@ -48,7 +48,16 @@ export function CreateEnterpriseDialog({ children, to = "/creation-entreprise" }
           "Adresse du domicile du promoteur (si différente du siège)",
         ];
 
-      case "SARL":
+      case "SARLU":
+        return [
+          ...base,
+          "Dénomination sociale",
+          "Capital social (≤ 10M FCFA si procédure standard)",
+          "Informations de l'associé unique (identité, apports)",
+          "Identité du gérant",
+        ];
+
+      case "SARL_PLURI":
         return [
           ...base,
           "Dénomination sociale",
