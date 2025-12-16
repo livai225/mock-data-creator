@@ -1,75 +1,216 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/auth/AuthContext";
 import { adminDocumentsApi, downloadDocumentApi } from "@/lib/api";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { SearchInput } from "@/components/admin/SearchInput";
+import { FileText, Download, Calendar, User } from "lucide-react";
+import { toast } from "sonner";
+
+type FilterType = "all" | string;
 
 export default function AdminDocuments() {
   const { token } = useAuth();
   const [rows, setRows] = useState<any[]>([]);
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState<FilterType>("all");
 
   useEffect(() => {
     if (!token) return;
     adminDocumentsApi(token).then((r) => setRows(r.data ?? [])).catch(() => setRows([]));
   }, [token]);
 
+  const documentTypes = useMemo(() => {
+    const types = new Set(rows.map((d) => d.doc_name));
+    return Array.from(types).sort();
+  }, [rows]);
+
+  const filteredRows = useMemo(() => {
+    return rows.filter((d) => {
+      const matchSearch = d.doc_name?.toLowerCase().includes(search.toLowerCase()) ||
+        d.user_email?.toLowerCase().includes(search.toLowerCase());
+      const matchType = filterType === "all" || d.doc_name === filterType;
+      return matchSearch && matchType;
+    });
+  }, [rows, search, filterType]);
+
+  const stats = useMemo(() => ({
+    total: rows.length,
+    thisWeek: rows.filter((d) => {
+      if (!d.created_at) return false;
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return new Date(d.created_at) > weekAgo;
+    }).length,
+    types: documentTypes.length,
+  }), [rows, documentTypes]);
+
+  const handleDownload = async (doc: any) => {
+    if (!token) return;
+    try {
+      const blob = await downloadDocumentApi(token, doc.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = doc.file_name || `${doc.doc_name}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Document téléchargé");
+    } catch {
+      toast.error("Erreur lors du téléchargement");
+    }
+  };
+
+  const handleBatchDownload = async () => {
+    for (const doc of filteredRows.slice(0, 10)) {
+      await handleDownload(doc);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-bold">Documents</h1>
+      <AdminPageHeader 
+        title="Documents" 
+        description="Consultez et téléchargez les documents générés"
+        actions={
+          <Button variant="outline" onClick={handleBatchDownload} disabled={filteredRows.length === 0}>
+            <Download className="h-4 w-4 mr-2" />
+            Télécharger sélection
+          </Button>
+        }
+      />
 
+      {/* Stats */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card>
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="rounded-full bg-primary/10 p-2">
+              <FileText className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{stats.total}</p>
+              <p className="text-sm text-muted-foreground">Documents totaux</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="rounded-full bg-emerald-100 p-2">
+              <Calendar className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{stats.thisWeek}</p>
+              <p className="text-sm text-muted-foreground">Cette semaine</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="rounded-full bg-blue-100 p-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{stats.types}</p>
+              <p className="text-sm text-muted-foreground">Types de documents</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle>Liste</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle>Liste des documents</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Télécharger</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((d) => (
-                <TableRow key={d.id}>
-                  <TableCell className="font-medium">{d.doc_name}</TableCell>
-                  <TableCell>{d.user_email ?? "-"}</TableCell>
-                  <TableCell>{d.created_at ? new Date(d.created_at).toLocaleString() : "-"}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="gold"
-                      type="button"
-                      onClick={async () => {
-                        if (!token) return;
-                        const blob = await downloadDocumentApi(token, d.id);
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = d.file_name || `${d.doc_name}.pdf`;
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        URL.revokeObjectURL(url);
-                      }}
-                    >
-                      Télécharger
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {rows.length === 0 && (
+        <CardContent className="space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="flex-1">
+              <SearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder="Rechercher par nom ou email..."
+              />
+            </div>
+            <Select value={filterType} onValueChange={(v) => setFilterType(v)}>
+              <SelectTrigger className="w-full sm:w-[250px]">
+                <SelectValue placeholder="Type de document" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les types</SelectItem>
+                {documentTypes.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-muted-foreground">
-                    Aucun document.
-                  </TableCell>
+                  <TableHead>Document</TableHead>
+                  <TableHead>Utilisateur</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredRows.map((d) => (
+                  <TableRow key={d.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-lg bg-primary/10 p-2">
+                          <FileText className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{d.doc_name}</p>
+                          <p className="text-sm text-muted-foreground">{d.file_name || "document.pdf"}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <User className="h-4 w-4" />
+                        {d.user_email ?? "-"}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {d.created_at ? new Date(d.created_at).toLocaleDateString() : "-"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="gold"
+                        onClick={() => handleDownload(d)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Télécharger
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredRows.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      Aucun document trouvé
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            {filteredRows.length} document(s) sur {rows.length}
+          </p>
         </CardContent>
       </Card>
     </div>

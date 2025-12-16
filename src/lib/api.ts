@@ -152,6 +152,14 @@ export async function adminCompaniesApi(token: string) {
   return apiRequest<any>("/api/admin/companies", { method: "GET", token });
 }
 
+export async function adminUpdateCompanyStatusApi(token: string, companyId: string, status: string) {
+  return apiRequest<any>(`/api/admin/companies/${companyId}/status`, {
+    method: "PUT",
+    token,
+    body: JSON.stringify({ status }),
+  });
+}
+
 export async function adminDocumentsApi(token: string) {
   return apiRequest<any>("/api/admin/documents", { method: "GET", token });
 }
