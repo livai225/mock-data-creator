@@ -84,6 +84,23 @@ export function Header() {
             <Phone className="h-4 w-4" />
             01 51 25 29 99
           </a>
+
+          {isAuthenticated ? (
+            <Button variant="ghost" className="hidden sm:flex" asChild>
+              <Link to={user?.role === "admin" ? "/admin" : "/dashboard"}>
+                <User className="mr-2 h-4 w-4" />
+                Mon Espace
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="ghost" className="hidden sm:flex" asChild>
+              <Link to="/connexion">
+                <LogIn className="mr-2 h-4 w-4" />
+                Connexion
+              </Link>
+            </Button>
+          )}
+
           <Button variant="gold" className="hidden sm:flex" asChild>
             <Link to="/creation-entreprise">Créer mon entreprise</Link>
           </Button>
