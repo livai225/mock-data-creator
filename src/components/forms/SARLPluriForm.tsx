@@ -7,6 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
+  SARLPluriFormData, 
+  SARLPluriStep, 
+  sarlPluriSteps, 
+  defaultSARLPluriFormData,
+  defaultAssocieInfo,
+  AssocieInfo,
+  GerantInfo,
+  defaultGerantInfo,
+  defaultGerantInfoList
+} from "@/lib/sarl-pluri-types";
+import { 
   ArrowRight, 
   ArrowLeft,
   Plus,
@@ -72,6 +83,31 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
     }
   };
 
+  const updateGerant = (index: number, field: keyof GerantInfo, value: string | number) => {
+    const newGerants = [...formData.gerants];
+    newGerants[index] = { ...newGerants[index], [field]: value };
+    setFormData(prev => ({ ...prev, gerants: newGerants }));
+  };
+
+  const addGerant = () => {
+    const newGerant: GerantInfo = { 
+      ...defaultGerantInfo, 
+      id: String(formData.gerants.length + 1) 
+    };
+    setFormData(prev => ({ ...prev, gerants: [...prev.gerants, newGerant] }));
+  };
+
+  const removeGerant = (index: number) => {
+    if (formData.gerants.length > 1) {
+      setFormData(prev => ({ 
+        ...prev, 
+        gerants: prev.gerants.filter((_, i) => i !== index) 
+      }));
+    } else {
+      toast.error("Il faut au moins un gérant");
+    }
+  };
+
   const nextStep = () => {
     const currentIndex = sarlPluriSteps.findIndex(s => s.id === step);
     if (currentIndex < sarlPluriSteps.length - 1) {
@@ -89,6 +125,10 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
   };
 
   const handleGenerate = async () => {
+    // Determine main manager name for legacy/display purposes
+    const mainManager = formData.gerants[0];
+    const gerantName = `${mainManager.nom} ${mainManager.prenoms}`;
+
     const payload = {
       companyType: 'SARL_PLURI',
       companyName: formData.denominationSociale,
@@ -96,11 +136,28 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
       capital: formData.capitalSocial,
       address: formData.adresseSiege,
       city: formData.ville,
-      gerant: `${formData.gerantNom} ${formData.gerantPrenoms}`,
+      gerant: gerantName,
       paymentAmount: price,
+      chiffreAffairesPrev: formData.chiffreAffairesPrev,
       associates: formData.associes.map(a => ({
         name: `${a.nom} ${a.prenoms}`,
         parts: a.nombreParts
+      })),
+      managers: formData.gerants.map((g, idx) => ({
+        nom: g.nom,
+        prenoms: g.prenoms,
+        dateNaissance: g.dateNaissance,
+        lieuNaissance: g.lieuNaissance,
+        nationalite: g.nationalite,
+        adresse: g.adresse,
+        typeIdentite: g.typeIdentite,
+        numeroIdentite: g.numeroIdentite,
+        dateDelivranceId: g.dateDelivranceId,
+        lieuDelivranceId: g.lieuDelivranceId,
+        pereNom: g.pereNom,
+        mereNom: g.mereNom,
+        dureeMandat: g.dureeMandat === 'determinee' ? `${g.dureeMandatAnnees} ans` : 'Durée indéterminée',
+        isMain: idx === 0
       })),
       docs: docs,
       companyTypeName: companyTypeName
@@ -234,9 +291,9 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="dureeAnnees">Durée de la société (années) *</Label>
+                <Label htmlFor="dureeAnnees">Durée (années) *</Label>
                 <Input
                   id="dureeAnnees"
                   type="number"
@@ -251,6 +308,15 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                   type="date"
                   value={formData.dateConstitution}
                   onChange={(e) => updateField('dateConstitution', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="chiffreAffairesPrev">CA Prévisionnel</Label>
+                <Input
+                  id="chiffreAffairesPrev"
+                  placeholder="Ex: 5.000.000 FCFA"
+                  value={formData.chiffreAffairesPrev}
+                  onChange={(e) => updateField('chiffreAffairesPrev', e.target.value)}
                 />
               </div>
             </div>
@@ -612,7 +678,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         </Card>
       )}
 
-      {/* Step 4: Gérant */}
+      {/* Step 4: Gérants */}
       {step === 'gerant' && (
         <Card>
           <CardHeader>
@@ -620,135 +686,174 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
               <User className="h-5 w-5" />
               <span className="text-sm font-medium">Étape 4/5</span>
             </div>
-            <CardTitle>Gérant de la société</CardTitle>
+            <CardTitle>Gérance de la société</CardTitle>
             <CardDescription>
-              Renseignez les informations du gérant (représentant légal).
+              Renseignez les informations des gérants (représentants légaux).
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="gerantNom">Nom *</Label>
-                <Input
-                  id="gerantNom"
-                  placeholder="Nom de famille"
-                  value={formData.gerantNom}
-                  onChange={(e) => updateField('gerantNom', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gerantPrenoms">Prénom(s) *</Label>
-                <Input
-                  id="gerantPrenoms"
-                  value={formData.gerantPrenoms}
-                  onChange={(e) => updateField('gerantPrenoms', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gerantDateNaissance">Date de naissance *</Label>
-                <Input
-                  id="gerantDateNaissance"
-                  type="date"
-                  value={formData.gerantDateNaissance}
-                  onChange={(e) => updateField('gerantDateNaissance', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gerantLieuNaissance">Lieu de naissance *</Label>
-                <Input
-                  id="gerantLieuNaissance"
-                  value={formData.gerantLieuNaissance}
-                  onChange={(e) => updateField('gerantLieuNaissance', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gerantNationalite">Nationalité *</Label>
-                <Input
-                  id="gerantNationalite"
-                  value={formData.gerantNationalite}
-                  onChange={(e) => updateField('gerantNationalite', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gerantAdresse">Adresse domicile *</Label>
-                <Input
-                  id="gerantAdresse"
-                  value={formData.gerantAdresse}
-                  onChange={(e) => updateField('gerantAdresse', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Type d'identité *</Label>
-                <Select
-                  value={formData.gerantTypeIdentite}
-                  onValueChange={(value: 'CNI' | 'Passeport') => updateField('gerantTypeIdentite', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CNI">CNI</SelectItem>
-                    <SelectItem value="Passeport">Passeport</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gerantNumeroIdentite">N° d'identité *</Label>
-                <Input
-                  id="gerantNumeroIdentite"
-                  value={formData.gerantNumeroIdentite}
-                  onChange={(e) => updateField('gerantNumeroIdentite', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gerantDateDelivranceId">Date de délivrance *</Label>
-                <Input
-                  id="gerantDateDelivranceId"
-                  type="date"
-                  value={formData.gerantDateDelivranceId}
-                  onChange={(e) => updateField('gerantDateDelivranceId', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gerantLieuDelivranceId">Lieu de délivrance *</Label>
-                <Input
-                  id="gerantLieuDelivranceId"
-                  value={formData.gerantLieuDelivranceId}
-                  onChange={(e) => updateField('gerantLieuDelivranceId', e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="border-t pt-4 mt-4">
-              <h4 className="font-semibold mb-4">Durée du mandat</h4>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Type de mandat *</Label>
-                  <Select
-                    value={formData.gerantDureeMandat}
-                    onValueChange={(value: 'determinee' | 'indeterminee') => updateField('gerantDureeMandat', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="indeterminee">Durée indéterminée</SelectItem>
-                      <SelectItem value="determinee">Durée déterminée</SelectItem>
-                    </SelectContent>
-                  </Select>
+            {formData.gerants.map((gerant, index) => (
+              <div key={gerant.id} className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Gérant {index + 1}</h4>
+                  {formData.gerants.length > 1 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-destructive"
+                      onClick={() => removeGerant(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-                {formData.gerantDureeMandat === 'determinee' && (
+
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Durée (années) *</Label>
+                    <Label htmlFor={`gerantNom-${index}`}>Nom *</Label>
                     <Input
-                      type="number"
-                      value={formData.gerantDureeMandatAnnees || ''}
-                      onChange={(e) => updateField('gerantDureeMandatAnnees', Number(e.target.value))}
+                      id={`gerantNom-${index}`}
+                      placeholder="Nom de famille"
+                      value={gerant.nom}
+                      onChange={(e) => updateGerant(index, 'nom', e.target.value)}
                     />
                   </div>
-                )}
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantPrenoms-${index}`}>Prénom(s) *</Label>
+                    <Input
+                      id={`gerantPrenoms-${index}`}
+                      value={gerant.prenoms}
+                      onChange={(e) => updateGerant(index, 'prenoms', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantDateNaissance-${index}`}>Date de naissance *</Label>
+                    <Input
+                      id={`gerantDateNaissance-${index}`}
+                      type="date"
+                      value={gerant.dateNaissance}
+                      onChange={(e) => updateGerant(index, 'dateNaissance', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantLieuNaissance-${index}`}>Lieu de naissance *</Label>
+                    <Input
+                      id={`gerantLieuNaissance-${index}`}
+                      value={gerant.lieuNaissance}
+                      onChange={(e) => updateGerant(index, 'lieuNaissance', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantNationalite-${index}`}>Nationalité *</Label>
+                    <Input
+                      id={`gerantNationalite-${index}`}
+                      value={gerant.nationalite}
+                      onChange={(e) => updateGerant(index, 'nationalite', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantAdresse-${index}`}>Adresse domicile *</Label>
+                    <Input
+                      id={`gerantAdresse-${index}`}
+                      value={gerant.adresse}
+                      onChange={(e) => updateGerant(index, 'adresse', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Type d'identité *</Label>
+                    <Select
+                      value={gerant.typeIdentite}
+                      onValueChange={(value: 'CNI' | 'Passeport') => updateGerant(index, 'typeIdentite', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CNI">CNI</SelectItem>
+                        <SelectItem value="Passeport">Passeport</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantNumeroIdentite-${index}`}>N° d'identité *</Label>
+                    <Input
+                      id={`gerantNumeroIdentite-${index}`}
+                      value={gerant.numeroIdentite}
+                      onChange={(e) => updateGerant(index, 'numeroIdentite', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantDateDelivranceId-${index}`}>Date de délivrance *</Label>
+                    <Input
+                      id={`gerantDateDelivranceId-${index}`}
+                      type="date"
+                      value={gerant.dateDelivranceId}
+                      onChange={(e) => updateGerant(index, 'dateDelivranceId', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantLieuDelivranceId-${index}`}>Lieu de délivrance *</Label>
+                    <Input
+                      id={`gerantLieuDelivranceId-${index}`}
+                      value={gerant.lieuDelivranceId}
+                      onChange={(e) => updateGerant(index, 'lieuDelivranceId', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantPereNom-${index}`}>Nom et Prénoms du Père</Label>
+                    <Input
+                      id={`gerantPereNom-${index}`}
+                      value={gerant.pereNom}
+                      onChange={(e) => updateGerant(index, 'pereNom', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantMereNom-${index}`}>Nom et Prénoms de la Mère</Label>
+                    <Input
+                      id={`gerantMereNom-${index}`}
+                      value={gerant.mereNom}
+                      onChange={(e) => updateGerant(index, 'mereNom', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="font-semibold mb-4">Durée du mandat</h4>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Type de mandat *</Label>
+                      <Select
+                        value={gerant.dureeMandat}
+                        onValueChange={(value: 'determinee' | 'indeterminee') => updateGerant(index, 'dureeMandat', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="indeterminee">Durée indéterminée</SelectItem>
+                          <SelectItem value="determinee">Durée déterminée</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {gerant.dureeMandat === 'determinee' && (
+                      <div className="space-y-2">
+                        <Label>Durée (années) *</Label>
+                        <Input
+                          type="number"
+                          value={gerant.dureeMandatAnnees || ''}
+                          onChange={(e) => updateGerant(index, 'dureeMandatAnnees', Number(e.target.value))}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
+
+            <Button variant="outline" onClick={addGerant} className="w-full">
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter un gérant
+            </Button>
 
             <div className="flex justify-between pt-4">
               <Button variant="ghost" onClick={prevStep}>
@@ -835,21 +940,28 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
               <div className="space-y-4">
                 <h4 className="font-semibold flex items-center gap-2">
                   <User className="h-4 w-4 text-secondary" />
-                  Gérant
+                  Gérance ({formData.gerants.length})
                 </h4>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Nom</span>
-                    <span className="font-medium">{formData.gerantNom} {formData.gerantPrenoms}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Mandat</span>
-                    <span className="font-medium">
-                      {formData.gerantDureeMandat === 'indeterminee' 
-                        ? 'Durée indéterminée' 
-                        : `${formData.gerantDureeMandatAnnees} ans`}
-                    </span>
-                  </div>
+                  {formData.gerants.map((g, i) => (
+                    <div key={g.id} className="border-b pb-2 last:border-0 last:pb-0">
+                      <div className="flex justify-between font-medium text-secondary">
+                        <span>Gérant {i + 1}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Nom</span>
+                        <span className="font-medium">{g.nom} {g.prenoms}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Mandat</span>
+                        <span className="font-medium">
+                          {g.dureeMandat === 'indeterminee' 
+                            ? 'Durée indéterminée' 
+                            : `${g.dureeMandatAnnees} ans`}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

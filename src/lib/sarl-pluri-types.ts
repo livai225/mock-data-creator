@@ -28,6 +28,7 @@ export interface SARLPluriFormData {
   objetSocial: string;
   dureeAnnees: number;
   dateConstitution: string;
+  chiffreAffairesPrev: string;
   
   // Siège social
   adresseSiege: string;
@@ -49,19 +50,26 @@ export interface SARLPluriFormData {
   // Associés (tableau - minimum 2)
   associes: AssocieInfo[];
   
-  // Gérant
-  gerantNom: string;
-  gerantPrenoms: string;
-  gerantDateNaissance: string;
-  gerantLieuNaissance: string;
-  gerantNationalite: string;
-  gerantAdresse: string;
-  gerantTypeIdentite: 'CNI' | 'Passeport';
-  gerantNumeroIdentite: string;
-  gerantDateDelivranceId: string;
-  gerantLieuDelivranceId: string;
-  gerantDureeMandat: 'determinee' | 'indeterminee';
-  gerantDureeMandatAnnees?: number;
+  // Gérants (tableau - minimum 1)
+  gerants: GerantInfo[];
+}
+
+export interface GerantInfo {
+  id: string;
+  nom: string;
+  prenoms: string;
+  dateNaissance: string;
+  lieuNaissance: string;
+  nationalite: string;
+  adresse: string;
+  typeIdentite: 'CNI' | 'Passeport';
+  numeroIdentite: string;
+  dateDelivranceId: string;
+  lieuDelivranceId: string;
+  pereNom: string;
+  mereNom: string;
+  dureeMandat: 'determinee' | 'indeterminee';
+  dureeMandatAnnees?: number;
 }
 
 export const defaultAssocieInfo: AssocieInfo = {
@@ -82,6 +90,24 @@ export const defaultAssocieInfo: AssocieInfo = {
   apportNumeraire: 0,
 };
 
+export const defaultGerantInfo: GerantInfo = {
+  id: '',
+  nom: '',
+  prenoms: '',
+  dateNaissance: '',
+  lieuNaissance: '',
+  nationalite: 'Ivoirienne',
+  adresse: '',
+  typeIdentite: 'CNI',
+  numeroIdentite: '',
+  dateDelivranceId: '',
+  lieuDelivranceId: '',
+  pereNom: '',
+  mereNom: '',
+  dureeMandat: 'indeterminee',
+  dureeMandatAnnees: undefined,
+};
+
 export const defaultSARLPluriFormData: SARLPluriFormData = {
   denominationSociale: '',
   sigle: '',
@@ -91,6 +117,7 @@ export const defaultSARLPluriFormData: SARLPluriFormData = {
   objetSocial: '',
   dureeAnnees: 99,
   dateConstitution: new Date().toISOString().split('T')[0],
+  chiffreAffairesPrev: '',
   
   adresseSiege: '',
   commune: '',
@@ -112,18 +139,9 @@ export const defaultSARLPluriFormData: SARLPluriFormData = {
     { ...defaultAssocieInfo, id: '2' },
   ],
   
-  gerantNom: '',
-  gerantPrenoms: '',
-  gerantDateNaissance: '',
-  gerantLieuNaissance: '',
-  gerantNationalite: 'Ivoirienne',
-  gerantAdresse: '',
-  gerantTypeIdentite: 'CNI',
-  gerantNumeroIdentite: '',
-  gerantDateDelivranceId: '',
-  gerantLieuDelivranceId: '',
-  gerantDureeMandat: 'indeterminee',
-  gerantDureeMandatAnnees: undefined,
+  gerants: [
+    { ...defaultGerantInfo, id: '1' }
+  ],
 };
 
 export type SARLPluriStep = 'societe' | 'siege' | 'associes' | 'gerant' | 'recap';

@@ -79,6 +79,20 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
         name: `${formData.associeNom} ${formData.associePrenoms}`,
         parts: formData.nombreParts
       }],
+      managers: [{
+        nom: formData.associeNom,
+        prenoms: formData.associePrenoms,
+        dateNaissance: formData.associeDateNaissance,
+        villeResidence: formData.associeVilleResidence,
+        pereNom: formData.associePereNom,
+        mereNom: formData.associeMereNom,
+        typeIdentite: formData.associeTypeIdentite,
+        numeroIdentite: formData.associeNumeroIdentite,
+        dateDelivranceId: formData.associeDateDelivranceId,
+        dateValiditeId: formData.associeDateValiditeId,
+        lieuDelivranceId: formData.associeLieuDelivranceId,
+        dureeMandat: formData.gerantDureeMandat
+      }],
       docs: docs,
       companyTypeName: companyTypeName
     };
@@ -449,49 +463,32 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="associeLieuNaissance">Lieu de naissance *</Label>
-                <Input
-                  id="associeLieuNaissance"
-                  value={formData.associeLieuNaissance}
-                  onChange={(e) => updateField('associeLieuNaissance', e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="associeNationalite">Nationalité *</Label>
-                <Input
-                  id="associeNationalite"
-                  value={formData.associeNationalite}
-                  onChange={(e) => updateField('associeNationalite', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="associeProfession">Profession *</Label>
-                <Input
-                  id="associeProfession"
-                  value={formData.associeProfession}
-                  onChange={(e) => updateField('associeProfession', e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="associeAdresseDomicile">Adresse domicile *</Label>
-                <Input
-                  id="associeAdresseDomicile"
-                  value={formData.associeAdresseDomicile}
-                  onChange={(e) => updateField('associeAdresseDomicile', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="associeVilleResidence">Ville de résidence *</Label>
                 <Input
                   id="associeVilleResidence"
                   value={formData.associeVilleResidence}
                   onChange={(e) => updateField('associeVilleResidence', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="associePereNom">Nom du père *</Label>
+                <Input
+                  id="associePereNom"
+                  placeholder="Nom complet du père"
+                  value={formData.associePereNom}
+                  onChange={(e) => updateField('associePereNom', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="associeMereNom">Nom de la mère *</Label>
+                <Input
+                  id="associeMereNom"
+                  placeholder="Nom complet de la mère"
+                  value={formData.associeMereNom}
+                  onChange={(e) => updateField('associeMereNom', e.target.value)}
                 />
               </div>
             </div>
@@ -798,6 +795,14 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Nom</span>
                     <span className="font-medium">{formData.associeNom} {formData.associePrenoms}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Père</span>
+                    <span className="font-medium">{formData.associePereNom}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Mère</span>
+                    <span className="font-medium">{formData.associeMereNom}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Profession</span>

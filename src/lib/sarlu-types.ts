@@ -52,6 +52,8 @@ export interface SARLUFormData {
   associeDateDelivranceId: string;
   associeDateValiditeId: string;
   associeLieuDelivranceId: string;
+  associePereNom: string;
+  associeMereNom: string;
   
   // Déclarant (peut être le même que l'associé)
   declarantEstAssocie: boolean;
@@ -113,6 +115,8 @@ export const defaultSARLUFormData: SARLUFormData = {
   associeDateDelivranceId: '',
   associeDateValiditeId: '',
   associeLieuDelivranceId: '',
+  associePereNom: '',
+  associeMereNom: '',
   
   declarantEstAssocie: true,
   declarantNom: '',

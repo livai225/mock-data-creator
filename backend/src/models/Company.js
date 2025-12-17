@@ -12,16 +12,18 @@ class Company {
         capital,
         address,
         city,
-        gerant,
-        paymentAmount
+        gerant, // Legacy field, kept for quick display or backward compat
+        paymentAmount,
+        chiffreAffairesPrev,
+        managers = [] // New array of managers
       } = companyData;
 
       // Insérer l'entreprise
       const [result] = await connection.execute(
         `INSERT INTO companies 
-        (user_id, company_type, company_name, activity, capital, address, city, gerant, payment_amount, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
-        [userId, companyType, companyName, activity, capital, address, city, gerant, paymentAmount]
+        (user_id, company_type, company_name, activity, capital, address, city, gerant, payment_amount, chiffre_affaires_prev, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
+        [userId, companyType, companyName, activity, capital, address, city, gerant, paymentAmount, chiffreAffairesPrev]
       );
 
       const companyId = result.insertId;
@@ -35,6 +37,25 @@ class Company {
           await connection.execute(
             'INSERT INTO associates (company_id, name, parts, percentage) VALUES (?, ?, ?, ?)',
             [companyId, associate.name, associate.parts, percentage.toFixed(2)]
+          );
+        }
+      }
+
+      // Insérer les gérants
+      if (managers.length > 0) {
+        for (const mgr of managers) {
+          await connection.execute(
+            `INSERT INTO managers 
+            (company_id, nom, prenoms, date_naissance, lieu_naissance, nationalite, adresse, 
+             type_identite, numero_identite, date_delivrance_id, lieu_delivrance_id, 
+             pere_nom, mere_nom, duree_mandat, is_main)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              companyId, mgr.nom, mgr.prenoms, mgr.dateNaissance, mgr.lieuNaissance, 
+              mgr.nationalite, mgr.adresse, mgr.typeIdentite, mgr.numeroIdentite,
+              mgr.dateDelivranceId, mgr.lieuDelivranceId, mgr.pereNom, mgr.mereNom,
+              mgr.dureeMandat, mgr.isMain || false
+            ]
           );
         }
       }
@@ -66,7 +87,15 @@ class Company {
       [id]
     );
 
+    // Récupérer les gérants
+    const managers = await query(
+      'SELECT * FROM managers WHERE company_id = ?',
+      [id]
+    );
+
     company.associates = associates;
+    company.managers = managers;
+    
     return company;
   }
 
