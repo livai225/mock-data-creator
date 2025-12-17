@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/auth/AuthContext";
+import { toast } from "sonner";
 
 type LocationState = {
   redirectTo?: string;
@@ -82,6 +83,8 @@ export default function Inscription() {
                     }
 
                     navigate(redirectTo, { replace: true });
+                  } catch (e: any) {
+                    toast.error(e?.message ?? "Inscription impossible");
                   } finally {
                     setSubmitting(false);
                   }
