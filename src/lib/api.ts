@@ -154,6 +154,17 @@ export async function downloadDocumentApi(token: string, id: number) {
   });
 }
 
+export function viewDocumentUrl(id: number) {
+  return `${API_URL}/api/documents/${id}/view`;
+}
+
+export async function viewDocumentApi(token: string, id: number) {
+  return apiRequestBlob(`/api/documents/${id}/view`, {
+    method: "GET",
+    token,
+  });
+}
+
 export async function getPublicBannerApi() {
   return apiRequest<ApiResult<SiteBanner>>("/api/settings/banner", { method: "GET" });
 }

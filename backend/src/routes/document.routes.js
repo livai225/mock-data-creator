@@ -4,7 +4,8 @@ import { documentLimiter } from '../middleware/rateLimiter.js';
 import {
   generateDocuments,
   getMyDocuments,
-  downloadDocument
+  downloadDocument,
+  viewDocument
 } from '../controllers/document.controller.js';
 
 const router = express.Router();
@@ -14,6 +15,7 @@ router.use(protect);
 
 router.post('/generate', documentLimiter, generateDocuments);
 router.get('/my', getMyDocuments);
+router.get('/:id/view', viewDocument);
 router.get('/:id/download', downloadDocument);
 
 export default router;

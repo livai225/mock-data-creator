@@ -3,9 +3,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Download, Plus, Building2, FileText, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
-import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, createCompanyApi, generateDocumentsApi, type UserDocument } from "@/lib/api";
+import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { toast } from "sonner";
 
@@ -86,6 +86,18 @@ export default function ClientDashboard() {
       toast.error("Impossible de charger vos données");
     } finally {
       setIsLoadingData(false);
+    }
+  };
+
+  const handlePreview = async (doc: UserDocument) => {
+    if (!token) return;
+    try {
+      const blob = await viewDocumentApi(token, doc.id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (error) {
+      toast.error("Impossible de prévisualiser le document");
     }
   };
 
@@ -234,19 +246,25 @@ export default function ClientDashboard() {
                           </p>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDownload(doc)}
-                        disabled={downloadingId === doc.id}
-                      >
-                        {downloadingId === doc.id ? (
-                          <span className="animate-spin mr-2">⏳</span>
-                        ) : (
-                          <Download className="h-4 w-4 mr-2" />
-                        )}
-                        Télécharger
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => handlePreview(doc)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Prévisualiser
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownload(doc)}
+                          disabled={downloadingId === doc.id}
+                        >
+                          {downloadingId === doc.id ? (
+                            <span className="animate-spin mr-2">⏳</span>
+                          ) : (
+                            <Download className="h-4 w-4 mr-2" />
+                          )}
+                          Télécharger
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>

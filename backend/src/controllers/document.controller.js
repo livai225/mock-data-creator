@@ -149,3 +149,33 @@ export const downloadDocument = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Prévisualiser un document (inline)
+// @route   GET /api/documents/:id/view
+// @access  Private
+export const viewDocument = async (req, res, next) => {
+  try {
+    const doc = await Document.findById(req.params.id);
+
+    if (!doc) {
+      return next(new AppError('Document non trouvé', 404));
+    }
+
+    if (doc.user_id !== req.user.id && req.user.role !== 'admin') {
+      return next(new AppError('Accès non autorisé', 403));
+    }
+
+    if (!doc.file_path || !fs.existsSync(doc.file_path)) {
+      return next(new AppError('Fichier introuvable sur le serveur', 404));
+    }
+
+    res.setHeader('Content-Type', doc.mime_type || 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
+
+    const stream = fs.createReadStream(doc.file_path);
+    stream.on('error', (e) => next(e));
+    stream.pipe(res);
+  } catch (error) {
+    next(error);
+  }
+};
