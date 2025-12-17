@@ -97,26 +97,17 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
       companyTypeName: companyTypeName
     };
 
-    if (!isAuthenticated) {
-      sessionStorage.setItem("pending_company_creation", JSON.stringify(payload));
-      toast.info("Veuillez créer un compte pour récupérer vos documents");
-      navigate("/inscription", { state: { redirectTo: "/dashboard" } });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await createCompanyApi(token!, payload);
-      await generateDocumentsApi(token!, { companyTypeName, docs });
-      
-      toast.success("Entreprise créée et documents générés !");
-      navigate("/dashboard");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de la création de l'entreprise");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Navigate to preview page with all data
+    navigate("/preview-documents", {
+      state: {
+        formData,
+        companyType: 'SARLU',
+        payload,
+        price,
+        docs,
+        companyTypeName
+      }
+    });
   };
 
   // Calcul automatique du capital

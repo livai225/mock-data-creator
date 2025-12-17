@@ -25,6 +25,7 @@ import Boutique from "./pages/Boutique";
 import Tarifs from "./pages/Tarifs";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import PreviewDocuments from "./pages/PreviewDocuments";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/inscription" element={<Inscription />} />
             <Route path="/espace/documents" element={<EspaceDocuments />} />
             <Route path="/dashboard" element={<ClientDashboard />} />
+            <Route path="/preview-documents" element={<PreviewDocuments />} />
 
             <Route
               path="/admin"

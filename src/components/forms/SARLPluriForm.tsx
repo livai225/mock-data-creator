@@ -14,8 +14,7 @@ import {
   defaultAssocieInfo,
   AssocieInfo,
   GerantInfo,
-  defaultGerantInfo,
-  defaultGerantInfoList
+  defaultGerantInfo
 } from "@/lib/sarl-pluri-types";
 import { 
   ArrowRight, 
@@ -125,7 +124,6 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
   };
 
   const handleGenerate = async () => {
-    // Determine main manager name for legacy/display purposes
     const mainManager = formData.gerants[0];
     const gerantName = `${mainManager.nom} ${mainManager.prenoms}`;
 
@@ -163,28 +161,17 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
       companyTypeName: companyTypeName
     };
 
-    if (!isAuthenticated) {
-      sessionStorage.setItem("pending_company_creation", JSON.stringify(payload));
-      toast.info("Veuillez créer un compte pour récupérer vos documents");
-      navigate("/inscription", { state: { redirectTo: "/dashboard" } });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      // Create company record
-      await createCompanyApi(token!, payload);
-      // Generate documents
-      await generateDocumentsApi(token!, { companyTypeName, docs });
-      
-      toast.success("Entreprise créée et documents générés !");
-      navigate("/dashboard");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de la création de l'entreprise");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Navigate to preview page with all data
+    navigate("/preview-documents", {
+      state: {
+        formData,
+        companyType: 'SARL_PLURI',
+        payload,
+        price,
+        docs,
+        companyTypeName
+      }
+    });
   };
 
   const totalParts = formData.associes.reduce((sum, a) => sum + (a.nombreParts || 0), 0);
