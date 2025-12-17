@@ -17,7 +17,7 @@ export default function Inscription() {
   const { register, loading } = useAuth();
 
   const state = (location.state ?? {}) as LocationState;
-  const redirectTo = state.redirectTo ?? "/espace/documents";
+  const redirectTo = state.redirectTo ?? "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

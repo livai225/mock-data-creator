@@ -20,14 +20,8 @@ import {
   Home
 } from "lucide-react";
 import { toast } from "sonner";
-import { 
-  SARLPluriFormData, 
-  SARLPluriStep, 
-  sarlPluriSteps, 
-  defaultSARLPluriFormData,
-  defaultAssocieInfo,
-  AssocieInfo
-} from "@/lib/sarl-pluri-types";
+import { useAuth } from "@/auth/AuthContext";
+import { createCompanyApi, generateDocumentsApi } from "@/lib/api";
 
 interface SARLPluriFormProps {
   onBack: () => void;
@@ -38,8 +32,10 @@ interface SARLPluriFormProps {
 
 export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPluriFormProps) {
   const navigate = useNavigate();
+  const { isAuthenticated, token } = useAuth();
   const [step, setStep] = useState<SARLPluriStep>('societe');
   const [formData, setFormData] = useState<SARLPluriFormData>(defaultSARLPluriFormData);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentStepIndex = sarlPluriSteps.findIndex(s => s.id === step);
 
@@ -92,13 +88,46 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
     }
   };
 
-  const handleGenerate = () => {
-    navigate("/documents-generes", {
-      state: {
-        docs,
-        companyTypeName,
-      },
-    });
+  const handleGenerate = async () => {
+    const payload = {
+      companyType: 'SARL_PLURI',
+      companyName: formData.denominationSociale,
+      activity: formData.objetSocial,
+      capital: formData.capitalSocial,
+      address: formData.adresseSiege,
+      city: formData.ville,
+      gerant: `${formData.gerantNom} ${formData.gerantPrenoms}`,
+      paymentAmount: price,
+      associates: formData.associes.map(a => ({
+        name: `${a.nom} ${a.prenoms}`,
+        parts: a.nombreParts
+      })),
+      docs: docs,
+      companyTypeName: companyTypeName
+    };
+
+    if (!isAuthenticated) {
+      sessionStorage.setItem("pending_company_creation", JSON.stringify(payload));
+      toast.info("Veuillez créer un compte pour récupérer vos documents");
+      navigate("/inscription", { state: { redirectTo: "/dashboard" } });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Create company record
+      await createCompanyApi(token!, payload);
+      // Generate documents
+      await generateDocumentsApi(token!, { companyTypeName, docs });
+      
+      toast.success("Entreprise créée et documents générés !");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de la création de l'entreprise");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const totalParts = formData.associes.reduce((sum, a) => sum + (a.nombreParts || 0), 0);
@@ -850,9 +879,9 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Retour
                   </Button>
-                  <Button variant="hero" size="xl" onClick={handleGenerate}>
+                  <Button variant="hero" size="xl" onClick={handleGenerate} disabled={isSubmitting}>
                     <Download className="h-5 w-5 mr-2" />
-                    Générer les documents
+                    {isSubmitting ? "Traitement..." : "Générer les documents"}
                   </Button>
                 </div>
               </div>

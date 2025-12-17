@@ -45,11 +45,16 @@ interface FormData {
   phone: string;
 }
 
+import { useAuth } from "@/auth/AuthContext";
+import { createCompanyApi, generateDocumentsApi } from "@/lib/api";
+
 export default function CreationEntreprise() {
   const navigate = useNavigate();
+  const { isAuthenticated, token } = useAuth();
   const [pricing, setPricing] = useState<PricingSetting | null>(null);
   const [step, setStep] = useState<Step>('type');
   const [docsOpen, setDocsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingCompanyType, setPendingCompanyType] = useState<CompanyTypeInfo | null>(null);
   const [formData, setFormData] = useState<FormData>({
     companyType: null,
@@ -184,14 +189,43 @@ export default function CreationEntreprise() {
     setFormData({ ...formData, associes: newAssocies });
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     const docs = formData.companyType?.documentsGenerated ?? [];
-    navigate("/documents-generes", {
-      state: {
-        docs,
-        companyTypeName: formData.companyType?.fullName,
-      },
-    });
+    const price = formData.companyType?.price ?? 0;
+
+    const payload = {
+      companyType: formData.companyType?.id,
+      companyName: formData.companyName,
+      activity: formData.activity,
+      capital: parseInt(formData.capital) || 0,
+      address: formData.address,
+      city: formData.city,
+      gerant: formData.gerant,
+      paymentAmount: price,
+      associates: formData.associes,
+      docs: docs,
+      companyTypeName: formData.companyType?.fullName
+    };
+
+    if (!isAuthenticated) {
+      sessionStorage.setItem("pending_company_creation", JSON.stringify(payload));
+      toast.info("Veuillez créer un compte pour récupérer vos documents");
+      navigate("/inscription", { state: { redirectTo: "/dashboard" } });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await createCompanyApi(token!, payload);
+      await generateDocumentsApi(token!, { companyTypeName: formData.companyType?.fullName, docs });
+      toast.success("Entreprise créée et documents générés !");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de la création de l'entreprise");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const progressSteps = [
@@ -634,9 +668,9 @@ export default function CreationEntreprise() {
                           {formData.companyType.price.toLocaleString()} FCFA
                         </p>
                       </div>
-                      <Button variant="hero" size="xl" onClick={handleGenerate}>
+                      <Button variant="hero" size="xl" onClick={handleGenerate} disabled={isSubmitting}>
                         <Download className="h-5 w-5 mr-2" />
-                        Générer les documents
+                        {isSubmitting ? "Traitement..." : "Générer les documents"}
                       </Button>
                     </div>
                   </div>

@@ -25,6 +25,10 @@ import {
   defaultSARLUFormData
 } from "@/lib/sarlu-types";
 
+import { useAuth } from "@/auth/AuthContext";
+import { createCompanyApi, generateDocumentsApi } from "@/lib/api";
+import { toast } from "sonner";
+
 interface SARLUFormProps {
   onBack: () => void;
   price: number;
@@ -34,8 +38,10 @@ interface SARLUFormProps {
 
 export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormProps) {
   const navigate = useNavigate();
+  const { isAuthenticated, token } = useAuth();
   const [step, setStep] = useState<SARLUStep>('societe');
   const [formData, setFormData] = useState<SARLUFormData>(defaultSARLUFormData);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentStepIndex = sarluSteps.findIndex(s => s.id === step);
 
@@ -59,13 +65,44 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
     }
   };
 
-  const handleGenerate = () => {
-    navigate("/documents-generes", {
-      state: {
-        docs,
-        companyTypeName,
-      },
-    });
+  const handleGenerate = async () => {
+    const payload = {
+      companyType: 'SARLU',
+      companyName: formData.denominationSociale,
+      activity: formData.objetSocial,
+      capital: formData.nombreParts * formData.valeurPart,
+      address: formData.adresseSiege,
+      city: formData.ville,
+      gerant: `${formData.associeNom} ${formData.associePrenoms}`,
+      paymentAmount: price,
+      associates: [{
+        name: `${formData.associeNom} ${formData.associePrenoms}`,
+        parts: formData.nombreParts
+      }],
+      docs: docs,
+      companyTypeName: companyTypeName
+    };
+
+    if (!isAuthenticated) {
+      sessionStorage.setItem("pending_company_creation", JSON.stringify(payload));
+      toast.info("Veuillez créer un compte pour récupérer vos documents");
+      navigate("/inscription", { state: { redirectTo: "/dashboard" } });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await createCompanyApi(token!, payload);
+      await generateDocumentsApi(token!, { companyTypeName, docs });
+      
+      toast.success("Entreprise créée et documents générés !");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de la création de l'entreprise");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Calcul automatique du capital
@@ -828,9 +865,9 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Retour
                   </Button>
-                  <Button variant="hero" size="xl" onClick={handleGenerate}>
+                  <Button variant="hero" size="xl" onClick={handleGenerate} disabled={isSubmitting}>
                     <Download className="h-5 w-5 mr-2" />
-                    Générer les documents
+                    {isSubmitting ? "Traitement..." : "Générer les documents"}
                   </Button>
                 </div>
               </div>

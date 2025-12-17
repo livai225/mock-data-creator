@@ -139,6 +139,14 @@ export async function getMyStatsApi(token: string) {
   });
 }
 
+export async function createCompanyApi(token: string, data: any) {
+  return apiRequest<ApiResult<any>>("/api/companies", {
+    method: "POST",
+    token,
+    body: JSON.stringify(data),
+  });
+}
+
 export async function downloadDocumentApi(token: string, id: number) {
   return apiRequestBlob(`/api/documents/${id}/download`, {
     method: "GET",

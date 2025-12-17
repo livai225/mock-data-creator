@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Download, Plus, Building2, FileText, Clock, AlertCircle } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
-import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, type UserDocument } from "@/lib/api";
+import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, createCompanyApi, generateDocumentsApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { toast } from "sonner";
 
@@ -25,32 +25,71 @@ export default function ClientDashboard() {
     }
   }, [isAuthenticated, loading, navigate]);
 
-  // Chargement des données
+  // Traitement de la création d'entreprise en attente
   useEffect(() => {
-    if (!token) return;
-
-    const loadData = async () => {
-      setIsLoadingData(true);
-      try {
-        const [companiesRes, docsRes] = await Promise.all([
-          getMyCompaniesApi(token),
-          getMyDocumentsApi(token)
-        ]);
-
-        if (companiesRes.success && companiesRes.data) {
-          setCompanies(companiesRes.data);
+    const processPendingCreation = async () => {
+      if (!token) return;
+      
+      const pendingData = sessionStorage.getItem("pending_company_creation");
+      if (pendingData) {
+        try {
+          const payload = JSON.parse(pendingData);
+          toast.info("Finalisation de la création de votre entreprise...");
+          
+          // 1. Créer l'entreprise
+          await createCompanyApi(token, payload);
+          
+          // 2. Générer les documents si nécessaire
+          if (payload.docs && payload.docs.length > 0) {
+            await generateDocumentsApi(token, { 
+              companyTypeName: payload.companyTypeName, // Assurez-vous que le payload contient ceci ou ajustez
+              docs: payload.docs 
+            });
+          }
+          
+          toast.success("Entreprise créée avec succès !");
+          sessionStorage.removeItem("pending_company_creation");
+          
+          // Recharger les données
+          loadData();
+        } catch (error) {
+          console.error("Erreur création pending:", error);
+          toast.error("Erreur lors de la finalisation de la création.");
         }
-        if (docsRes.success && docsRes.data) {
-          setDocuments(docsRes.data);
-        }
-      } catch (error) {
-        console.error("Erreur chargement dashboard:", error);
-        toast.error("Impossible de charger vos données");
-      } finally {
-        setIsLoadingData(false);
       }
     };
 
+    if (token) {
+      processPendingCreation();
+    }
+  }, [token]);
+
+  // Chargement des données
+  const loadData = async () => {
+    if (!token) return;
+    
+    setIsLoadingData(true);
+    try {
+      const [companiesRes, docsRes] = await Promise.all([
+        getMyCompaniesApi(token),
+        getMyDocumentsApi(token)
+      ]);
+
+      if (companiesRes.success && companiesRes.data) {
+        setCompanies(companiesRes.data);
+      }
+      if (docsRes.success && docsRes.data) {
+        setDocuments(docsRes.data);
+      }
+    } catch (error) {
+      console.error("Erreur chargement dashboard:", error);
+      toast.error("Impossible de charger vos données");
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
     loadData();
   }, [token]);
 
