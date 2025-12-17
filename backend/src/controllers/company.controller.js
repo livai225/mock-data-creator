@@ -15,6 +15,8 @@ export const createCompany = async (req, res, next) => {
       city,
       gerant,
       associates,
+      managers,
+      chiffreAffairesPrev,
       paymentAmount
     } = req.body;
 
@@ -27,6 +29,8 @@ export const createCompany = async (req, res, next) => {
       address,
       city: city || 'Abidjan',
       gerant,
+      chiffreAffairesPrev,
+      managers: managers || [],
       paymentAmount
     };
 
