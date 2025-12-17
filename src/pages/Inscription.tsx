@@ -9,6 +9,7 @@ import { useAuth } from "@/auth/AuthContext";
 
 type LocationState = {
   redirectTo?: string;
+  fromPreview?: boolean;
 };
 
 export default function Inscription() {
@@ -18,6 +19,7 @@ export default function Inscription() {
 
   const state = (location.state ?? {}) as LocationState;
   const redirectTo = state.redirectTo ?? "/dashboard";
+  const fromPreview = state.fromPreview ?? false;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,6 +66,21 @@ export default function Inscription() {
                   setSubmitting(true);
                   try {
                     await register(email, password);
+                    if (redirectTo === "/preview-documents") {
+                      const pendingPreviewStateRaw = sessionStorage.getItem("pending_preview_state");
+                      sessionStorage.removeItem("pending_preview_state");
+
+                      if (pendingPreviewStateRaw) {
+                        try {
+                          const pendingPreviewState = JSON.parse(pendingPreviewStateRaw);
+                          navigate("/preview-documents", { replace: true, state: pendingPreviewState });
+                          return;
+                        } catch {
+                          // fallback below
+                        }
+                      }
+                    }
+
                     navigate(redirectTo, { replace: true });
                   } finally {
                     setSubmitting(false);
