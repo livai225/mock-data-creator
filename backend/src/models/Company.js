@@ -1,5 +1,8 @@
 import { query, transaction } from '../config/database.js';
 
+// Helper function pour convertir undefined en null (compatible toutes versions Node.js)
+const toNull = (value) => (value === undefined ? null : value);
+
 class Company {
   // Créer une entreprise
   static async create(companyData, associates = []) {
@@ -25,16 +28,16 @@ class Company {
         (user_id, company_type, company_name, activity, capital, address, city, gerant, payment_amount, chiffre_affaires_prev, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
         [
-          userId ?? null, 
-          companyType ?? null, 
-          companyName ?? null, 
-          activity ?? null, 
-          capital ?? null, 
-          address ?? null, 
-          city ?? null, 
-          gerant ?? null, 
-          paymentAmount ?? null, 
-          chiffreAffairesPrev ?? null
+          toNull(userId), 
+          toNull(companyType), 
+          toNull(companyName), 
+          toNull(activity), 
+          toNull(capital), 
+          toNull(address), 
+          toNull(city), 
+          toNull(gerant), 
+          toNull(paymentAmount), 
+          toNull(chiffreAffairesPrev)
         ]
       );
 
@@ -49,10 +52,10 @@ class Company {
           await connection.execute(
             'INSERT INTO associates (company_id, name, parts, percentage) VALUES (?, ?, ?, ?)',
             [
-              companyId ?? null, 
-              associate.name ?? null, 
-              associate.parts ?? null, 
-              percentage.toFixed(2) ?? null
+              toNull(companyId), 
+              toNull(associate.name), 
+              toNull(associate.parts), 
+              toNull(percentage.toFixed(2))
             ]
           );
         }
@@ -68,21 +71,21 @@ class Company {
              pere_nom, mere_nom, duree_mandat, is_main)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-              companyId ?? null, 
-              mgr.nom ?? null, 
-              mgr.prenoms ?? null, 
-              mgr.dateNaissance ?? null, 
-              mgr.lieuNaissance ?? null, 
-              mgr.nationalite ?? null, 
-              mgr.adresse ?? null, 
-              mgr.typeIdentite ?? null, 
-              mgr.numeroIdentite ?? null,
-              mgr.dateDelivranceId ?? null, 
-              mgr.lieuDelivranceId ?? null, 
-              mgr.pereNom ?? null, 
-              mgr.mereNom ?? null,
-              mgr.dureeMandat ?? null, 
-              mgr.isMain ?? false
+              toNull(companyId), 
+              toNull(mgr.nom), 
+              toNull(mgr.prenoms), 
+              toNull(mgr.dateNaissance), 
+              toNull(mgr.lieuNaissance), 
+              toNull(mgr.nationalite), 
+              toNull(mgr.adresse), 
+              toNull(mgr.typeIdentite), 
+              toNull(mgr.numeroIdentite),
+              toNull(mgr.dateDelivranceId), 
+              toNull(mgr.lieuDelivranceId), 
+              toNull(mgr.pereNom), 
+              toNull(mgr.mereNom),
+              toNull(mgr.dureeMandat), 
+              mgr.isMain === undefined ? false : mgr.isMain
             ]
           );
         }
@@ -223,10 +226,10 @@ class Company {
     
     // Convertir undefined en null pour MySQL
     const result = await query(sql, [
-      paymentStatus || null, 
-      paymentReference || null, 
-      paymentDate || null, 
-      id
+      toNull(paymentStatus), 
+      toNull(paymentReference), 
+      toNull(paymentDate), 
+      toNull(id)
     ]);
     return result.affectedRows > 0;
   }
