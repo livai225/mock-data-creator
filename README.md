@@ -2,6 +2,30 @@
 
 Plateforme complète de génération automatique de documents administratifs pour la création d'entreprises en Côte d'Ivoire.
 
+## 📋 État actuel du projet (Décembre 2025)
+
+### 🚀 Fonctionnalités implémentées
+- **Inscription/Connexion** avec JWT
+- **Création d'entreprises** (SARL, EI, SNC, SCS, GIE)
+- **Génération de documents PDF basiques** (version simplifiée)
+- **Prévisualisation des documents** (nouveau)
+- **Téléchargement des documents**
+- **Dashboard utilisateur** pour suivre les entreprises créées
+
+### 🛠️ Dernières mises à jour
+- **Prévisualisation PDF** : Possibilité de visualiser les documents générés directement dans le navigateur
+- **Génération PDF** : Refactorisation du système de génération pour supporter différents types de documents
+- **Interface utilisateur** : Amélioration de l'expérience avec des boutons d'action plus clairs
+
+### 📝 Prochaines étapes
+1. **Intégration des modèles DOCX** pour la génération des documents officiels
+2. Implémentation du remplissage dynamique des modèles avec les données de l'entreprise
+3. Conversion des documents remplis en PDF pour téléchargement/prévisualisation
+4. Amélioration de la gestion des erreurs et du feedback utilisateur
+
+## 📜 Journal des modifications
+Consultez le [CHANGELOG.md](CHANGELOG.md) pour un historique détaillé des modifications.
+
 ## 📋 Description
 
 ARCH EXCELLENCE est une solution full-stack permettant aux entrepreneurs de créer leur entreprise en ligne avec génération automatique de tous les documents conformes CEPICI et OHADA.
