@@ -19,11 +19,23 @@ class Company {
       } = companyData;
 
       // Insérer l'entreprise
+      // Convertir undefined en null pour MySQL
       const [result] = await connection.execute(
         `INSERT INTO companies 
         (user_id, company_type, company_name, activity, capital, address, city, gerant, payment_amount, chiffre_affaires_prev, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
-        [userId, companyType, companyName, activity, capital, address, city, gerant, paymentAmount, chiffreAffairesPrev]
+        [
+          userId, 
+          companyType, 
+          companyName, 
+          activity, 
+          capital, 
+          address, 
+          city || null, 
+          gerant || null, 
+          paymentAmount || null, 
+          chiffreAffairesPrev || null
+        ]
       );
 
       const companyId = result.insertId;
@@ -36,7 +48,12 @@ class Company {
           const percentage = (parseInt(associate.parts) / totalParts) * 100;
           await connection.execute(
             'INSERT INTO associates (company_id, name, parts, percentage) VALUES (?, ?, ?, ?)',
-            [companyId, associate.name, associate.parts, percentage.toFixed(2)]
+            [
+              companyId, 
+              associate.name || null, 
+              associate.parts || null, 
+              percentage.toFixed(2)
+            ]
           );
         }
       }
@@ -51,10 +68,21 @@ class Company {
              pere_nom, mere_nom, duree_mandat, is_main)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-              companyId, mgr.nom, mgr.prenoms, mgr.dateNaissance, mgr.lieuNaissance, 
-              mgr.nationalite, mgr.adresse, mgr.typeIdentite, mgr.numeroIdentite,
-              mgr.dateDelivranceId, mgr.lieuDelivranceId, mgr.pereNom, mgr.mereNom,
-              mgr.dureeMandat, mgr.isMain || false
+              companyId, 
+              mgr.nom || null, 
+              mgr.prenoms || null, 
+              mgr.dateNaissance || null, 
+              mgr.lieuNaissance || null, 
+              mgr.nationalite || null, 
+              mgr.adresse || null, 
+              mgr.typeIdentite || null, 
+              mgr.numeroIdentite || null,
+              mgr.dateDelivranceId || null, 
+              mgr.lieuDelivranceId || null, 
+              mgr.pereNom || null, 
+              mgr.mereNom || null,
+              mgr.dureeMandat || null, 
+              mgr.isMain || false
             ]
           );
         }
@@ -193,7 +221,13 @@ class Company {
       WHERE id = ?
     `;
     
-    const result = await query(sql, [paymentStatus, paymentReference, paymentDate, id]);
+    // Convertir undefined en null pour MySQL
+    const result = await query(sql, [
+      paymentStatus || null, 
+      paymentReference || null, 
+      paymentDate || null, 
+      id
+    ]);
     return result.affectedRows > 0;
   }
 
@@ -207,7 +241,8 @@ class Company {
     for (const field of allowedFields) {
       if (companyData[field] !== undefined) {
         fields.push(`${field} = ?`);
-        values.push(companyData[field]);
+        // Convertir undefined en null pour MySQL
+        values.push(companyData[field] === undefined ? null : companyData[field]);
       }
     }
 
