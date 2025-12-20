@@ -3,6 +3,11 @@ import { query, transaction } from '../config/database.js';
 // Helper function pour convertir undefined en null (compatible toutes versions Node.js)
 const toNull = (value) => (value === undefined ? null : value);
 
+// Helper function pour nettoyer un tableau de paramètres (convertir tous les undefined en null)
+const cleanParams = (params) => {
+  return params.map(param => (param === undefined ? null : param));
+};
+
 class Company {
   // Créer une entreprise
   static async create(companyData, associates = []) {
@@ -23,22 +28,27 @@ class Company {
 
       // Insérer l'entreprise
       // Convertir tous les undefined en null pour MySQL (même les champs obligatoires pour éviter les erreurs)
+      const params = [
+        userId, 
+        companyType, 
+        companyName, 
+        activity, 
+        capital, 
+        address, 
+        city, 
+        gerant, 
+        paymentAmount, 
+        chiffreAffairesPrev
+      ];
+      
+      // Nettoyer tous les paramètres pour s'assurer qu'aucun undefined ne passe
+      const cleanParamsArray = cleanParams(params);
+      
       const [result] = await connection.execute(
         `INSERT INTO companies 
         (user_id, company_type, company_name, activity, capital, address, city, gerant, payment_amount, chiffre_affaires_prev, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
-        [
-          toNull(userId), 
-          toNull(companyType), 
-          toNull(companyName), 
-          toNull(activity), 
-          toNull(capital), 
-          toNull(address), 
-          toNull(city), 
-          toNull(gerant), 
-          toNull(paymentAmount), 
-          toNull(chiffreAffairesPrev)
-        ]
+        cleanParamsArray
       );
 
       const companyId = result.insertId;
@@ -49,14 +59,15 @@ class Company {
         
         for (const associate of associates) {
           const percentage = (parseInt(associate.parts) / totalParts) * 100;
+          const associateParams = [
+            companyId, 
+            associate.name, 
+            associate.parts, 
+            percentage.toFixed(2)
+          ];
           await connection.execute(
             'INSERT INTO associates (company_id, name, parts, percentage) VALUES (?, ?, ?, ?)',
-            [
-              toNull(companyId), 
-              toNull(associate.name), 
-              toNull(associate.parts), 
-              toNull(percentage.toFixed(2))
-            ]
+            cleanParams(associateParams)
           );
         }
       }
@@ -64,29 +75,30 @@ class Company {
       // Insérer les gérants
       if (managers.length > 0) {
         for (const mgr of managers) {
+          const managerParams = [
+            companyId, 
+            mgr.nom, 
+            mgr.prenoms, 
+            mgr.dateNaissance, 
+            mgr.lieuNaissance, 
+            mgr.nationalite, 
+            mgr.adresse, 
+            mgr.typeIdentite, 
+            mgr.numeroIdentite,
+            mgr.dateDelivranceId, 
+            mgr.lieuDelivranceId, 
+            mgr.pereNom, 
+            mgr.mereNom,
+            mgr.dureeMandat, 
+            mgr.isMain === undefined ? false : mgr.isMain
+          ];
           await connection.execute(
             `INSERT INTO managers 
             (company_id, nom, prenoms, date_naissance, lieu_naissance, nationalite, adresse, 
              type_identite, numero_identite, date_delivrance_id, lieu_delivrance_id, 
              pere_nom, mere_nom, duree_mandat, is_main)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-              toNull(companyId), 
-              toNull(mgr.nom), 
-              toNull(mgr.prenoms), 
-              toNull(mgr.dateNaissance), 
-              toNull(mgr.lieuNaissance), 
-              toNull(mgr.nationalite), 
-              toNull(mgr.adresse), 
-              toNull(mgr.typeIdentite), 
-              toNull(mgr.numeroIdentite),
-              toNull(mgr.dateDelivranceId), 
-              toNull(mgr.lieuDelivranceId), 
-              toNull(mgr.pereNom), 
-              toNull(mgr.mereNom),
-              toNull(mgr.dureeMandat), 
-              mgr.isMain === undefined ? false : mgr.isMain
-            ]
+            cleanParams(managerParams)
           );
         }
       }
