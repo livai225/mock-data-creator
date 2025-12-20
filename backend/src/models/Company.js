@@ -19,22 +19,22 @@ class Company {
       } = companyData;
 
       // Insérer l'entreprise
-      // Convertir undefined en null pour MySQL
+      // Convertir tous les undefined en null pour MySQL (même les champs obligatoires pour éviter les erreurs)
       const [result] = await connection.execute(
         `INSERT INTO companies 
         (user_id, company_type, company_name, activity, capital, address, city, gerant, payment_amount, chiffre_affaires_prev, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
         [
-          userId, 
-          companyType, 
-          companyName, 
-          activity, 
-          capital, 
-          address, 
-          city || null, 
-          gerant || null, 
-          paymentAmount || null, 
-          chiffreAffairesPrev || null
+          userId ?? null, 
+          companyType ?? null, 
+          companyName ?? null, 
+          activity ?? null, 
+          capital ?? null, 
+          address ?? null, 
+          city ?? null, 
+          gerant ?? null, 
+          paymentAmount ?? null, 
+          chiffreAffairesPrev ?? null
         ]
       );
 
@@ -49,10 +49,10 @@ class Company {
           await connection.execute(
             'INSERT INTO associates (company_id, name, parts, percentage) VALUES (?, ?, ?, ?)',
             [
-              companyId, 
-              associate.name || null, 
-              associate.parts || null, 
-              percentage.toFixed(2)
+              companyId ?? null, 
+              associate.name ?? null, 
+              associate.parts ?? null, 
+              percentage.toFixed(2) ?? null
             ]
           );
         }
@@ -68,21 +68,21 @@ class Company {
              pere_nom, mere_nom, duree_mandat, is_main)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-              companyId, 
-              mgr.nom || null, 
-              mgr.prenoms || null, 
-              mgr.dateNaissance || null, 
-              mgr.lieuNaissance || null, 
-              mgr.nationalite || null, 
-              mgr.adresse || null, 
-              mgr.typeIdentite || null, 
-              mgr.numeroIdentite || null,
-              mgr.dateDelivranceId || null, 
-              mgr.lieuDelivranceId || null, 
-              mgr.pereNom || null, 
-              mgr.mereNom || null,
-              mgr.dureeMandat || null, 
-              mgr.isMain || false
+              companyId ?? null, 
+              mgr.nom ?? null, 
+              mgr.prenoms ?? null, 
+              mgr.dateNaissance ?? null, 
+              mgr.lieuNaissance ?? null, 
+              mgr.nationalite ?? null, 
+              mgr.adresse ?? null, 
+              mgr.typeIdentite ?? null, 
+              mgr.numeroIdentite ?? null,
+              mgr.dateDelivranceId ?? null, 
+              mgr.lieuDelivranceId ?? null, 
+              mgr.pereNom ?? null, 
+              mgr.mereNom ?? null,
+              mgr.dureeMandat ?? null, 
+              mgr.isMain ?? false
             ]
           );
         }
