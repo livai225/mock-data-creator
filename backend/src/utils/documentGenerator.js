@@ -400,10 +400,7 @@ export const generateDocument = async (docName, company, associates = [], manage
                     documentGenerators[docName.toLowerCase()] ||
                     null;
 
-  console.log(`   Générateur trouvé:`, generator ? 'OUI' : 'NON');
-  if (!generator) {
-    console.log(`   ⚠️ Tentative avec logique conditionnelle...`);
-  }
+  console.log(`   Générateur trouvé dans documentGenerators:`, generator ? 'OUI' : 'NON');
 
   // Générer le contenu texte
   let content;
