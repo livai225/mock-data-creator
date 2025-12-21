@@ -4,6 +4,7 @@ import { documentLimiter } from '../middleware/rateLimiter.js';
 import {
   generateDocuments,
   generateDocumentManual,
+  previewDocuments,
   getTemplates,
   getMyDocuments,
   downloadDocument,
@@ -14,6 +15,9 @@ const router = express.Router();
 
 // Route publique pour obtenir les templates
 router.get('/templates', getTemplates);
+
+// Route publique pour prévisualiser les documents (sans authentification)
+router.post('/preview', documentLimiter, previewDocuments);
 
 // Toutes les autres routes nécessitent une authentification
 router.use(protect);

@@ -405,6 +405,87 @@ export const generateDocumentManual = async (req, res, next) => {
   }
 };
 
+// @desc    Prévisualiser des documents (génération temporaire sans sauvegarde en DB)
+// @route   POST /api/documents/preview
+// @access  Public (pas besoin d'authentification pour prévisualiser)
+export const previewDocuments = async (req, res, next) => {
+  try {
+    const { company, associates = [], managers = [], docs, formats = ['pdf'] } = req.body;
+
+    if (!company || !company.company_name) {
+      return next(new AppError('Données d\'entreprise manquantes', 400));
+    }
+
+    if (!Array.isArray(docs) || docs.length === 0) {
+      return next(new AppError('Liste de documents invalide', 400));
+    }
+
+    console.log(`🔍 Prévisualisation: ${docs.length} documents pour "${company.company_name}"`);
+
+    // Générer les documents temporairement (sans sauvegarder en DB)
+    const results = await generateMultipleDocuments(
+      docs,
+      company,
+      associates,
+      managers,
+      req.body.additionalData || {},
+      { formats }
+    );
+
+    // Retourner les fichiers directement en base64 ou en stream
+    const previews = [];
+    for (const result of results) {
+      if (result.error) {
+        console.error(`❌ Erreur génération ${result.docName}:`, result.error);
+        previews.push({
+          docName: result.docName,
+          error: result.error
+        });
+        continue;
+      }
+
+      // Lire le fichier PDF et le convertir en base64
+      if (result.pdf && result.pdf.filePath && fs.existsSync(result.pdf.filePath)) {
+        const pdfBuffer = fs.readFileSync(result.pdf.filePath);
+        const pdfBase64 = pdfBuffer.toString('base64');
+        
+        previews.push({
+          docName: result.docName,
+          pdf: {
+            data: pdfBase64,
+            mimeType: 'application/pdf',
+            fileName: result.pdf.fileName
+          }
+        });
+
+        // Nettoyer le fichier temporaire après lecture
+        try {
+          fs.unlinkSync(result.pdf.filePath);
+        } catch (cleanupError) {
+          console.warn(`⚠️ Impossible de supprimer ${result.pdf.filePath}:`, cleanupError);
+        }
+      }
+
+      // Nettoyer aussi le fichier DOCX s'il existe
+      if (result.docx && result.docx.filePath && fs.existsSync(result.docx.filePath)) {
+        try {
+          fs.unlinkSync(result.docx.filePath);
+        } catch (cleanupError) {
+          console.warn(`⚠️ Impossible de supprimer ${result.docx.filePath}:`, cleanupError);
+        }
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Documents générés pour prévisualisation',
+      data: previews
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Obtenir la liste des templates disponibles
 // @route   GET /api/documents/templates
 // @access  Public

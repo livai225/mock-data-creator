@@ -107,6 +107,27 @@ export async function meApi(token: string) {
   });
 }
 
+export async function previewDocumentsApi(
+  token: string | '', // Optionnel car route publique
+  payload: {
+    company: any;
+    associates?: any[];
+    managers?: any[];
+    docs: string[];
+    formats?: ('pdf' | 'docx')[];
+    additionalData?: any;
+  }
+) {
+  return apiRequest<ApiResult<Array<{ docName: string; pdf?: { data: string; mimeType: string; fileName: string }; error?: string }>>>(
+    "/api/documents/preview",
+    {
+      method: "POST",
+      token: token || undefined, // Ne pas envoyer le token si vide
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
 export async function generateDocumentsApi(
   token: string, 
   payload: { 

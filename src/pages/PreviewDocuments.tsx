@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthContext";
-import { createCompanyApi, generateDocumentsApi, getMyDocumentsApi, viewDocumentApi, type UserDocument } from "@/lib/api";
+import { createCompanyApi, generateDocumentsApi, getMyDocumentsApi, viewDocumentApi, previewDocumentsApi, type UserDocument } from "@/lib/api";
 import { SARLUFormData } from "@/lib/sarlu-types";
 import { SARLPluriFormData } from "@/lib/sarl-pluri-types";
 import { Layout } from "@/components/layout/Layout";
@@ -56,6 +56,8 @@ export default function PreviewDocuments() {
   const [documentsGenerated, setDocumentsGenerated] = useState(false);
   const [companyId, setCompanyId] = useState<number | null>(null);
   const [documentUrls, setDocumentUrls] = useState<Record<number, string>>({});
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({}); // URLs blob pour prévisualisation
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
   const { formData, companyType, payload, price, docs, companyTypeName } = location.state || {};
 
@@ -118,12 +120,117 @@ export default function PreviewDocuments() {
     loadGeneratedDocuments();
   }, [token, companyId, documentsGenerated]);
 
+  // Générer les documents en mode prévisualisation au chargement de la page
+  useEffect(() => {
+    const generatePreview = async () => {
+      if (!formData || !payload || !docs || isLoadingPreview) return;
+      
+      setIsLoadingPreview(true);
+      try {
+        console.log('🔄 Génération de la prévisualisation des documents...');
+        
+        // Convertir le payload en objet company pour l'API
+        const company = {
+          company_name: payload.companyName || formData.denominationSociale,
+          capital: payload.capital || (formData.capitalSocial || 0),
+          address: payload.address || formData.adresseSiege,
+          city: payload.city || formData.ville,
+          activity: payload.activity || formData.objetSocial,
+          gerant: payload.gerant || (formData.associeNom ? `${formData.associeNom} ${formData.associePrenoms}` : ''),
+          duree_societe: formData.dureeAnnees || 99,
+          chiffre_affaires_prev: payload.chiffreAffairesPrev || formData.chiffreAffairesPrev || null,
+          company_type: payload.companyType || companyType
+        };
+
+        // Préparer les associés
+        const associates = payload.associates || [];
+        
+        // Préparer les managers
+        const managers = payload.managers || [];
+        
+        // Préparer les données additionnelles (bailleur, etc.)
+        const additionalData: any = {};
+        if (formData.bailleurNom) {
+          additionalData.bailleur_nom = `${formData.bailleurNom} ${formData.bailleurPrenom || ''}`.trim();
+          additionalData.bailleur_telephone = formData.bailleurContact || '';
+          additionalData.loyer_mensuel = formData.loyerMensuel || 0;
+          additionalData.caution_mois = formData.cautionMois || 2;
+          additionalData.avance_mois = formData.avanceMois || 2;
+          additionalData.duree_bail = formData.dureeBailAnnees || 1;
+          additionalData.date_debut = formData.dateDebutBail || new Date().toISOString();
+          additionalData.date_fin = formData.dateFinBail || null;
+        }
+
+        // Appeler l'API de prévisualisation (sans token car route publique)
+        const previewRes = await previewDocumentsApi('', {
+          company,
+          associates,
+          managers,
+          docs,
+          formats: ['pdf'],
+          additionalData
+        });
+
+        if (previewRes.success && previewRes.data) {
+          console.log(`✅ ${previewRes.data.length} documents générés pour prévisualisation`);
+          
+          // Convertir les données base64 en URLs blob
+          const urls: Record<string, string> = {};
+          for (const preview of previewRes.data) {
+            if (preview.pdf && preview.pdf.data) {
+              try {
+                // Convertir base64 en blob
+                const byteCharacters = atob(preview.pdf.data);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                  byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: preview.pdf.mimeType });
+                const url = URL.createObjectURL(blob);
+                
+                // Trouver l'ID de l'onglet correspondant
+                const docName = preview.docName.toLowerCase();
+                let tabId = '';
+                if (docName.includes('statuts')) tabId = 'statuts';
+                else if (docName.includes('bail')) tabId = 'bail';
+                else if (docName.includes('cepici')) tabId = 'cepici';
+                else if (docName.includes('gérant') || docName.includes('gerant') || docName.includes('dirigeant')) tabId = 'gerants';
+                else if (docName.includes('déclaration') && docName.includes('honneur')) tabId = 'declaration';
+                else if (docName.includes('dsv') || (docName.includes('souscription') && docName.includes('versement'))) tabId = 'dsv';
+                
+                if (tabId) {
+                  urls[tabId] = url;
+                  console.log(`✅ URL blob créée pour prévisualisation: ${tabId} (${preview.docName})`);
+                }
+              } catch (error) {
+                console.error(`❌ Erreur conversion base64 pour ${preview.docName}:`, error);
+              }
+            }
+          }
+          
+          setPreviewUrls(urls);
+          console.log(`📋 ${Object.keys(urls).length} URLs blob créées pour prévisualisation`);
+        } else {
+          console.error('❌ Erreur prévisualisation:', previewRes);
+        }
+      } catch (error) {
+        console.error("❌ Erreur génération prévisualisation:", error);
+      } finally {
+        setIsLoadingPreview(false);
+      }
+    };
+
+    generatePreview();
+  }, [formData, payload, docs, token, companyType]);
+
   // Cleanup: revoquer les URLs blob quand le composant se démonte
   useEffect(() => {
     return () => {
       Object.values(documentUrls).forEach(url => URL.revokeObjectURL(url));
+      Object.values(previewUrls).forEach(url => URL.revokeObjectURL(url));
     };
-  }, [documentUrls]);
+  }, [documentUrls, previewUrls]);
 
   const handleValidateAll = async () => {
     if (!isAuthenticated) {
@@ -360,8 +467,18 @@ export default function PreviewDocuments() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <ScrollArea className="h-[70vh]">
-                    {documentsGenerated ? (
-                      // Afficher les documents PDF générés
+                    {isLoadingPreview ? (
+                      // Afficher un loader pendant la génération de la prévisualisation
+                      <div className="p-8 text-center">
+                        <p className="text-muted-foreground mb-2">
+                          Génération de la prévisualisation...
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Veuillez patienter, les documents sont en cours de génération avec les derniers templates.
+                        </p>
+                      </div>
+                    ) : documentsGenerated ? (
+                      // Afficher les documents PDF générés (après validation)
                       <div className="h-full">
                         {(() => {
                           // Trouver le document PDF correspondant à l'onglet actif
@@ -439,8 +556,17 @@ export default function PreviewDocuments() {
                           }
                         })()}
                       </div>
+                    ) : previewUrls[activeTab] ? (
+                      // Afficher la prévisualisation générée depuis le backend
+                      <div className="h-full w-full">
+                        <iframe
+                          src={previewUrls[activeTab]}
+                          className="w-full h-[70vh] border-0"
+                          title={documentTabs.find(t => t.id === activeTab)?.label}
+                        />
+                      </div>
                     ) : (
-                      // Afficher les composants React avant génération
+                      // Fallback: Afficher les composants React statiques (anciens)
                       <div className="p-6 bg-gray-100">
                         {documentTabs.map((doc) => {
                           const DocComponent = doc.component;
