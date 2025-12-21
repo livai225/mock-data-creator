@@ -216,8 +216,23 @@ export default function CreationEntreprise() {
 
     setIsSubmitting(true);
     try {
-      await createCompanyApi(token!, payload);
-      await generateDocumentsApi(token!, { companyTypeName: formData.companyType?.fullName, docs });
+      // 1. Créer l'entreprise
+      const companyResult = await createCompanyApi(token!, payload);
+      
+      // 2. Récupérer l'ID de l'entreprise créée
+      const companyId = companyResult.data?.id;
+      
+      if (!companyId) {
+        throw new Error("Impossible de récupérer l'ID de l'entreprise créée");
+      }
+
+      // 3. Générer les documents avec l'ID de l'entreprise (PDF et Word)
+      await generateDocumentsApi(token!, { 
+        companyId,
+        docs,
+        formats: ['pdf', 'docx'] // Générer les deux formats
+      });
+      
       toast.success("Entreprise créée et documents générés !");
       navigate("/dashboard");
     } catch (error) {

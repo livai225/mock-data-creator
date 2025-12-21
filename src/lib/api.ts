@@ -107,8 +107,16 @@ export async function meApi(token: string) {
   });
 }
 
-export async function generateDocumentsApi(token: string, payload: { companyTypeName?: string; docs: string[] }) {
-  return apiRequest<ApiResult<Array<{ id: number; docType: string; docName: string; fileName: string; createdAt: string }>>>(
+export async function generateDocumentsApi(
+  token: string, 
+  payload: { 
+    companyId?: number; 
+    companyTypeName?: string; 
+    docs: string[];
+    formats?: ('pdf' | 'docx')[];
+  }
+) {
+  return apiRequest<ApiResult<Array<{ id: number; docType: string; docName: string; fileName: string; format?: string; createdAt: string }>>>(
     "/api/documents/generate",
     {
       method: "POST",

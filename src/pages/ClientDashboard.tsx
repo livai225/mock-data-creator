@@ -37,13 +37,17 @@ export default function ClientDashboard() {
           toast.info("Finalisation de la création de votre entreprise...");
           
           // 1. Créer l'entreprise
-          await createCompanyApi(token, payload);
+          const companyResult = await createCompanyApi(token, payload);
           
-          // 2. Générer les documents si nécessaire
-          if (payload.docs && payload.docs.length > 0) {
+          // 2. Récupérer l'ID de l'entreprise créée
+          const companyId = companyResult.data?.id;
+          
+          // 3. Générer les documents si nécessaire avec l'ID de l'entreprise
+          if (companyId && payload.docs && payload.docs.length > 0) {
             await generateDocumentsApi(token, { 
-              companyTypeName: payload.companyTypeName, // Assurez-vous que le payload contient ceci ou ajustez
-              docs: payload.docs 
+              companyId,
+              docs: payload.docs,
+              formats: ['pdf', 'docx'] // Générer les deux formats
             });
           }
           
