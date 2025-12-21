@@ -82,6 +82,7 @@ export default function PreviewDocuments() {
     const loadGeneratedDocuments = async () => {
       if (!token || !companyId || !documentsGenerated) return;
       
+      console.log(`🔄 Chargement des documents pour entreprise ${companyId}...`);
       try {
         const docsRes = await getMyDocumentsApi(token);
         if (docsRes.success && docsRes.data) {
@@ -89,6 +90,7 @@ export default function PreviewDocuments() {
           const companyDocs = docsRes.data.filter(
             (doc: UserDocument) => doc.company_id === companyId && doc.mime_type === 'application/pdf'
           );
+          console.log(`📄 ${companyDocs.length} documents PDF trouvés:`, companyDocs.map(d => d.doc_name));
           setGeneratedDocuments(companyDocs);
 
           // Créer les URLs blob pour chaque document
@@ -98,14 +100,18 @@ export default function PreviewDocuments() {
               const blob = await viewDocumentApi(token, doc.id);
               const url = URL.createObjectURL(blob);
               urls[doc.id] = url;
+              console.log(`✅ URL blob créée pour: ${doc.doc_name} (ID: ${doc.id})`);
             } catch (error) {
-              console.error(`Erreur chargement document ${doc.id}:`, error);
+              console.error(`❌ Erreur chargement document ${doc.id} (${doc.doc_name}):`, error);
             }
           }
           setDocumentUrls(urls);
+          console.log(`📋 Total URLs blob: ${Object.keys(urls).length}`);
+        } else {
+          console.error('❌ Erreur réponse API:', docsRes);
         }
       } catch (error) {
-        console.error("Erreur chargement documents:", error);
+        console.error("❌ Erreur chargement documents:", error);
       }
     };
 
@@ -156,12 +162,12 @@ export default function PreviewDocuments() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Recharger les documents générés avec cache-busting
-      const timestamp = new Date().getTime();
       const docsRes = await getMyDocumentsApi(token!);
       if (docsRes.success && docsRes.data) {
         const companyDocs = docsRes.data.filter(
           (doc: UserDocument) => doc.company_id === newCompanyId && doc.mime_type === 'application/pdf'
         );
+        console.log(`📄 ${companyDocs.length} documents PDF trouvés pour l'entreprise ${newCompanyId}:`, companyDocs.map(d => d.doc_name));
         setGeneratedDocuments(companyDocs);
         
         // Créer les URLs blob pour chaque document
@@ -171,11 +177,15 @@ export default function PreviewDocuments() {
             const blob = await viewDocumentApi(token!, doc.id);
             const url = URL.createObjectURL(blob);
             urls[doc.id] = url;
+            console.log(`✅ URL blob créée pour document: ${doc.doc_name} (ID: ${doc.id})`);
           } catch (error) {
-            console.error(`Erreur chargement document ${doc.id}:`, error);
+            console.error(`❌ Erreur chargement document ${doc.id} (${doc.doc_name}):`, error);
           }
         }
         setDocumentUrls(urls);
+        console.log(`📋 URLs blob créées:`, Object.keys(urls).length);
+      } else {
+        console.error('❌ Erreur lors du chargement des documents:', docsRes);
       }
     } catch (error) {
       console.error(error);
@@ -350,47 +360,84 @@ export default function PreviewDocuments() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <ScrollArea className="h-[70vh]">
-                    {documentsGenerated && generatedDocuments.length > 0 ? (
+                    {documentsGenerated ? (
                       // Afficher les documents PDF générés
                       <div className="h-full">
-                        {documentTabs.map((doc) => {
-                          // Trouver le document PDF correspondant
+                        {(() => {
+                          // Trouver le document PDF correspondant à l'onglet actif
                           const generatedDoc = generatedDocuments.find((gDoc) => {
                             const docName = gDoc.doc_name.toLowerCase();
-                            const tabLabel = doc.label.toLowerCase();
-                            return (
-                              (doc.id === 'statuts' && docName.includes('statuts')) ||
-                              (doc.id === 'bail' && docName.includes('bail')) ||
-                              (doc.id === 'cepici' && docName.includes('cepici')) ||
-                              (doc.id === 'gerants' && (docName.includes('gérant') || docName.includes('gerant') || docName.includes('dirigeant'))) ||
-                              (doc.id === 'declaration' && docName.includes('déclaration')) ||
-                              (doc.id === 'dsv' && (docName.includes('dsv') || docName.includes('souscription')))
-                            );
+                            // Patterns de correspondance plus flexibles
+                            if (activeTab === 'statuts') {
+                              return docName.includes('statuts') || docName.includes('statut');
+                            }
+                            if (activeTab === 'bail') {
+                              return docName.includes('bail') || docName.includes('location') || docName.includes('contrat de bail');
+                            }
+                            if (activeTab === 'cepici') {
+                              return docName.includes('cepici') || docName.includes('formulaire unique') || docName.includes('formulaire cepici');
+                            }
+                            if (activeTab === 'gerants') {
+                              return docName.includes('gérant') || docName.includes('gerant') || docName.includes('dirigeant') || 
+                                     docName.includes('liste des') || docName.includes('liste de');
+                            }
+                            if (activeTab === 'declaration') {
+                              return (docName.includes('déclaration') || docName.includes('declaration')) && 
+                                     (docName.includes('honneur') || docName.includes('greffe'));
+                            }
+                            if (activeTab === 'dsv') {
+                              return docName.includes('dsv') || 
+                                     (docName.includes('souscription') && docName.includes('versement')) ||
+                                     docName.includes('déclaration de souscription');
+                            }
+                            return false;
                           });
-
-                          if (activeTab !== doc.id) return null;
+                          
+                          console.log(`🔍 Recherche document pour onglet "${activeTab}":`, {
+                            documentsDisponibles: generatedDocuments.map(d => d.doc_name),
+                            documentTrouve: generatedDoc ? generatedDoc.doc_name : 'Aucun'
+                          });
 
                           if (generatedDoc && documentUrls[generatedDoc.id]) {
                             // Afficher le PDF généré dans un iframe
                             return (
-                              <div key={doc.id} className="h-full w-full">
+                              <div key={activeTab} className="h-full w-full">
                                 <iframe
                                   src={documentUrls[generatedDoc.id]}
                                   className="w-full h-[70vh] border-0"
-                                  title={doc.label}
+                                  title={documentTabs.find(t => t.id === activeTab)?.label}
                                 />
                               </div>
                             );
-                          } else {
-                            // Fallback sur le composant React si le document n'est pas encore généré
-                            const DocComponent = doc.component;
+                          } else if (generatedDocuments.length > 0) {
+                            // Documents chargés mais pas trouvé pour cet onglet - afficher un message
                             return (
-                              <div key={doc.id} className="p-6 bg-gray-100">
-                                <DocComponent formData={formData} companyType={companyType} />
+                              <div className="p-8 text-center">
+                                <p className="text-muted-foreground mb-2">
+                                  Document en cours de chargement...
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  Documents trouvés: {generatedDocuments.length}
+                                  {generatedDoc ? ` (${generatedDoc.doc_name})` : ''}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  Onglet actif: {activeTab}
+                                </p>
                               </div>
                             );
+                          } else {
+                            // Aucun document chargé - fallback sur composant React
+                            const DocComponent = documentTabs.find(t => t.id === activeTab)?.component;
+                            if (DocComponent) {
+                              return (
+                                <div className="p-6 bg-gray-100">
+                                  <DocComponent formData={formData} companyType={companyType} />
+                                </div>
+                              );
+                            }
+                            return null;
                           }
-                        })}
+                        })()}
                       </div>
                     ) : (
                       // Afficher les composants React avant génération
