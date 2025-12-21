@@ -76,7 +76,7 @@ export const generateDocuments = async (req, res, next) => {
     // Enregistrer chaque document généré
     for (const result of results) {
       if (result.error) {
-        console.error(`Erreur génération ${result.docName}:`, result.error);
+        console.error(`❌ Erreur génération ${result.docName}:`, result.error);
         continue;
       }
 
@@ -93,6 +93,8 @@ export const generateDocuments = async (req, res, next) => {
           filePath: result.pdf.filePath,
           mimeType: result.pdf.mimeType
         });
+
+        console.log(`✅ Document PDF créé: ${result.docName} (ID: ${pdfId}, CompanyID: ${companyId || 'null'})`);
 
         created.push({
           id: pdfId,
@@ -116,6 +118,8 @@ export const generateDocuments = async (req, res, next) => {
           mimeType: result.docx.mimeType
         });
 
+        console.log(`✅ Document DOCX créé: ${result.docName} (ID: ${docxId}, CompanyID: ${companyId || 'null'})`);
+
         created.push({
           id: docxId,
           docType: `${docType}_docx`,
@@ -126,6 +130,8 @@ export const generateDocuments = async (req, res, next) => {
         });
       }
     }
+    
+    console.log(`📦 Total documents créés: ${created.length} pour entreprise ${companyId || 'sans entreprise'}`);
 
     res.status(201).json({
       success: true,
@@ -143,8 +149,13 @@ export const generateDocuments = async (req, res, next) => {
 export const getMyDocuments = async (req, res, next) => {
   try {
     const docs = await Document.findByUserId(req.user.id);
+    console.log(`📋 Documents récupérés pour utilisateur ${req.user.id}: ${docs.length} documents`);
+    if (docs.length > 0) {
+      console.log(`   Détails:`, docs.map(d => ({ id: d.id, name: d.doc_name, company_id: d.company_id })));
+    }
     res.status(200).json({ success: true, data: docs });
   } catch (error) {
+    console.error('❌ Erreur récupération documents:', error);
     next(error);
   }
 };

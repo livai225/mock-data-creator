@@ -99,19 +99,36 @@ export default function ClientDashboard() {
 
       if (companiesRes.success && companiesRes.data) {
         setCompanies(companiesRes.data);
+        console.log(`🏢 ${companiesRes.data.length} entreprises chargées:`, companiesRes.data.map((c: any) => ({ id: c.id, name: c.company_name })));
       }
       if (docsRes.success && docsRes.data) {
+        console.log(`📋 Total documents retournés par l'API: ${docsRes.data.length}`, docsRes.data.map((d: UserDocument) => ({ 
+          id: d.id, 
+          name: d.doc_name, 
+          company_id: d.company_id,
+          mime_type: d.mime_type 
+        })));
+        
         // Filtrer les documents valides (qui ont un company_id existant)
         const validDocuments = docsRes.data.filter((doc: UserDocument) => {
           // Si le document a un company_id, vérifier que l'entreprise existe
           if (doc.company_id) {
-            return companiesRes.data?.some((c: any) => c.id === doc.company_id);
+            const companyExists = companiesRes.data?.some((c: any) => c.id === doc.company_id);
+            if (!companyExists) {
+              console.log(`⚠️ Document ${doc.doc_name} (ID: ${doc.id}) exclu - entreprise ${doc.company_id} n'existe pas`);
+            }
+            return companyExists;
           }
           // Les documents sans company_id sont aussi valides (documents manuels)
           return true;
         });
         setDocuments(validDocuments);
-        console.log(`📄 ${validDocuments.length} documents chargés pour ${companiesRes.data?.length || 0} entreprises`);
+        console.log(`📄 ${validDocuments.length} documents valides après filtrage pour ${companiesRes.data?.length || 0} entreprises`);
+        if (validDocuments.length === 0 && docsRes.data.length > 0) {
+          console.warn(`⚠️ Aucun document valide trouvé malgré ${docsRes.data.length} documents dans la base. Vérifiez les company_id.`);
+        }
+      } else {
+        console.error('❌ Erreur récupération documents:', docsRes);
       }
     } catch (error) {
       console.error("Erreur chargement dashboard:", error);
