@@ -390,6 +390,9 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
  * @returns {Promise<Object>} - { pdf: {fileName, filePath}, docx: {fileName, filePath} }
  */
 export const generateDocument = async (docName, company, associates = [], managers = [], additionalData = {}, options = { formats: ['pdf', 'docx'] }) => {
+  console.log(`\n🔧 [generateDocument] Début génération: "${docName}"`);
+  console.log(`   Formats demandés:`, options.formats);
+  
   ensureGeneratedDir();
 
   // Trouver le générateur approprié
@@ -397,26 +400,43 @@ export const generateDocument = async (docName, company, associates = [], manage
                     documentGenerators[docName.toLowerCase()] ||
                     null;
 
+  console.log(`   Générateur trouvé:`, generator ? 'OUI' : 'NON');
   if (!generator) {
-    throw new Error(`Template non trouvé pour le document: ${docName}`);
+    console.log(`   ⚠️ Tentative avec logique conditionnelle...`);
   }
 
   // Générer le contenu texte
   let content;
-  if (docName.includes('Statuts') || docName.includes('statuts')) {
-    content = generateStatutsSARL(company, associates, managers);
-  } else if (docName.includes('Bail') || docName.includes('bail')) {
-    content = generateContratBail(company, additionalData);
-  } else if (docName.includes('DSV') || docName.includes('Souscription')) {
-    content = generateDSV(company, associates);
-  } else if (docName.includes('Gérant') || docName.includes('gérant') || docName.includes('dirigeant')) {
-    content = generateListeGerants(company, managers);
-  } else if (docName.includes('Déclaration') || docName.includes('déclaration')) {
-    content = generateDeclarationHonneur(company, managers);
-  } else if (docName.includes('CEPICI') || docName.includes('cepici')) {
-    content = generateFormulaireCEPICI(company, managers, associates);
-  } else {
-    content = generator(company, associates, managers, additionalData);
+  try {
+    if (docName.includes('Statuts') || docName.includes('statuts')) {
+      console.log(`   📝 Utilisation: generateStatutsSARL`);
+      content = generateStatutsSARL(company, associates, managers);
+    } else if (docName.includes('Bail') || docName.includes('bail')) {
+      console.log(`   📝 Utilisation: generateContratBail`);
+      content = generateContratBail(company, additionalData);
+    } else if (docName.includes('DSV') || docName.includes('Souscription')) {
+      console.log(`   📝 Utilisation: generateDSV`);
+      content = generateDSV(company, associates);
+    } else if (docName.includes('Gérant') || docName.includes('gérant') || docName.includes('dirigeant')) {
+      console.log(`   📝 Utilisation: generateListeGerants`);
+      content = generateListeGerants(company, managers);
+    } else if (docName.includes('Déclaration') && (docName.includes('honneur') || docName.includes('Honneur'))) {
+      console.log(`   📝 Utilisation: generateDeclarationHonneur`);
+      content = generateDeclarationHonneur(company, managers);
+    } else if (docName.includes('CEPICI') || docName.includes('cepici')) {
+      console.log(`   📝 Utilisation: generateFormulaireCEPICI`);
+      content = generateFormulaireCEPICI(company, managers, associates);
+    } else if (generator) {
+      console.log(`   📝 Utilisation: générateur depuis documentGenerators`);
+      content = generator(company, associates, managers, additionalData);
+    } else {
+      throw new Error(`Template non trouvé pour le document: ${docName}`);
+    }
+    
+    console.log(`   ✅ Contenu généré: ${content.length} caractères`);
+  } catch (contentError) {
+    console.error(`   ❌ Erreur génération contenu:`, contentError);
+    throw contentError;
   }
 
   const baseFileName = safeFilePart(docName);
@@ -425,28 +445,59 @@ export const generateDocument = async (docName, company, associates = [], manage
 
   // Générer PDF
   if (options.formats.includes('pdf')) {
-    const pdfFileName = `${baseFileName}_${timestamp}.pdf`;
-    const pdfPath = path.join(GENERATED_DIR, pdfFileName);
-    await generatePdfDocument(content, docName, pdfPath);
-    result.pdf = {
-      fileName: pdfFileName,
-      filePath: pdfPath,
-      mimeType: 'application/pdf'
-    };
+    try {
+      console.log(`   📄 Génération PDF...`);
+      const pdfFileName = `${baseFileName}_${timestamp}.pdf`;
+      const pdfPath = path.join(GENERATED_DIR, pdfFileName);
+      await generatePdfDocument(content, docName, pdfPath);
+      
+      // Vérifier que le fichier existe
+      if (!fs.existsSync(pdfPath)) {
+        throw new Error(`Fichier PDF non créé: ${pdfPath}`);
+      }
+      
+      const stats = fs.statSync(pdfPath);
+      console.log(`   ✅ PDF créé: ${pdfFileName} (${stats.size} bytes)`);
+      
+      result.pdf = {
+        fileName: pdfFileName,
+        filePath: pdfPath,
+        mimeType: 'application/pdf'
+      };
+    } catch (pdfError) {
+      console.error(`   ❌ Erreur génération PDF:`, pdfError);
+      throw pdfError;
+    }
   }
 
   // Générer Word
   if (options.formats.includes('docx')) {
-    const docxFileName = `${baseFileName}_${timestamp}.docx`;
-    const docxPath = path.join(GENERATED_DIR, docxFileName);
-    await generateWordDocument(content, docName, docxPath);
-    result.docx = {
-      fileName: docxFileName,
-      filePath: docxPath,
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    };
+    try {
+      console.log(`   📄 Génération DOCX...`);
+      const docxFileName = `${baseFileName}_${timestamp}.docx`;
+      const docxPath = path.join(GENERATED_DIR, docxFileName);
+      await generateWordDocument(content, docName, docxPath);
+      
+      // Vérifier que le fichier existe
+      if (!fs.existsSync(docxPath)) {
+        throw new Error(`Fichier DOCX non créé: ${docxPath}`);
+      }
+      
+      const stats = fs.statSync(docxPath);
+      console.log(`   ✅ DOCX créé: ${docxFileName} (${stats.size} bytes)`);
+      
+      result.docx = {
+        fileName: docxFileName,
+        filePath: docxPath,
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      };
+    } catch (docxError) {
+      console.error(`   ❌ Erreur génération DOCX:`, docxError);
+      throw docxError;
+    }
   }
 
+  console.log(`   ✅ [generateDocument] Terminé: ${Object.keys(result).length} format(s) généré(s)`);
   return result;
 };
 
