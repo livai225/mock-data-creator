@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2 } from "lucide-react";
+import { CheckCircle2, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -18,6 +18,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -29,6 +36,8 @@ export default function ClientDashboard() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [deletingCompanyId, setDeletingCompanyId] = useState<number | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number | "all">("all");
+  const [expandedCompanies, setExpandedCompanies] = useState<Set<number>>(new Set());
 
   // Protection de la route
   useEffect(() => {
@@ -124,6 +133,21 @@ export default function ClientDashboard() {
         });
         setDocuments(validDocuments);
         console.log(`📄 ${validDocuments.length} documents valides après filtrage pour ${companiesRes.data?.length || 0} entreprises`);
+        
+        // Grouper les documents par entreprise pour debug
+        const docsByCompany = validDocuments.reduce((acc: Record<number, UserDocument[]>, doc) => {
+          if (doc.company_id) {
+            if (!acc[doc.company_id]) acc[doc.company_id] = [];
+            acc[doc.company_id].push(doc);
+          }
+          return acc;
+        }, {});
+        console.log(`📊 Documents par entreprise:`, Object.keys(docsByCompany).map(id => ({
+          companyId: id,
+          count: docsByCompany[Number(id)].length,
+          docs: docsByCompany[Number(id)].map(d => d.doc_name)
+        })));
+        
         if (validDocuments.length === 0 && docsRes.data.length > 0) {
           console.warn(`⚠️ Aucun document valide trouvé malgré ${docsRes.data.length} documents dans la base. Vérifiez les company_id.`);
         }
@@ -187,6 +211,16 @@ export default function ClientDashboard() {
       toast.success("Entreprise et documents associés supprimés avec succès");
       setShowDeleteDialog(false);
       setDeletingCompanyId(null);
+      // Retirer de la liste des entreprises étendues si elle y était
+      setExpandedCompanies(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(deletingCompanyId);
+        return newSet;
+      });
+      // Réinitialiser le filtre si l'entreprise supprimée était sélectionnée
+      if (selectedCompanyId === deletingCompanyId) {
+        setSelectedCompanyId("all");
+      }
       // Forcer un rechargement complet des données avec un petit délai
       setTimeout(() => {
         loadData();
@@ -196,6 +230,32 @@ export default function ClientDashboard() {
       setShowDeleteDialog(false);
       setDeletingCompanyId(null);
     }
+  };
+
+  // Toggle l'expansion d'une entreprise
+  const toggleCompanyExpansion = (companyId: number) => {
+    setExpandedCompanies(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(companyId)) {
+        newSet.delete(companyId);
+      } else {
+        newSet.add(companyId);
+      }
+      return newSet;
+    });
+  };
+
+  // Obtenir les documents filtrés par entreprise sélectionnée
+  const getFilteredDocuments = () => {
+    if (selectedCompanyId === "all") {
+      return documents;
+    }
+    return documents.filter(doc => doc.company_id === selectedCompanyId);
+  };
+
+  // Obtenir les documents d'une entreprise spécifique
+  const getCompanyDocuments = (companyId: number) => {
+    return documents.filter(doc => doc.company_id === companyId);
   };
 
   if (loading || !isAuthenticated) return null;
@@ -260,97 +320,200 @@ export default function ClientDashboard() {
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {companies.map((company) => (
-                <Card key={company.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">{company.company_name || "Sans nom"}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <StatusBadge status={company.status} />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteClick(company.id)}
-                          title="Supprimer l'entreprise"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <CardDescription>{company.company_type}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        <span>Créé le {new Date(company.created_at).toLocaleDateString('fr-FR')}</span>
-                      </div>
-                      {company.status === 'draft' && (
-                        <div className="flex items-center gap-2 text-amber-600 mt-2">
-                          <AlertCircle className="h-4 w-4" />
-                          <span>Dossier incomplet</span>
+              {companies.map((company) => {
+                const companyDocs = getCompanyDocuments(company.id);
+                const isExpanded = expandedCompanies.has(company.id);
+                
+                return (
+                  <Card key={company.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg">{company.company_name || "Sans nom"}</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <StatusBadge status={company.status} />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteClick(company.id)}
+                            title="Supprimer l'entreprise"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </div>
+                      <CardDescription>{company.company_type}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-sm text-muted-foreground space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          <span>Créé le {new Date(company.created_at).toLocaleDateString('fr-FR')}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          <span>{companyDocs.length} document{companyDocs.length > 1 ? 's' : ''}</span>
+                        </div>
+                        {company.status === 'draft' && (
+                          <div className="flex items-center gap-2 text-amber-600 mt-2">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>Dossier incomplet</span>
+                          </div>
+                        )}
+                        
+                        {/* Bouton pour voir les documents de cette entreprise */}
+                        {companyDocs.length > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full mt-3"
+                            onClick={() => toggleCompanyExpansion(company.id)}
+                          >
+                            {isExpanded ? (
+                              <>
+                                <ChevronUp className="h-4 w-4 mr-2" />
+                                Masquer les documents
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className="h-4 w-4 mr-2" />
+                                Voir les documents ({companyDocs.length})
+                              </>
+                            )}
+                          </Button>
+                        )}
+                        
+                        {/* Liste des documents de l'entreprise */}
+                        {isExpanded && companyDocs.length > 0 && (
+                          <div className="mt-3 pt-3 border-t space-y-2">
+                            {companyDocs.map((doc) => (
+                              <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <FileText className="h-3 w-3 text-primary flex-shrink-0" />
+                                  <span className="truncate font-medium">{doc.doc_name}</span>
+                                </div>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => handlePreview(doc)}
+                                    title="Prévisualiser"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => handleDownload(doc)}
+                                    disabled={downloadingId === doc.id}
+                                    title="Télécharger"
+                                  >
+                                    {downloadingId === doc.id ? (
+                                      <span className="animate-spin text-xs">⏳</span>
+                                    ) : (
+                                      <Download className="h-3 w-3" />
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </section>
 
         {/* Section Documents */}
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <FileText className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold">Mes Documents</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-bold">Mes Documents</h2>
+            </div>
+            {companies.length > 0 && (
+              <Select value={selectedCompanyId.toString()} onValueChange={(value) => setSelectedCompanyId(value === "all" ? "all" : Number(value))}>
+                <SelectTrigger className="w-[250px]">
+                  <SelectValue placeholder="Filtrer par entreprise" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les entreprises ({documents.length})</SelectItem>
+                  {companies.map((company) => {
+                    const companyDocs = getCompanyDocuments(company.id);
+                    return (
+                      <SelectItem key={company.id} value={company.id.toString()}>
+                        {company.company_name || "Sans nom"} ({companyDocs.length})
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <Card>
             <CardContent className="p-0">
               {isLoadingData ? (
                 <div className="p-8 text-center text-muted-foreground">Chargement...</div>
-              ) : documents.length === 0 ? (
+              ) : getFilteredDocuments().length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">
-                  Aucun document disponible pour le moment.
+                  {selectedCompanyId === "all" 
+                    ? "Aucun document disponible pour le moment."
+                    : "Aucun document disponible pour cette entreprise."}
                 </div>
               ) : (
                 <div className="divide-y">
-                  {documents.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 rounded bg-primary/10 text-primary">
-                          <FileText className="h-5 w-5" />
+                  {getFilteredDocuments().map((doc) => {
+                    const company = companies.find(c => c.id === doc.company_id);
+                    return (
+                      <div key={doc.id} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="p-2 rounded bg-primary/10 text-primary">
+                            <FileText className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{doc.doc_name}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                              <span>{new Date(doc.created_at).toLocaleDateString('fr-FR')}</span>
+                              <span>•</span>
+                              <span>{doc.mime_type === 'application/pdf' ? 'PDF' : 'DOCX'}</span>
+                              {company && (
+                                <>
+                                  <span>•</span>
+                                  <span className="text-primary font-medium">{company.company_name}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">{doc.doc_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(doc.created_at).toLocaleDateString('fr-FR')} • PDF
-                          </p>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => handlePreview(doc)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Prévisualiser
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownload(doc)}
+                            disabled={downloadingId === doc.id}
+                          >
+                            {downloadingId === doc.id ? (
+                              <span className="animate-spin mr-2">⏳</span>
+                            ) : (
+                              <Download className="h-4 w-4 mr-2" />
+                            )}
+                            Télécharger
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => handlePreview(doc)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Prévisualiser
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownload(doc)}
-                          disabled={downloadingId === doc.id}
-                        >
-                          {downloadingId === doc.id ? (
-                            <span className="animate-spin mr-2">⏳</span>
-                          ) : (
-                            <Download className="h-4 w-4 mr-2" />
-                          )}
-                          Télécharger
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>

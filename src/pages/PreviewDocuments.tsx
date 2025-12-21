@@ -490,26 +490,32 @@ export default function PreviewDocuments() {
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Modifier
                       </Button>
-                      <Button 
-                        variant="gold"
-                        onClick={handleValidateAll}
-                        disabled={isSubmitting}
-                        className="min-w-[200px]"
-                      >
-                        {isSubmitting ? (
-                          "Génération en cours..."
-                        ) : documentsGenerated ? (
-                          <>
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
-                            Documents générés - Voir le dashboard
-                          </>
-                        ) : (
-                          <>
-                            <Download className="h-4 w-4 mr-2" />
-                            Valider et générer les documents
-                          </>
-                        )}
-                      </Button>
+                      {documentsGenerated ? (
+                        <Button 
+                          variant="gold"
+                          onClick={() => navigate("/dashboard")}
+                          className="min-w-[200px]"
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          Voir le tableau de bord
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="gold"
+                          onClick={handleValidateAll}
+                          disabled={isSubmitting}
+                          className="min-w-[200px]"
+                        >
+                          {isSubmitting ? (
+                            "Génération en cours..."
+                          ) : (
+                            <>
+                              <Download className="h-4 w-4 mr-2" />
+                              Valider et générer les documents
+                            </>
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
