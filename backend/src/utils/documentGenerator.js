@@ -304,39 +304,8 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
         }
       });
 
-      // Footer sur chaque page (sauf la première qui a déjà le header)
-      let isFirstPage = true;
-      doc.on('pageAdded', () => {
-        // Ne pas ajouter de footer sur la première page car elle a déjà le header
-        if (isFirstPage) {
-          isFirstPage = false;
-          return;
-        }
-        
-        // La nouvelle page est déjà active, pas besoin de switchToPage
-        const footerY = doc.page.height - 30;
-        doc.strokeColor('#D4AF37')
-           .lineWidth(0.5)
-           .moveTo(50, footerY)
-           .lineTo(doc.page.width - 50, footerY)
-           .stroke();
-        
-        doc.fontSize(8)
-           .font('Helvetica-Oblique')
-           .fillColor('#787878')
-           .text(
-             'Document généré automatiquement par ARCH EXCELLENCE - Usage professionnel',
-             50,
-             footerY + 5,
-             { width: doc.page.width - 100, align: 'center' }
-           );
-        
-        doc.font('Helvetica-Bold')
-           .fillColor('#1E293B')
-           .text('CONFIDENTIEL', doc.page.width - 150, footerY + 5, { align: 'right' });
-      });
-
-      // Footer sur la dernière page
+      // Footer sur la dernière page uniquement (pour éviter la récursion)
+      // On ajoute le footer après que tout le contenu soit écrit
       const footerY = doc.page.height - 30;
       doc.strokeColor('#D4AF37')
          .lineWidth(0.5)
@@ -351,7 +320,7 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
            'Document généré automatiquement par ARCH EXCELLENCE - Usage professionnel',
            50,
            footerY + 5,
-           { width: doc.page.width - 100, align: 'center' }
+           { align: 'center' }
          );
       
       doc.font('Helvetica-Bold')
