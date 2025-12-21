@@ -21,10 +21,12 @@ class Document {
 
   static async findByUserId(userId) {
     const sql = `
-      SELECT id, user_id, company_id, doc_type, doc_name, file_name, mime_type, created_at
-      FROM documents
-      WHERE user_id = ?
-      ORDER BY created_at DESC
+      SELECT d.id, d.user_id, d.company_id, d.doc_type, d.doc_name, d.file_name, d.mime_type, d.created_at
+      FROM documents d
+      LEFT JOIN companies c ON d.company_id = c.id
+      WHERE d.user_id = ?
+        AND (d.company_id IS NULL OR c.id IS NOT NULL)
+      ORDER BY d.created_at DESC
     `;
     return await query(sql, [userId]);
   }
