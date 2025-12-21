@@ -20,6 +20,23 @@ class Document {
   }
 
   static async findByUserId(userId) {
+    // D'abord, nettoyer les documents orphelins (liés à une entreprise supprimée)
+    // MySQL ne supporte pas NOT IN avec sous-requête dans DELETE, on utilise LEFT JOIN
+    const cleanupSql = `
+      DELETE d FROM documents d
+      LEFT JOIN companies c ON d.company_id = c.id
+      WHERE d.user_id = ?
+        AND d.company_id IS NOT NULL
+        AND c.id IS NULL
+    `;
+    try {
+      await query(cleanupSql, [userId]);
+    } catch (error) {
+      console.error('Erreur nettoyage documents orphelins:', error);
+      // Continuer même si le nettoyage échoue
+    }
+
+    // Ensuite, récupérer les documents valides
     const sql = `
       SELECT d.id, d.user_id, d.company_id, d.doc_type, d.doc_name, d.file_name, d.mime_type, d.created_at
       FROM documents d

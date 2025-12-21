@@ -154,8 +154,10 @@ export default function ClientDashboard() {
       toast.success("Entreprise et documents associés supprimés avec succès");
       setShowDeleteDialog(false);
       setDeletingCompanyId(null);
-      // Recharger les données
-      loadData();
+      // Forcer un rechargement complet des données avec un petit délai
+      setTimeout(() => {
+        loadData();
+      }, 500);
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de la suppression");
       setShowDeleteDialog(false);

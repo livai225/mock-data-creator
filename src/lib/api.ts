@@ -127,7 +127,9 @@ export async function generateDocumentsApi(
 }
 
 export async function getMyDocumentsApi(token: string) {
-  return apiRequest<ApiResult<UserDocument[]>>("/api/documents/my", {
+  // Ajouter un timestamp pour éviter le cache
+  const timestamp = new Date().getTime();
+  return apiRequest<ApiResult<UserDocument[]>>(`/api/documents/my?t=${timestamp}`, {
     method: "GET",
     token,
   });
