@@ -255,59 +255,65 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
       const lines = content.split('\n');
       let y = 100;
 
+      // Fonction pour vérifier et ajouter une nouvelle page si nécessaire
+      const checkPageBreak = (requiredSpace = 50) => {
+        if (y > doc.page.height - requiredSpace) {
+          doc.addPage();
+          y = 50;
+        }
+      };
+
       lines.forEach((line) => {
         const trimmedLine = line.trim();
         
         if (trimmedLine === '') {
+          checkPageBreak(30);
           doc.moveDown(0.5);
-          y += 5;
+          y += 10;
         } else if (trimmedLine.match(/^[A-ZÉÈÊËÀÂÄÎÏÔÖÛÜÇ\s\-:]+$/) && trimmedLine.length > 3 && !trimmedLine.includes(':')) {
           // Titre (tout en majuscules)
-          if (y > doc.page.height - 100) {
-            doc.addPage();
-            y = 50;
-          }
+          checkPageBreak(50);
+          const startY = y;
           doc.font('Times-Bold')
              .fontSize(12)
              .text(trimmedLine, 50, y, { width: doc.page.width - 100 });
-          doc.moveDown(1);
-          y += 15;
+          // Estimer la hauteur : environ 15px par ligne de texte
+          const estimatedLines = Math.ceil(trimmedLine.length / 80); // ~80 caractères par ligne
+          y = startY + (estimatedLines * 15) + 20;
+          doc.y = y;
         } else if (trimmedLine.toLowerCase().startsWith('article')) {
           // Article
-          if (y > doc.page.height - 100) {
-            doc.addPage();
-            y = 50;
-          }
+          checkPageBreak(50);
+          const startY = y;
           doc.font('Times-Bold')
              .fontSize(11)
              .fillColor('#D4AF37')
              .text(trimmedLine, 50, y, { width: doc.page.width - 100 });
-          doc.moveDown(0.5);
-          y += 12;
+          const estimatedLines = Math.ceil(trimmedLine.length / 80);
+          y = startY + (estimatedLines * 15) + 15;
+          doc.y = y;
         } else if (trimmedLine.includes(':') && trimmedLine.indexOf(':') < 30) {
           // Label avec valeur
-          if (y > doc.page.height - 100) {
-            doc.addPage();
-            y = 50;
-          }
+          checkPageBreak(50);
           const colonIndex = trimmedLine.indexOf(':');
           const label = trimmedLine.substring(0, colonIndex + 1);
           const value = trimmedLine.substring(colonIndex + 1);
           
+          const startY = y;
           doc.font('Times-Bold')
              .fontSize(10)
              .fillColor('#1E1E1E')
              .text(label, 50, y, { width: doc.page.width - 100, continued: true });
           doc.font('Times-Roman')
-             .text(value);
-          doc.moveDown(0.5);
-          y += 8;
+             .text(value, { width: doc.page.width - 100 });
+          const totalText = trimmedLine;
+          const estimatedLines = Math.ceil(totalText.length / 80);
+          y = startY + (estimatedLines * 15) + 12;
+          doc.y = y;
         } else {
-          // Paragraphe normal
-          if (y > doc.page.height - 100) {
-            doc.addPage();
-            y = 50;
-          }
+          // Paragraphe normal - IMPORTANT: utiliser text() qui gère automatiquement les retours à la ligne
+          checkPageBreak(50);
+          const startY = y;
           doc.font('Times-Roman')
              .fontSize(10)
              .fillColor('#1E1E1E')
@@ -315,8 +321,13 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
                width: doc.page.width - 100,
                align: 'left'
              });
-          doc.moveDown(0.5);
-          y += 8;
+          // Estimer la hauteur pour les paragraphes longs
+          const estimatedLines = Math.ceil(trimmedLine.length / 80);
+          y = startY + (estimatedLines * 15) + 12;
+          // Utiliser la position Y réelle du document après le texte
+          if (doc.y > y) {
+            y = doc.y;
+          }
         }
       });
 
