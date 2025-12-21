@@ -320,11 +320,16 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
         }
       });
 
-      // Footer sur chaque page
+      // Footer sur chaque page (sauf la première qui a déjà le header)
+      let isFirstPage = true;
       doc.on('pageAdded', () => {
-        const pageNum = doc.bufferedPageRange().count;
-        doc.switchToPage(pageNum - 1);
+        // Ne pas ajouter de footer sur la première page car elle a déjà le header
+        if (isFirstPage) {
+          isFirstPage = false;
+          return;
+        }
         
+        // La nouvelle page est déjà active, pas besoin de switchToPage
         const footerY = doc.page.height - 30;
         doc.strokeColor('#D4AF37')
            .lineWidth(0.5)
