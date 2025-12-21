@@ -196,6 +196,7 @@ export const generateContratBail = (company, bailleurData = {}) => {
   const ilotNumero = addressParts?.find(p => p.toUpperCase().includes('ILOT'))?.replace(/ILOT\s*/i, '') || '';
   
   const dureeBail = bailleurData.duree_bail || 1;
+  const dureeBailWords = dureeBail === 1 ? 'un (01)' : `${numberToWords(dureeBail)} (${String(dureeBail).padStart(2, '0')})`;
   const dateDebut = bailleurData.date_debut ? formatDate(bailleurData.date_debut) : formatDate(new Date().toISOString());
   const dateFin = bailleurData.date_fin ? formatDate(bailleurData.date_fin) : '[DATE FIN]';
   const loyerMensuel = bailleurData.loyer_mensuel || 0;
@@ -203,6 +204,7 @@ export const generateContratBail = (company, bailleurData = {}) => {
   const cautionMois = bailleurData.caution_mois || 2;
   const avanceMois = bailleurData.avance_mois || 2;
   const garantieTotale = bailleurData.garantie_totale || (loyerMensuel * (cautionMois + avanceMois));
+  const garantieTotaleWords = numberToWords(Math.floor(garantieTotale)).toUpperCase();
   
   return `
 CONTRAT DE BAIL COMMERCIAL
@@ -225,38 +227,43 @@ Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux
 
 Article 1 : Désignation
 
-Il est précisé que l'emplacement est livré nu, et que le preneur devra supporter le cout et les frais d'eaux, d'électricité, téléphone et en général, tous travaux d'aménagements. Tel au surplus que le cout se poursuit et se comporte sans plus ample description, le preneur déclarant avoir vu. Visite et parfaitement connaitre les locaux loués, qu'il consent à occuper dans leur état actuel.
+Il est précisé que l'emplacement est livré nu, et que le preneur devra supporter le cout et les frais d'eaux, d'électricité, téléphone et en général, tous travaux d'aménagements.
+
+Tel au surplus que le cout se poursuit et se comporte sans plus ample description, le preneur déclarant avoir vu. Visite et parfaitement connaitre les locaux loués, qu'il consent à occuper dans leur état actuel.
 
 Article 2 : Durée
 
-Le présent bail est conclu pour une durée de ${dureeBail} an(s) allant du ${dateDebut} au ${dateFin} à son expiration, le bail se renouvellera par tacite reconduction, sauf dénonciation par acte extra judiciaire, au plus tard TROIS (03) mois avant la date d'expiration de la période triennale concernée.
+Le présent bail est conclu pour une durée de ${dureeBailWords} an${dureeBail > 1 ? 's' : ''} allant du ${dateDebut} au ${dateFin} à son expiration, le bail se renouvellera par tacite reconduction, sauf dénonciation par acte extra judiciaire, au plus tard TROIS (03) mois avant la date d'expiration de la période triennale concernée.
 
 Article 3 : Renouvellement et cession
 
-• Le preneur qui a droit au renouvellement de son bail, doit demander le renouvellement de celui-ci au bailleur, par écrit, au plus tard deux (2) mois avant la date d'expiration du bail.
-• Le preneur qui n'a pas formé sa demande de renouvellement dans ce délai est déchu du droit de renouvellement du bail.
-• Le BAILLEUR qui n'a pas fait connaître sa réponse à la demande de renouvellement au plus tard UN (01) mois avant l'expiration du bail est réputé avoir accepté le principe du renouvellement de ce bail.
-• La partie qui entend résilier le bail doit donner congés, par acte extra judiciaire au moins SIX (06) mois à l'avance.
+- Le preneur qui a droit au renouvellement de son bail, doit demander le renouvellement de celui-ci au bailleur, par écrit, au plus tard deux (2) mois avant la date d'expiration du bail.
+
+- Le preneur qui n'a pas formé sa demande de renouvellement dans ce délai est déchu du droit de renouvellement du bail.
+
+Le BAILLEUR qui n'a pas fait connaître sa réponse à la demande de renouvellement au plus tard UN (01) mois avant l'expiration du bail est réputé avoir accepté le principe du renouvellement de ce bail.
+
+La partie qui entend résilier le bail doit donner congés, par acte extra judiciaire au moins SIX (06) mois à l'avance.
 
 Article 4 : Obligation du bailleur
 
-• Le bailleur fait procéder, à ses frais dans les locaux donnés à bail, à toutes les grosses réparations devenues nécessaires et urgentes.
+- Le bailleur fait procéder, à ses frais dans les locaux donnés à bail, à toutes les grosses réparations devenues nécessaires et urgentes.
 
 Le bailleur délivre les locaux en bon état.
 
-• Le bailleur autorise le preneur à apposer sur les façades extérieures des locaux les enseignes et plaques indicatrices relatives à son commerce.
+- Le bailleur autorise le preneur à apposer sur les façades extérieures des locaux les enseignes et plaques indicatrices relatives à son commerce.
 
 Article 5 : Obligation du preneur
 
-• Le preneur doit payer le loyer aux termes convenus, entre les mains du bailleur.
+- Le preneur doit payer le loyer aux termes convenus, entre les mains du bailleur.
 
-• Le preneur est tenu d'exploiter les locaux donnés à bail, en bon père de famille, et conformément à la destination prévue au bail, à défaut de convention écrite, suivant celle présumée d'après les circonstances.
+- Le preneur est tenu d'exploiter les locaux donnés à bail, en bon père de famille, et conformément à la destination prévue au bail, à défaut de convention écrite, suivant celle présumée d'après les circonstances.
 
 Le preneur est tenu des réparations d'entretien ; il répond des dégradations ou des pertes dues à un défaut d'entretien en cours de bail.
 
 Article 6 : Loyer
 
-La présente location est consentie et acceptée moyennant un loyer mensuel de ${loyerLettres} (${loyerMensuel.toLocaleString('fr-FR')}) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de ${garantieTotale.toLocaleString('fr-FR')} FCFA dont ${cautionMois} mois de caution et ${avanceMois} mois d'avance.
+La présente location est consentie et acceptée moyennant un loyer mensuel de ${loyerLettres.charAt(0).toUpperCase() + loyerLettres.slice(1)} (${loyerMensuel.toLocaleString('fr-FR')}) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de ${garantieTotaleWords} (${garantieTotale.toLocaleString('fr-FR')} FCFA) dont ${numberToWords(cautionMois)} (${cautionMois}) mois de caution et ${numberToWords(avanceMois)} (${avanceMois}) mois d'avance.
 
 Les parties conviennent que le prix fixé ci-dessus ne peut être révisé au cours du bail.
 
@@ -270,7 +277,7 @@ Article 8 : Clause résolutoire
 
 A défaut de paiement d'un seul terme de loyer ou en cas d'inexécution d'une clause du bail, le bailleur pourra demander à la juridiction compétente la résiliation du bail et l'expulsion du preneur, et de tous occupants de son chef, après avoir fait délivrer, par acte extrajudiciaire, une mise en demeure d'avoir à respecter les clauses et conditions du bail.
 
-Article 9 : Élection de domicile
+Article 9 : Election de domicile
 
 En cas de litige, si aucun accord amiable n'est trouvé, le tribunal d'Abidjan sera seul compétent.
 
