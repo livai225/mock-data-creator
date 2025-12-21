@@ -155,6 +155,13 @@ export async function createCompanyApi(token: string, data: any) {
   });
 }
 
+export async function deleteCompanyApi(token: string, companyId: number) {
+  return apiRequest<ApiResult<any>>(`/api/companies/${companyId}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
 export async function downloadDocumentApi(token: string, id: number) {
   return apiRequestBlob(`/api/documents/${id}/download`, {
     method: "GET",

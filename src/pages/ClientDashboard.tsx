@@ -3,11 +3,21 @@ import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2 } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
-import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, type UserDocument } from "@/lib/api";
+import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -17,6 +27,8 @@ export default function ClientDashboard() {
   const [documents, setDocuments] = useState<UserDocument[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [deletingCompanyId, setDeletingCompanyId] = useState<number | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Protection de la route
   useEffect(() => {
@@ -129,6 +141,28 @@ export default function ClientDashboard() {
     }
   };
 
+  const handleDeleteClick = (companyId: number) => {
+    setDeletingCompanyId(companyId);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!token || !deletingCompanyId) return;
+    
+    try {
+      await deleteCompanyApi(token, deletingCompanyId);
+      toast.success("Entreprise et documents associés supprimés avec succès");
+      setShowDeleteDialog(false);
+      setDeletingCompanyId(null);
+      // Recharger les données
+      loadData();
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors de la suppression");
+      setShowDeleteDialog(false);
+      setDeletingCompanyId(null);
+    }
+  };
+
   if (loading || !isAuthenticated) return null;
 
   return (
@@ -196,7 +230,18 @@ export default function ClientDashboard() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg">{company.company_name || "Sans nom"}</CardTitle>
-                      <StatusBadge status={company.status} />
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={company.status} />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteClick(company.id)}
+                          title="Supprimer l'entreprise"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     <CardDescription>{company.company_type}</CardDescription>
                   </CardHeader>
@@ -278,6 +323,27 @@ export default function ClientDashboard() {
         </section>
 
       </div>
+
+      {/* Dialogue de confirmation de suppression */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer cette entreprise ? Cette action supprimera également tous les documents associés et ne peut pas être annulée.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeletingCompanyId(null)}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }

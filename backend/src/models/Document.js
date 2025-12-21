@@ -39,6 +39,27 @@ class Document {
     const rows = await query(sql, [id]);
     return rows[0] || null;
   }
+
+  static async findByCompanyId(companyId) {
+    const sql = `
+      SELECT id, user_id, company_id, doc_type, doc_name, file_name, file_path, mime_type, created_at
+      FROM documents
+      WHERE company_id = ?
+    `;
+    return await query(sql, [companyId]);
+  }
+
+  static async delete(id) {
+    const sql = 'DELETE FROM documents WHERE id = ?';
+    const result = await query(sql, [id]);
+    return result.affectedRows > 0;
+  }
+
+  static async deleteByCompanyId(companyId) {
+    const sql = 'DELETE FROM documents WHERE company_id = ?';
+    const result = await query(sql, [companyId]);
+    return result.affectedRows > 0;
+  }
 }
 
 export default Document;

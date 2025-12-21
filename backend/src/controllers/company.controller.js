@@ -1,5 +1,12 @@
 import Company from '../models/Company.js';
+import Document from '../models/Document.js';
 import { AppError } from '../middleware/errorHandler.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // @desc    Créer une nouvelle entreprise
 // @route   POST /api/companies
@@ -191,16 +198,44 @@ export const deleteCompany = async (req, res, next) => {
       return next(new AppError('Accès non autorisé', 403));
     }
 
-    // Ne peut supprimer que les brouillons
-    if (company.status !== 'draft' && req.user.role !== 'admin') {
+    // Permettre la suppression même pour les entreprises non-draft si c'est l'utilisateur lui-même
+    // (utile pour supprimer les entreprises de test)
+    if (company.status !== 'draft' && req.user.role !== 'admin' && company.user_id === req.user.id) {
+      // Autoriser la suppression par le propriétaire même si ce n'est pas un draft
+    } else if (company.status !== 'draft' && req.user.role !== 'admin') {
       return next(new AppError('Impossible de supprimer une entreprise en cours de traitement', 400));
     }
 
+    // 1. Récupérer tous les documents associés à l'entreprise
+    const documents = await Document.findByCompanyId(req.params.id);
+
+    // 2. Supprimer les fichiers physiques
+    const GENERATED_DIR = path.join(__dirname, '../../generated');
+    for (const doc of documents) {
+      if (doc.file_path && fs.existsSync(doc.file_path)) {
+        try {
+          fs.unlinkSync(doc.file_path);
+        } catch (fileError) {
+          console.error(`Erreur suppression fichier ${doc.file_path}:`, fileError);
+          // Continuer même si la suppression du fichier échoue
+        }
+      }
+    }
+
+    // 3. Supprimer les documents de la base de données
+    await Document.deleteByCompanyId(req.params.id);
+
+    // 4. Supprimer les associés (cascade devrait le faire, mais on le fait explicitement)
+    const { query } = await import('../config/database.js');
+    await query('DELETE FROM associates WHERE company_id = ?', [req.params.id]);
+    await query('DELETE FROM managers WHERE company_id = ?', [req.params.id]);
+
+    // 5. Supprimer l'entreprise
     await Company.delete(req.params.id);
 
     res.status(200).json({
       success: true,
-      message: 'Entreprise supprimée avec succès'
+      message: 'Entreprise et documents associés supprimés avec succès'
     });
   } catch (error) {
     next(error);
