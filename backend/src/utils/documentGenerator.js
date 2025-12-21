@@ -261,29 +261,25 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
           doc.moveDown(0.5);
         } else if (trimmedLine.match(/^[A-ZÉÈÊËÀÂÄÎÏÔÖÛÜÇ\s\-:]+$/) && trimmedLine.length > 3 && !trimmedLine.includes(':')) {
           // Titre (tout en majuscules)
-          // Vérifier si on a assez d'espace, sinon ajouter une page
-          if (doc.y > doc.page.height - 100) {
-            doc.addPage();
-          }
           doc.font('Times-Bold')
              .fontSize(12)
-             .text(trimmedLine, 50, doc.y, { width: doc.page.width - 100 });
+             .text(trimmedLine, { 
+               width: doc.page.width - 100,
+               align: 'left'
+             });
           doc.moveDown(1);
         } else if (trimmedLine.toLowerCase().startsWith('article')) {
           // Article
-          if (doc.y > doc.page.height - 100) {
-            doc.addPage();
-          }
           doc.font('Times-Bold')
              .fontSize(11)
              .fillColor('#D4AF37')
-             .text(trimmedLine, 50, doc.y, { width: doc.page.width - 100 });
+             .text(trimmedLine, { 
+               width: doc.page.width - 100,
+               align: 'left'
+             });
           doc.moveDown(0.5);
         } else if (trimmedLine.includes(':') && trimmedLine.indexOf(':') < 30) {
           // Label avec valeur
-          if (doc.y > doc.page.height - 100) {
-            doc.addPage();
-          }
           const colonIndex = trimmedLine.indexOf(':');
           const label = trimmedLine.substring(0, colonIndex + 1);
           const value = trimmedLine.substring(colonIndex + 1);
@@ -291,19 +287,16 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
           doc.font('Times-Bold')
              .fontSize(10)
              .fillColor('#1E1E1E')
-             .text(label, 50, doc.y, { width: doc.page.width - 100, continued: true });
+             .text(label, { width: doc.page.width - 100, continued: true });
           doc.font('Times-Roman')
              .text(value, { width: doc.page.width - 100 });
           doc.moveDown(0.5);
         } else {
           // Paragraphe normal
-          if (doc.y > doc.page.height - 100) {
-            doc.addPage();
-          }
           doc.font('Times-Roman')
              .fontSize(10)
              .fillColor('#1E1E1E')
-             .text(trimmedLine, 50, doc.y, { 
+             .text(trimmedLine, { 
                width: doc.page.width - 100,
                align: 'left'
              });
