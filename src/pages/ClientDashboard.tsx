@@ -61,10 +61,14 @@ export default function ClientDashboard() {
               docs: payload.docs,
               formats: ['pdf', 'docx'] // Générer les deux formats
             });
+            toast.success("Documents générés avec succès !");
           }
           
           toast.success("Entreprise créée avec succès !");
           sessionStorage.removeItem("pending_company_creation");
+          
+          // Attendre un peu pour que les documents soient bien sauvegardés
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
           // Recharger les données
           loadData();
@@ -86,6 +90,8 @@ export default function ClientDashboard() {
     
     setIsLoadingData(true);
     try {
+      // Ajouter un timestamp pour éviter le cache
+      const timestamp = new Date().getTime();
       const [companiesRes, docsRes] = await Promise.all([
         getMyCompaniesApi(token),
         getMyDocumentsApi(token)
@@ -95,7 +101,17 @@ export default function ClientDashboard() {
         setCompanies(companiesRes.data);
       }
       if (docsRes.success && docsRes.data) {
-        setDocuments(docsRes.data);
+        // Filtrer les documents valides (qui ont un company_id existant)
+        const validDocuments = docsRes.data.filter((doc: UserDocument) => {
+          // Si le document a un company_id, vérifier que l'entreprise existe
+          if (doc.company_id) {
+            return companiesRes.data?.some((c: any) => c.id === doc.company_id);
+          }
+          // Les documents sans company_id sont aussi valides (documents manuels)
+          return true;
+        });
+        setDocuments(validDocuments);
+        console.log(`📄 ${validDocuments.length} documents chargés pour ${companiesRes.data?.length || 0} entreprises`);
       }
     } catch (error) {
       console.error("Erreur chargement dashboard:", error);

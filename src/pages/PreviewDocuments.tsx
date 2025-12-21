@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthContext";
-import { createCompanyApi, generateDocumentsApi } from "@/lib/api";
+import { createCompanyApi, generateDocumentsApi, getMyDocumentsApi, viewDocumentApi, type UserDocument } from "@/lib/api";
 import { SARLUFormData } from "@/lib/sarlu-types";
 import { SARLPluriFormData } from "@/lib/sarl-pluri-types";
 import { Layout } from "@/components/layout/Layout";
@@ -52,6 +52,10 @@ export default function PreviewDocuments() {
   const [activeTab, setActiveTab] = useState('statuts');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validatedDocs, setValidatedDocs] = useState<string[]>([]);
+  const [generatedDocuments, setGeneratedDocuments] = useState<UserDocument[]>([]);
+  const [documentsGenerated, setDocumentsGenerated] = useState(false);
+  const [companyId, setCompanyId] = useState<number | null>(null);
+  const [documentUrls, setDocumentUrls] = useState<Record<number, string>>({});
 
   const { formData, companyType, payload, price, docs, companyTypeName } = location.state || {};
 
@@ -73,6 +77,48 @@ export default function PreviewDocuments() {
     }
   };
 
+  // Charger les documents générés et créer les URLs blob
+  useEffect(() => {
+    const loadGeneratedDocuments = async () => {
+      if (!token || !companyId || !documentsGenerated) return;
+      
+      try {
+        const docsRes = await getMyDocumentsApi(token);
+        if (docsRes.success && docsRes.data) {
+          // Filtrer les documents de cette entreprise et seulement les PDF
+          const companyDocs = docsRes.data.filter(
+            (doc: UserDocument) => doc.company_id === companyId && doc.mime_type === 'application/pdf'
+          );
+          setGeneratedDocuments(companyDocs);
+
+          // Créer les URLs blob pour chaque document
+          const urls: Record<number, string> = {};
+          for (const doc of companyDocs) {
+            try {
+              const blob = await viewDocumentApi(token, doc.id);
+              const url = URL.createObjectURL(blob);
+              urls[doc.id] = url;
+            } catch (error) {
+              console.error(`Erreur chargement document ${doc.id}:`, error);
+            }
+          }
+          setDocumentUrls(urls);
+        }
+      } catch (error) {
+        console.error("Erreur chargement documents:", error);
+      }
+    };
+
+    loadGeneratedDocuments();
+  }, [token, companyId, documentsGenerated]);
+
+  // Cleanup: revoquer les URLs blob quand le composant se démonte
+  useEffect(() => {
+    return () => {
+      Object.values(documentUrls).forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [documentUrls]);
+
   const handleValidateAll = async () => {
     if (!isAuthenticated) {
       sessionStorage.setItem("pending_company_creation", JSON.stringify(payload));
@@ -88,21 +134,49 @@ export default function PreviewDocuments() {
       const companyResult = await createCompanyApi(token!, payload);
       
       // 2. Récupérer l'ID de l'entreprise créée
-      const companyId = companyResult.data?.id;
+      const newCompanyId = companyResult.data?.id;
       
-      if (!companyId) {
+      if (!newCompanyId) {
         throw new Error("Impossible de récupérer l'ID de l'entreprise créée");
       }
 
+      setCompanyId(newCompanyId);
+
       // 3. Générer les documents avec l'ID de l'entreprise (PDF et Word)
       await generateDocumentsApi(token!, { 
-        companyId,
+        companyId: newCompanyId,
         docs,
         formats: ['pdf', 'docx'] // Générer les deux formats
       });
       
-      toast.success("Documents validés et entreprise créée avec succès !");
-      navigate("/dashboard");
+      setDocumentsGenerated(true);
+      toast.success("Documents générés avec succès !");
+      
+      // Attendre un peu pour que les documents soient bien sauvegardés
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Recharger les documents générés avec cache-busting
+      const timestamp = new Date().getTime();
+      const docsRes = await getMyDocumentsApi(token!);
+      if (docsRes.success && docsRes.data) {
+        const companyDocs = docsRes.data.filter(
+          (doc: UserDocument) => doc.company_id === newCompanyId && doc.mime_type === 'application/pdf'
+        );
+        setGeneratedDocuments(companyDocs);
+        
+        // Créer les URLs blob pour chaque document
+        const urls: Record<number, string> = {};
+        for (const doc of companyDocs) {
+          try {
+            const blob = await viewDocumentApi(token!, doc.id);
+            const url = URL.createObjectURL(blob);
+            urls[doc.id] = url;
+          } catch (error) {
+            console.error(`Erreur chargement document ${doc.id}:`, error);
+          }
+        }
+        setDocumentUrls(urls);
+      }
     } catch (error) {
       console.error(error);
       toast.error("Erreur lors de la création de l'entreprise");
@@ -276,19 +350,64 @@ export default function PreviewDocuments() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <ScrollArea className="h-[70vh]">
-                    <div className="p-6 bg-gray-100">
-                      {documentTabs.map((doc) => {
-                        const DocComponent = doc.component;
-                        return (
-                          <div
-                            key={doc.id}
-                            className={activeTab === doc.id ? 'block' : 'hidden'}
-                          >
-                            <DocComponent formData={formData} companyType={companyType} />
-                          </div>
-                        );
-                      })}
-                    </div>
+                    {documentsGenerated && generatedDocuments.length > 0 ? (
+                      // Afficher les documents PDF générés
+                      <div className="h-full">
+                        {documentTabs.map((doc) => {
+                          // Trouver le document PDF correspondant
+                          const generatedDoc = generatedDocuments.find((gDoc) => {
+                            const docName = gDoc.doc_name.toLowerCase();
+                            const tabLabel = doc.label.toLowerCase();
+                            return (
+                              (doc.id === 'statuts' && docName.includes('statuts')) ||
+                              (doc.id === 'bail' && docName.includes('bail')) ||
+                              (doc.id === 'cepici' && docName.includes('cepici')) ||
+                              (doc.id === 'gerants' && (docName.includes('gérant') || docName.includes('gerant') || docName.includes('dirigeant'))) ||
+                              (doc.id === 'declaration' && docName.includes('déclaration')) ||
+                              (doc.id === 'dsv' && (docName.includes('dsv') || docName.includes('souscription')))
+                            );
+                          });
+
+                          if (activeTab !== doc.id) return null;
+
+                          if (generatedDoc && documentUrls[generatedDoc.id]) {
+                            // Afficher le PDF généré dans un iframe
+                            return (
+                              <div key={doc.id} className="h-full w-full">
+                                <iframe
+                                  src={documentUrls[generatedDoc.id]}
+                                  className="w-full h-[70vh] border-0"
+                                  title={doc.label}
+                                />
+                              </div>
+                            );
+                          } else {
+                            // Fallback sur le composant React si le document n'est pas encore généré
+                            const DocComponent = doc.component;
+                            return (
+                              <div key={doc.id} className="p-6 bg-gray-100">
+                                <DocComponent formData={formData} companyType={companyType} />
+                              </div>
+                            );
+                          }
+                        })}
+                      </div>
+                    ) : (
+                      // Afficher les composants React avant génération
+                      <div className="p-6 bg-gray-100">
+                        {documentTabs.map((doc) => {
+                          const DocComponent = doc.component;
+                          return (
+                            <div
+                              key={doc.id}
+                              className={activeTab === doc.id ? 'block' : 'hidden'}
+                            >
+                              <DocComponent formData={formData} companyType={companyType} />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </ScrollArea>
                 </CardContent>
               </Card>
@@ -332,10 +451,15 @@ export default function PreviewDocuments() {
                       >
                         {isSubmitting ? (
                           "Génération en cours..."
+                        ) : documentsGenerated ? (
+                          <>
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Documents générés - Voir le dashboard
+                          </>
                         ) : (
                           <>
                             <Download className="h-4 w-4 mr-2" />
-                            Valider et générer les PDF
+                            Valider et générer les documents
                           </>
                         )}
                       </Button>
