@@ -52,134 +52,535 @@ const formatDate = (dateString) => {
 };
 
 /**
- * Template: Statuts SARL
+ * Template: Statuts SARL (Version complète avec tous les articles)
  */
 export const generateStatutsSARL = (company, associates, managers) => {
   const capital = parseFloat(company.capital) || 0;
-  const capitalWords = numberToWords(Math.floor(capital));
+  const capitalWords = numberToWords(Math.floor(capital)).toUpperCase();
   const duree = company.duree_societe || 99;
+  const dureeWords = numberToWords(duree);
   
   const gerant = managers && managers.length > 0 ? managers[0] : null;
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
-  const gerantDuree = gerant?.duree_mandat || 4;
+  const gerantDuree = gerant?.duree_mandat || 99;
+  const gerantDureeWords = numberToWords(gerantDuree);
+  const gerantProfession = gerant?.profession || '[PROFESSION]';
+  const gerantAdresse = gerant?.adresse || '[ADRESSE]';
+  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
+  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
+  const gerantLieuNaissance = gerant?.lieu_naissance || '[LIEU NAISSANCE]';
+  const gerantTypeId = gerant?.type_identite || 'CNI';
+  const gerantNumId = gerant?.numero_identite || '[NUMÉRO]';
+  const gerantDateDelivranceId = gerant?.date_delivrance_id ? formatDate(gerant.date_delivrance_id) : '[DATE DÉLIVRANCE]';
+  const gerantDateValiditeId = gerant?.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
+  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
   
-  const associe1 = associates && associates.length > 0 ? associates[0] : null;
-  const associe1Nom = associe1?.name || '[NOM ASSOCIÉ]';
-  const associe1Nationalite = '[NATIONALITÉ]';
-  const associe1DateNaissance = '[DATE NAISSANCE]';
-  const associe1LieuNaissance = '[LIEU NAISSANCE]';
-  const associe1Domicile = '[DOMICILE]';
-  const associe1Apport = capital;
-  
-  const nombreParts = associates?.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) || 100;
+  const isUnipersonnelle = !associates || associates.length <= 1;
+  const nombreParts = associates?.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) || Math.floor(capital / 5000);
   const valeurPart = capital / nombreParts;
   
+  // Construire la liste des associés
+  let listeAssocies = '';
+  let listeApports = '';
+  let listeParts = '';
+  let totalApports = 0;
+  
+  if (associates && associates.length > 0) {
+    associates.forEach((associe, index) => {
+      const parts = parseInt(associe.parts) || 0;
+      const apport = (capital * parts) / nombreParts;
+      totalApports += apport;
+      const debutParts = index === 0 ? 1 : associates.slice(0, index).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) + 1;
+      const finParts = associates.slice(0, index + 1).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0);
+      
+      listeAssocies += `M. ${associe.name || '[NOM ASSOCIÉ]'}\n`;
+      listeApports += `M. ${associe.name || '[NOM ASSOCIÉ]'}\n\n${apport.toLocaleString('fr-FR')} F CFA\n\n`;
+      listeParts += `M. ${associe.name || '[NOM ASSOCIÉ]'}\n\n${parts} parts sociales numérotées de ${debutParts} à ${finParts} inclus, en rémunération de son apport exclusif en numéraire ci-dessus\n\n`;
+    });
+  } else {
+    listeAssocies = `M. ${gerantNom}\n`;
+    listeApports = `M. ${gerantNom}\n\n${capital.toLocaleString('fr-FR')} F CFA\n\n`;
+    listeParts = `M. ${gerantNom}\n\n${nombreParts} parts sociales numérotées de 1 à ${nombreParts} inclus, en rémunération de son apport exclusif en numéraire ci-dessus\n\n`;
+    totalApports = capital;
+  }
+  
+  const annee = new Date().getFullYear();
+  const anneeWords = numberToWords(annee);
+  const dateActuelle = formatDate(new Date().toISOString());
+  
+  // Construire l'objet social complet
+  const objetSocial = company.activity || '[OBJET SOCIAL]';
+  const objetSocialComplet = `${objetSocial}
+
+- l'acquisition, la location et la vente de tous biens meubles et immeubles.
+
+- l'emprunt de toutes sommes auprès de tous établissements financiers avec possibilité de donner en garantie tout ou partie des biens sociaux.
+
+- la prise en location gérance de tous fonds de commerce.
+
+- la prise de participation dans toute société existante ou devant être créée
+
+- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
+  
   return `
-═══════════════════════════════════════════════════════════════════
-                        STATUTS
-                          DE
-           « ${company.company_name || '[NOM SOCIÉTÉ]'} »
-              SOCIÉTÉ À RESPONSABILITÉ LIMITÉE
-═══════════════════════════════════════════════════════════════════
+LES STATUTS DE LA SOCIETE « ${company.company_name || '[NOM SOCIÉTÉ]'} »
 
-LES SOUSSIGNÉS :
+Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d'Intérêt Economique
 
-${associe1Nom}, de nationalité ${associe1Nationalite}, né(e) le ${associe1DateNaissance} à ${associe1LieuNaissance}, demeurant à ${associe1Domicile}
+STATUT TYPE SOUS SEING PRIVE
 
-Ont établi ainsi qu'il suit les statuts d'une société à responsabilité limitée devant exister entre eux.
+${isUnipersonnelle ? 'Cas d\'une Société à Responsabilité Limitée comportant un seul associé et constituée exclusivement par apports en numéraire' : 'Cas d\'une Société à Responsabilité Limitée comportant plusieurs associés et constituée exclusivement par apports en numéraire'}
 
-═══════════════════════════════════════════════════════════════════
-                    TITRE I - FORME - OBJET - DÉNOMINATION
-                           SIÈGE - DURÉE
-═══════════════════════════════════════════════════════════════════
+STATUTS DE LA SOCIETE A RESPONSABILITE LIMITEE DENOMMEE
 
-ARTICLE 1 - FORME
+« ${company.company_name || '[NOM SOCIÉTÉ]'} »
 
-Il est formé entre les propriétaires des parts sociales ci-après créées et de celles qui pourraient l'être ultérieurement, une société à responsabilité limitée qui sera régie par l'Acte Uniforme relatif au droit des sociétés commerciales et du groupement d'intérêt économique, par les lois en vigueur en Côte d'Ivoire et par les présents statuts.
+AYANT SON SIEGE SOCIAL A ${(company.address || '[ADRESSE]').toUpperCase()}, ${(company.city || 'ABIDJAN').toUpperCase()}
 
-ARTICLE 2 - OBJET SOCIAL
+L'An ${anneeWords},
 
-La société a pour objet, en Côte d'Ivoire et à l'étranger :
+Le ${dateActuelle}
 
-${company.activity || '[OBJET SOCIAL]'}
+Le soussigné${isUnipersonnelle ? '' : 's'},
 
-Et généralement, toutes opérations commerciales, industrielles, financières, mobilières ou immobilières se rattachant directement ou indirectement à l'objet social ci-dessus ou susceptibles d'en faciliter la réalisation.
+${isUnipersonnelle ? 
+  `M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId}.` :
+  associates.map(a => `M. ${a.name || '[NOM ASSOCIÉ]'}`).join('\n\n')
+}
 
-ARTICLE 3 - DÉNOMINATION SOCIALE
+${isUnipersonnelle ? 'A établi' : 'Ont établi'} par les présentes, les statuts de la Société à Responsabilité Limitée dont la teneur suit :
 
-La société prend la dénomination de : « ${company.company_name || '[NOM SOCIÉTÉ]'} »
+TITRE I : DISPOSITIONS GENERALES
 
-Dans tous les actes et documents émanant de la société, la dénomination sociale doit toujours être précédée ou suivie immédiatement des mots « Société à Responsabilité Limitée » ou du sigle « SARL » et de l'énonciation du capital social.
+ARTICLE 1- FORME
 
-ARTICLE 4 - SIÈGE SOCIAL
+Il est constitué par ${isUnipersonnelle ? 'le soussigné' : 'les soussignés'}, une Société à Responsabilité Limitée devant exister entre ${isUnipersonnelle ? 'lui' : 'eux'} et tous propriétaires de parts sociales ultérieures, qui sera régie par l'Acte Uniforme révisé de l'OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales et du Groupement d'intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires applicables et les présents statuts.
 
-Le siège social est fixé à :
-${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}, Côte d'Ivoire.
+ARTICLE 2- DENOMINATION
 
-Il pourra être transféré en tout autre lieu par décision collective des associés.
+La société a pour dénomination : ${company.company_name || '[NOM SOCIÉTÉ]'}
 
-ARTICLE 5 - DURÉE
+La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l'indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l'adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier.
 
-La durée de la société est fixée à ${duree} (${numberToWords(duree)}) années à compter de son immatriculation au Registre du Commerce et du Crédit Mobilier, sauf dissolution anticipée ou prorogation.
+ARTICLE 3- OBJET
 
-═══════════════════════════════════════════════════════════════════
-                    TITRE II - APPORTS - CAPITAL SOCIAL
-═══════════════════════════════════════════════════════════════════
+La société a pour objet en COTE D'IVOIRE :
 
-ARTICLE 6 - APPORTS
+${objetSocialComplet}
 
-Les associés font à la société les apports suivants :
+ARTICLE 4- SIEGE SOCIAL
 
-${associe1Nom} : ${associe1Apport.toLocaleString('fr-FR')} FCFA en numéraire
+Le siège social est fixé à : ${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}
 
-TOTAL DES APPORTS : ${capital.toLocaleString('fr-FR')} FCFA
+Il peut être transféré dans les limites du territoire de la République de COTE D'IVOIRE par décision de la gérance qui modifie en conséquence les statuts, sous réserve de la ratification de cette décision par la plus prochaine Assemblée Générale Ordinaire.
 
-ARTICLE 7 - CAPITAL SOCIAL
+ARTICLE 5- DUREE
 
-Le capital social est fixé à la somme de ${capital.toLocaleString('fr-FR')} (${capitalWords}) FCFA.
+La durée de la société est de ${dureeWords} (${duree}) années, sauf dissolution anticipée ou prorogation.
 
-Il est divisé en ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA chacune, numérotées de 1 à ${nombreParts}, entièrement souscrites et libérées, attribuées aux associés proportionnellement à leurs apports.
+ARTICLE 6- EXERCICE SOCIAL
 
-═══════════════════════════════════════════════════════════════════
-                    TITRE III - GÉRANCE
-═══════════════════════════════════════════════════════════════════
+L'exercice social commence le premier janvier et se termine le trente et-un décembre de chaque année.
 
-ARTICLE 8 - GÉRANCE
+Par exception, le premier exercice sera clos le trente et un décembre de l'année suivante si la société commence ses activités au-delà des six premiers mois de l'année en cours.
 
-La société est administrée par un ou plusieurs gérants, personnes physiques, associés ou non, nommés par les associés.
+ARTICLE 7-APPORTS
 
-Le gérant est investi des pouvoirs les plus étendus pour agir en toutes circonstances au nom de la société, sous réserve des pouvoirs que la loi attribue expressément aux associés.
+Apports en numéraires
 
-ARTICLE 9 - NOMINATION DU PREMIER GÉRANT
+Lors de la constitution, ${isUnipersonnelle ? 'le soussigné a fait' : 'les soussignés ont fait'} apport à la société, à savoir :
 
-Est nommé gérant de la société pour une durée de ${gerantDuree} ans :
+IDENTITE DES APPORTEURS
 
-M. ${gerantNom}
+MONTANT APPORT EN NUMERAIRE
 
-═══════════════════════════════════════════════════════════════════
-                    TITRE IV - DISPOSITIONS DIVERSES
-═══════════════════════════════════════════════════════════════════
+${listeApports}
 
-ARTICLE 10 - EXERCICE SOCIAL
+Total des apports en numéraire : ${totalApports.toLocaleString('fr-FR')} de francs CFA,
 
-L'exercice social commence le 1er janvier et finit le 31 décembre de chaque année.
+${totalApports.toLocaleString('fr-FR')} F CFA
 
-ARTICLE 11 - AFFECTATION DES RÉSULTATS
+Les apports en numéraire de ${capitalWords} de francs CFA (${capital.toLocaleString('fr-FR')}) F CFA correspondent à ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA entièrement souscrites et libérée intégralement, La somme correspondante a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à [NOM BANQUE]
 
-Sur le bénéfice de l'exercice diminué, le cas échéant, des pertes antérieures, il est prélevé 10% pour constituer le fonds de réserve légale. Ce prélèvement cesse d'être obligatoire lorsque le fonds de réserve atteint le cinquième du capital social.
+ARTICLE 8- CAPITAL SOCIAL
 
-Le bénéfice distribuable est constitué par le bénéfice de l'exercice diminué des pertes antérieures et des sommes portées en réserve.
+Le capital social est fixé à la somme de F CFA ${capital.toLocaleString('fr-FR')} divisé en ${nombreParts} parts sociales de F CFA ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}, entièrement souscrites et libérées intégralement, numérotées de 1 à ${nombreParts}, attribuées ${isUnipersonnelle ? 'à l\'associé unique' : 'aux associés'}, à savoir :
 
-═══════════════════════════════════════════════════════════════════
+IDENTITE DES ASSOCIES
 
-Fait à ${company.city || 'Abidjan'}, le ${formatDate(new Date().toISOString())}
+CONCURRENCE DES PARTS
 
-En autant d'exemplaires que de parties plus un pour l'enregistrement.
+${listeParts}
 
-Les Associés :
+TOTAL EGAL au nombre de parts composant le capital social, soit ${nombreParts} parts sociales, ci-contre
 
-_____________________
-${associe1Nom}
+${nombreParts} PARTS
+
+ARTICLE 9- MODIFICATION DU CAPITAL
+
+${isUnipersonnelle ? 
+  `1. Le capital social peut être augmenté, par décision extraordinaire de l'associé unique, soit par émission de parts nouvelles, soit par majoration du nominal des parts existantes.
+
+Les parts nouvelles sont libérées soit en espèces, soit par compensation avec des créances certaines, liquides et exigibles sur la société, soit par incorporation de réserves, bénéfices, soit par apport en nature.
+
+Le capital social peut être réduit, soit par la diminution de la valeur nominale des parts, soit par diminution du nombre de parts.
+
+La réduction du capital est autorisée ou décidée par l'associé unique qui peut déléguer à la gérance les pouvoirs nécessaires pour la réaliser.` :
+  `9-1- Le capital social peut être augmenté, par décision extraordinaire des associés, soit par émission de parts nouvelles, soit par majoration du nominal des parts existantes.
+
+Les parts nouvelles sont libérées soit en espèce, soit par compensation avec des créances certaines, liquides et exigibles sur la société, soit par incorporation de réserves, bénéfices, soit par apport en nature.
+
+9-2 – En cas d'augmentation de capital, les attributaires de parts nouvelles, s'ils n'ont pas déjà la qualité d'associés, devront être agréés dans les conditions fixées à l'article 11 ci-après.
+
+9-3 – En cas d'augmentation de capital par voie d'apports en numéraire, chacun des associés a, proportionnellement au nombre de parts qu'il possède, un droit de préférence à la souscription des parts nouvelles représentatives de l'augmentation de capital.
+
+Le droit de souscription attaché aux parts anciennes peut être cédé sous réserve de l'agrément du cessionnaire dans les conditions prévues à l'Article 11 ci-après.
+
+Les associés pourront, lors de la décision afférente à l'augmentation de capital, renoncer, en tout ou en partie, à leur droit préférentiel de souscription.
+
+La collectivité des associés peut également décider la suppression de ce droit.
+
+9-4 Dans tous les cas, si l'opération fait apparaître des rompus, les associés feront leur affaire personnelle de toute acquisition ou cession de droits nécessaires.
+
+9-5 Le capital social peut être réduit, soit par la diminution de la valeur nominale des parts, soit par la diminution du nombre de parts.
+
+La réduction du capital est autorisée ou décidée par l'Assemblée Générale Extraordinaire qui peut déléguer à la gérance les pouvoirs nécessaires pour la réaliser.`
+}
+
+ARTICLE 10 : DROITS DES PARTS
+
+Chaque part sociale confère à son propriétaire un droit égal dans les bénéfices de la société et dans tout l'actif social.
+
+${!isUnipersonnelle ? `ARTICLE 11- CESSION DE PARTS ENTRE VIFS
+
+11-1- Forme
+
+Toute cession de parts sociales doit être constatée par écrit. Elle n'est opposable à la société qu'après accomplissement des formalités suivantes :
+
+- signification de la cession à la société par acte extrajudiciaire ;
+
+- acceptation de la cession par la société dans un acte authentique ;
+
+- dépôt d'un original de l'acte de cession au siège social contre remise par le gérant d'une attestation de ce dépôt.
+
+La cession n'est opposable aux tiers qu'après l'accomplissement de l'une des formalités ci-dessus et modification des statuts et publicité au registre du commerce et du crédit mobilier.
+
+11-2- Cessions entre associés.
+
+Les parts sociales sont librement cessibles entre associés.
+
+11-3 - Cessions aux conjoints, ascendants ou descendants
+
+Les parts sociales sont librement cessibles entre conjoint, ascendants ou descendants.
+
+11-4- Cessions à des tiers
+
+Les parts ne peuvent être cédées à des tiers qu'avec le consentement de la majorité des associés représentant au moins les trois quarts (3/4) des parts sociales.
+
+Le projet de cession est notifié par l'associé cédant à la société et à chacun des associés par acte extrajudiciaire. Si la société n'a pas fait connaître sa décision dans le délai de trois (3) mois à compter de la dernière des notifications, le consentement à la cession est réputée acquis.
+
+Si la société refuse de consentir à la cession, les associés sont tenus, dans les trois (3) mois de la notification du refus, d'acquérir les parts à un prix qui, à défaut d'accord entre les parties, est fixé par un expert nommé par le président de la juridiction compétente à la demande de la partie la plus diligente. Le délai de trois (3) mois peut être prolongé une seule fois par ordonnance du président de la juridiction compétente, sans que cette prolongation puisse excéder cent vingt (120) jours.
+
+La société peut également, avec le consentement du cédant, décider, dans le même délai, de réduire son capital du montant de la valeur nominale desdites parts et de racheter ces parts au prix déterminé dans les conditions prévues ci-dessus. Si, à l'expiration du délai imparti, la société n'a pas racheté ou fait racheter les parts, l'associé peut réaliser la cession initialement prévue.
+
+Les dispositions qui précèdent sont applicables à tous les cas de cessions, y compris en cas d'apport au titre d'une fusion ou d'une scission ou encore à titre d'attribution en nature à la liquidation d'une autre société.
+
+ARTICLE 12- TRANSMISSION DE PARTS PAR DECES OU LIQUIDATION DE COMMUNAUTE
+
+En cas de décès ou d'incapacité d'un associé, la société continue de plein droit entre les associés survivants et les héritiers et ayants droit de l'associé décédé, lesdits héritiers, ayants droit ou conjoint, devront justifier en outre de leur identité personnelle, de leur qualité héréditaire par la production de toutes pièces appropriées.
+
+La gérance peut requérir de tout Notaire, la délivrance d'expéditions ou d'extraits de tous actes établissant lesdites qualités ; lesdits héritiers, ayants droit et conjoint désignent un mandataire chargé de les représenter auprès de la société pendant la durée de l'indivision.
+
+ARTICLE 13- NANTISSEMENT DES PARTS SOCIALES
+
+Le nantissement des parts est constaté par acte notarié ou sous seing privé, enregistré et signifié à la société et publié au registre du commerce et du crédit mobilier. Si la société a donné son consentement à un projet de nantissement de parts dans les conditions prévues pour les cessions de parts à des tiers, ce consentement emportera agrément du cessionnaire en cas de réalisation forcée des parts nanties, à moins que la société ne préfère, après la cession, racheter dans le délai les parts, en vue de réduire son capital.` : `ARTICLE 11 : NANTISSEMENT DES PARTS SOCIALES
+
+Le nantissement des parts est constaté par acte notarié ou sous seing-privé enregistré et signifié à la société ou accepté par elle dans un acte authentique.`}
+
+TITRE II : FONCTIONNEMENT-DISSOLUTION
+
+${isUnipersonnelle ? `ARTICLE 12 : COMPTES COURANTS
+
+L'associé unique peut laisser ou mettre à disposition de la société toutes sommes dont celle-ci peut avoir besoin. Les conditions de retrait ou de remboursement de ces sommes, ainsi que leur rémunération, sont déterminées soit par décision de l'associé unique, Soit par accords entre la gérance et l'intéressé. Dans le cas où l'avance est faite par l'associé unique gérant, ces conditions sont fixées par décision de ce dernier.` : `ARTICLE 14- COMPTES COURANTS
+
+Les associés peuvent laisser ou mettre à disposition de la société toute somme dont celle -ci peut avoir besoin. Les conditions de retrait ou de remboursement de ces sommes, ainsi que leur rémunération, sont déterminées soit par décisions collectives des associés, soit par accord entre la gérance et l'intéressé, dans le cas où l'avance est faite par un gérant, ces conditions sont fixées par décision collectives des associés. Ces accords sont soumis à la procédure de contrôle des conventions passées entre la société et l'un de ses gérants ou associés en ce qui concerne la rémunération des sommes mises à disposition.`}
+
+${isUnipersonnelle ? `ARTICLE 13 : GERANCE
+
+1. La société est gérée par une ou plusieurs personnes physiques. L'associé unique peut être le gérant de la société. Le gérant est nommé pour une durée de ${gerantDureeWords} ans (${gerantDuree}ans). La nomination du gérant au cours de la vie sociale est décidée par l'associé unique.
+
+Est nommé gérant de la société pour une durée de ${gerantDureeWords} ans (${gerantDuree}ans):
+
+M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId} qui accepte.
+
+Le gérant est nommé par décision de l'associe unique.
+
+Le gérant peut démissionner de son mandat, mais seulement en prévenant l'associé unique au moins 3 mois à l'avance, par lettre recommandé avec demande d'avis de réception ou lettre au porteur contre récépissé.
+
+Le gérant est révocable par décision de l'associé unique.
+
+La rémunération du gérant est fixée par la décision qui le nomme.` : `ARTICLE 15- GERANCE
+
+La société est gérée par une ou plusieurs personnes physiques, choisies parmi les associés ou en dehors d'eux. Elles sont nommées pour une durée de Quatre (4) ans et sont toujours rééligibles. La nomination des gérants au cours de la vie sociale est décidée à la majorité de plus de la moitié des parts.
+
+Est nommée comme gérant pour une durée de Quatre (4) ans :
+
+M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId} qui accepte.
+
+Les gérants reçoivent, à titre de rémunération de leurs fonctions et en compensation de la responsabilité attachée à la gestion de la société, un traitement dont le montant et les modalités de paiement sont déterminés par décision collective ordinaire des associés. Ce traitement peut être fixe ou proportionnel ou à la fois fixe et proportionnel selon des modalités arrêtées par les associés. Il peut comprendre, également, des avantages en nature et, éventuellement, être augmenté de gratifications exceptionnelles en cours ou en fin d'exercice social. Chaque gérant a droit au remboursement, sur justification, de ses frais de représentation et de déplacement.
+
+Les sommes versées aux gérants à titre de rémunération ou en remboursement de frais sont inscrites en dépenses d'exploitation. Les gérants sont soumis aux obligations fixées par la loi et les règlements et notamment à l'établissement des comptes annuels et du rapport de gestion.
+
+Les gérants peuvent démissionner de leur mandat, mais seulement en prévenant chacun des associés au moins trois (3) mois à l'avance, par lettre recommandée avec demande d'avis de réception ou lettre au porteur contre récépissé.
+
+Les gérants sont révocables par décision des associés représentant plus de la moitié des parts sociales.
+
+La rémunération des gérants est fixée par la décision qui les nomme.`}
+
+${isUnipersonnelle ? `ARTICLE 14 : POUVOIRS DU GERANT
+
+Le gérant peut faire tous les actes de gestion dans l'intérêt de la société.
+
+Dans les rapports avec les tiers, le gérant est investi des pouvoirs les plus étendus pour agir en toute circonstance, au nom de la société, sous réserve des pouvoirs expressément attribués à l'associé unique par la loi.
+
+La société est engagée, même par les actes du gérant qui ne relèvent pas de l'objet social, à moins qu'elle ne prouve que le tiers savait qu'il dépassait cet objet ou qu'il ne pouvait l'ignorer compte tenu des circonstances, étant exclu que la seule publication des statuts suffise constituer cette preuve.` : `ARTICLE 16- POUVOIRS DU GERANT
+
+Dans les rapports entre associés, le gérant peut faire tous les actes de gestion dans l'intérêt de la société.
+
+Dans le rapport avec les tiers le gérant est investi des pouvoirs les plus étendus pour agir en toutes circonstances, au nom de la société, sous réserve des pouvoirs expressément attribués aux associés par la loi.
+
+La société est engagée, même par les actes du gérant qui ne relèvent pas de l'objet social, à moins qu'elle ne prouve que le tiers savait que l'acte dépassait cet objet ou qu'il ne pouvait l'ignorer compte tenu des circonstances, étant exclu que la seule publication des statuts suffise à constituer cette preuve.`}
+
+${isUnipersonnelle ? `ARTICLE 15 : RESPONSABILITE DU GERANT
+
+Le gérant est responsable, envers la société ou envers les tiers, soit des infractions aux dispositions législatives ou réglementaires applicables aux sociétés à responsabilité limitée, soit des violations des statuts, soit des fautes commises dans sa gestion. Si plusieurs gérants ont coopéré aux mêmes faits, le tribunal chargé des affaires commerciales détermine la part contributive de chacun dans la réparation du dommage.
+
+Aucune décision de l'associé unique ne peut avoir pour effet d'éteindre une action en responsabilité contre les gérants pour faute commise dans l'accomplissement de leur mandat.` : `ARTICLE 17- RESPONSABILITE DES GERANTS
+
+Les gérants sont responsables, individuellement ou solidairement, selon le cas, envers la société ou envers les tiers, soit des infractions aux dispositions législatives ou réglementaires applicables aux sociétés à responsabilité limitée, soit des violations des statuts, soit de fautes commises dans leur gestion. Si plusieurs gérants ont coopéré aux mêmes faits, le tribunal chargé des affaires commerciales détermine la part contributive de chacun dans la réparation du dommage.
+
+Aucune décision de l'Assemblée ne peut avoir pour effet d'éteindre une action en responsabilité contre les gérants pour faute commise dans l'accomplissement de leur mandat.
+
+Assiduité – Non-concurrence- publicité
+
+1-Assiduité :
+
+Les gérants sont tenus de consacrer le temps et les soins nécessaires aux affaires sociales.
+
+2- Non concurrence :
+
+Tout gérant s'interdit, directement ou indirectement à quelque titre que ce soit, toute activité concurrente ou connexe à celle de la société et s'engage à informer les associés de la nature de toute activité professionnelle qu'il envisagerait d'entreprendre au cours de son mandat.
+
+3- Publicité :
+
+La nomination et la cessation des fonctions d'un gérant donnent lieu à publication dans les conditions prévues par la réglementation sur les sociétés commerciales.
+
+Ni la société, ni les tiers ne peuvent pour se soustraire à leurs engagements, se prévaloir d'une irrégularité dans la nomination d'un gérant lorsque la nomination a été régulièrement publiée. La société ne peut se prévaloir, à l'égard des tiers, des nominations et cessation de fonctions d'un gérant, tant qu'elles n'ont pas été régulièrement publiées.
+
+Un gérant qui a cessé ses fonctions peut exiger, par toute voie de droit, l'accomplissement de toute publicité rendue nécessaire par la cessation de ses fonctions.`}
+
+${isUnipersonnelle ? `ARTICLE 16 : DECISIONS DE L'ASSOCIE UNIQUE
+
+L'associé unique exerce les pouvoirs dévolus par l'Acte Uniforme relatif au droit des sociétés commerciales et du GIE.
+
+L'associé unique ne peut déléguer ses pouvoirs. Ses décisions sont consignées dans un procès-verbal versé dans les archives de la société.` : `ARTICLE 18- DECISIONS COLLECTIVES
+
+18-1 –La volonté des associés s'exprime par des décisions collectives qui obligent tous les associés, qu'ils aient ou non pris part.
+
+18-2- les décisions collectives sont prises, au choix de la gérance, soit en assemblée, soit par consultation écrite, sauf dans les cas où la loi impose la tenue d'une Assemblée.
+
+18-3- l'assemblée est convoquée par le ou les gérants individuellement ou collectivement ou, à défaut par le commissaire aux comptes, s'il en existe un, ou, encore par mandataire désigné en justice à la demande de tout associé.
+
+Pendant la liquidation, les assemblées sont convoquées par le ou les liquidateurs.
+
+Les assemblées sont réunies au lieu indiqué dans la convocation. La convocation est faite par lettre recommandée avec demande d'avis de réception ou par lettre au porteur contre récépissé adressé à chacun des associés, quinze (15) jours au moins avant la date de la réunion. Celle –ci indique l'ordre du jour.
+
+L'assemblée est présidée par le gérant ou par l'un des gérants. Si aucun des gérants n'est associé, elle est présidée par l'associé présent ou acceptant qui possède où représente le plus grand nombre de parts. Si deux associés qui possèdent ou représentent le même nombre de parts sont acceptants, la présidence de l'assemblée est assurée par le plus âgé.
+
+La délibération est constatée par un procès –verbal qui indique la date et le lieu de la réunion, les noms et prénoms des associés présents du nombre de parts sociales détenues par chacun, les documents et rapports soumis à l'Assemblée, un résumé des débats, le textes des résolutions mises aux voix et le résultat des votes. Les procès – verbaux sont signés par chacun des associés présents.
+
+18-4- en cas de consultation écrite, le texte des résolutions proposées ainsi que les documents nécessaires à l'information des associés sont adressés à chacun d'eux par lettre recommandée avec demande d'avis de réception où par lettre au porteur contre récépissé. Les associés disposent d'un délai minimal de quinze (15) jours, à compter de la date de réception des projets des résolutions pour émettre leur vote par écrit.
+
+La réponse est faite par lettre recommandée avec demande d'avis de réception ou par lettre contre récépissé. Tout associé n'ayant pas répondu dans le délai ci –dessus est considéré comme s'étant abstenu.
+
+La consultation est mentionnée dans un procès-verbal, auquel est annexée la réponse de chaque associé.
+
+18-5- chaque associé à le droit de participer aux décisions et dispose d'un nombre de voix égal à celui des parts sociales qu'il possède.
+
+18-6- un associé peut se faire représenter par son conjoint à moins que la société ne comprenne que les deux époux. Sauf si les associés sont au nombre de deux, un associé peut se faire représenter par un autre associé.
+
+Tout associé peut se faire représenter par la personne de son choix.
+
+ARTICLE 19 DECISION COLLECTIVES ORDINAIRES
+
+Sont qualifiées d'ordinaires, les décisions des associés ayant pour but de statuer sur les états financiers de synthèse, d'autoriser la gérance à effectuer les opérations subordonnées dans les statuts à l'accord préalable des associés, de nommer et de remplacer les gérants et, le cas échéant, le commissaire aux comptes, d'approuver les conventions intervenues entre la société et les gérants et associés et plus généralement de statuer sur toutes les questions qui n'entraînent pas modification des statuts.
+
+Ces décisions sont valablement adoptées par un ou plusieurs associés représentant plus de la moitié des parts sociales. Si cette majorité n'est pas obtenue, les associés sont, selon le cas, convoqués ou consultés une seconde fois, et les décisions sont prises à la majorité des votes émis, quel que soit le nombre de votants.
+
+Toutefois, la révocation des gérants doit toujours être décidée à la majorité absolue.
+
+ARTICLE 20-DECISIONS COLLECTIVES EXTRAORDINAIRES
+
+Sont qualifiées d'extraordinaires, les décisions des associés ayant pour objet de statuer sur la modification des statuts, sous réserve des exceptions prévues par la loi.
+
+Les modifications des statuts sont adoptées par les associés représentant au moins les trois quarts (3/4) des parts sociales.
+
+Toutefois, l'unanimité est requise dans les cas suivants :
+
+augmentation des engagements des associés ;
+
+transformation de la société en société en nom collectif ;
+
+transfert du siège social dans un Etat autre qu'un Etat partie au Traité OHADA;
+
+La décision d'augmenter le capital social par incorporation de bénéfices, de réserves ou de primes d'apports, d'émission ou de fusion est prise par les associés représentant au moins la moitié des parts sociales.
+
+ARTICLE 21- DROIT DE COMMUNICATION DES ASSOCIES
+
+Lors de toute consultation des associés, chacun d'eux a le droit d'obtenir communication des documents et informations nécessaires pour lui permettre de se prononcer en connaissance de cause et de porter un jugement sur la gestion de la société.
+
+La nature de ces documents et les conditions de leur envoi ou mise à disposition sont déterminées par la loi.`}
+
+${isUnipersonnelle ? `ARTICLE 17 : COMPTES SOCIAUX
+
+A la clôture de chaque exercice, le gérant établit et arrête les états financiers de synthèse conformément aux dispositions de l'Acte Uniforme portant organisation et harmonisation des comptabilités.
+
+Le gérant établit un rapport de gestion dans lequel il expose la situation de la société durant l'exercice écoulé, son évolution prévisible et, en particulier les perspectives de continuation de l'activité, l'évolution de la situation de trésorerie et le plan de financement.
+
+Ces documents ainsi que les textes des résolutions proposées et, le cas échéant, les rapports du commissaire aux comptes sont communiqués à l'associé unique dans les conditions et délais prévus par les dispositions légales et réglementaires.
+
+A compter de cette communication, l'associé unique à la possibilité de poser par écrit des questions auxquelles le gérant sera tenu de répondre.
+
+L'associé unique est tenu de statuer sur les comptes de l'exercice écoulé dans les six mois de la clôture de l'exercice ou, en cas de prolongation, dans le délai fixé par décision de justice.` : `ARTICLE 22- COMPTES SOCIAUX
+
+A la clôture de chaque exercice, le gérant établit et arrête les états financiers de synthèse conformément aux dispositions de l'Acte uniforme portant organisation et harmonisation des comptabilités.
+
+Le gérant établit un rapport de gestion dans lequel il expose la situation de la société durant l'exercice écoulé, son évolution prévisible et, en particulier les perspectives de continuation de l'activité, l'évolution de la situation de trésorerie et le plan de financement.
+
+Ces documents ainsi que les textes des résolutions proposées et, le cas échéant, les rapports du commissaire aux comptes sont communiqués aux associés dans les conditions et délais prévus par les dispositions légales et réglementaires.
+
+A compter de cette communication, tout associé à la possibilité de poser par écrit des questions auxquelles le gérant sera tenu de répondre au cours de l'Assemblée.
+
+Une assemblée générale appelée à statuer sur les comptes de l'exercice écoulé doit être réunie chaque année dans les six (6) mois de la clôture de l'exercice ou, en cas de prolongation, dans le délai fixé par décision de justice.`}
+
+${isUnipersonnelle ? `ARTICLE 18 : AFFECTATION DES RESULTATS
+
+Après approbation des comptes et constatations de l'existence d'un bénéfice distribuable, l'associé unique détermine la part attribuée sous forme de dividende.
+
+Il est pratiqué sur le bénéfice de l'exercice diminué, le cas échéant, des pertes antérieures, une dotation égale à un dixième au moins affecté à la formation d'un fonds de réserve dit "réserve légale". Cette dotation cesse d'être obligatoire lorsque la réserve atteint le cinquième du montant du capital social.
+
+L'associé unique a la faculté de constituer tous postes de réserves.
+
+Il peut procéder à la distribution de tout ou partie des réserves à la condition qu'il ne s'agisse pas de réserves déclarées indisponibles par la loi ou par les statuts. Dans ce cas, il indique expressément les postes de réserve sur lesquels les prélèvements sont effectués. La société est tenue de déposer au Registre du Commerce et du Crédit Mobilier, du lieu du siège social dans le mois qui suit leur approbation par les organes compétents, les états financiers de synthèse, à savoir le bilan, le compte de résultat, le tableau des ressources et des emplois et l'état annexé de l'exercice écoulé.` : `ARTICLE 23- AFFECTATION DES RESULTATS
+
+Après approbation des comptes et constatations de l'existence d'un bénéfice distribuable, l'Assemblée Générale détermine la part attribuée aux associés sous forme de dividende.
+
+Il est pratiqué sur le bénéfice de l'exercice diminué, le cas échéant, des pertes antérieures, une dotation égale à un dixième au moins affectée à la formation d'un fonds de réserve dit « réserve légale ». Cette dotation cesse d'être obligatoire lorsque la réserve atteint le cinquième du montant du capital social.
+
+Les sommes dont la mise en distribution est décidée, sont réparties entre les associés titulaires de parts, proportionnellement au nombre de leurs parts.
+
+L'assemblée générale a la faculté de constituer tous postes de réserves.
+
+Elle peut procéder à la distribution de tout ou partie des réserves à la condition qu'il ne s'agisse pas de réserves déclarées indisponibles par la loi ou par les statuts. Dans ce cas, elle indique expressément les postes de réserve sur lesquels les prélèvements sont effectués. La société est tenue de déposer au Registre du Commerce et du Crédit Mobilier, du lieu du siège social dans le mois qui suit leur approbation par les organes compétents, les états financiers de synthèse, à savoir le bilan, le compte de résultat, le tableau des ressources et des emplois et l'état annexé de l'exercice écoulé.`}
+
+${isUnipersonnelle ? `ARTICLE 19 : VARIATION DES CAPITAUX PROPRES
+
+Si du fait des pertes constatées dans les états financiers de synthèse, les capitaux propres de la société deviennent inférieurs à la moitié du capital social, le gérant ou, le cas échéant, le commissaire aux comptes doit dans les quatre mois qui suivent l'approbation des comptes ayant fait apparaître cette perte, consulter l'associé unique sur l'opportunité de prononcer la dissolution anticipée de la société.
+
+Si la dissolution est écartée, la société est tenue, dans les deux ans qui suivent la date de clôture de l'exercice déficitaire, de reconstituer ses capitaux propres jusqu'à ce que ceux-ci soient à la hauteur de la moitié au moins du capital social.
+
+A défaut, elle doit réduire son capital d'un montant au moins égal à celui des pertes qui n'ont pu être imputées sur les réserves, à la condition que cette réduction du capital n'ait pas pour effet de réduire le capital à un montant inférieur à celui du capital minimum légal.
+
+A défaut par le gérant ou le commissaire aux comptes de provoquer cette décision, ou si l'associé unique n'a pu prendre de décision valablement, tout intéressé peut demander à la juridiction compétente de prononcer la dissolution de la société. Il en est de même si la reconstitution des capitaux propres n'est pas intervenue dans les délais prescrits.` : `ARTICLE 24- VARIATION DES CAPITAUX PROPRES
+
+Si du fait des pertes contactées dans les états financiers de synthèse, les capitaux propres de la société deviennent inférieurs à la moitié du capital social, le gérant ou, le cas échéant, le commissaire aux comptes doit dans les quatre (4) mois qui suivent l'approbation des comptes ayant fait apparaître cette perte, consulter les associés sur l'opportunité de prononcer la dissolution anticipée de la société.
+
+Si la dissolution est écartée, la société est tenue, dans les deux (2) ans qui suivent la date de clôture de l'exercice déficitaire, de reconstituer ses capitaux propres jusqu'à ce que ceux –ci soient à la hauteur de la moitié au moins du capital social.
+
+A défaut, elle doit réduire son capital d'un montant au moins égal à celui des pertes qui n'ont pu être imputées sur les réserves, à la condition que cette réduction du capital n'ait pas pour effet de réduire le capital à un montant inférieur à celui du capital légal.
+
+A défaut par le gérant ou le commissaire aux comptes de provoquer cette décision ou si les associés n'ont pu délibérer valablement, tout intéressé peut demander à la juridiction compétente de prononcer la dissolution de la société. Il en est de même si la reconstitution des capitaux propres n'est pas intervenue dans les délais prescrits.`}
+
+${isUnipersonnelle ? `ARTICLE 20 : CONTROLE DES COMPTES
+
+Un ou plusieurs commissaires aux comptes titulaires et suppléants seront désignés lorsque qu'à la clôture d'un exercice social, la société remplit deux des conditions suivantes :
+
+total du bilan supérieur à cent vingt- cinq millions (125 000 000) de francs CFA ;
+
+chiffre d'affaire annuel supérieur à deux cent cinquante millions (250 000 000) de francs CFA ;
+
+effectif permanent supérieur à cinquante (50) personnes ;
+
+Le commissaire aux comptes est nommé pour trois (3) exercices par un ou plusieurs associés représentant plus de la moitié du capital.
+
+La société n'est plus tenue de désigner un commissaire aux comptes dès lors qu'elle n'a pas rempli deux (2) des conditions fixées ci-dessus pendant les (2) exercices précédant l'expiration du mandat du commissaire aux comptes.` : `ARTICLE 25- CONTROLE DES COMPTES
+
+Un ou plusieurs commissaires aux comptes titulaires et suppléants seront désignés lorsque qu'à la clôture d'un exercice social, la société remplit deux des conditions suivantes :
+
+total du bilan supérieur à cent vingt- cinq millions (125 000 000) de francs CFA ;
+
+chiffre d'affaire annuel supérieur à deux cent cinquante millions (250 000 000) de francs CFA ;
+
+effectif permanent supérieur à cinquante (50) personnes ;
+
+Le commissaire aux comptes est nommé pour trois (3) exercices par un ou plusieurs associés représentant plus de la moitié du capital.
+
+La société n'est plus tenue de désigner un commissaire aux comptes dès lors qu'elle n'a pas rempli deux (2) des conditions fixées ci-dessus pendant les (2) exercices précédant l'expiration du mandat du commissaire aux comptes.`}
+
+${isUnipersonnelle ? `ARTICLE 21 : DISSOLUTION
+
+La société à responsabilité limitée est dissoute pour les causes communes à toutes les sociétés. La dissolution de la société n'entraîne pas sa mise en liquidation.` : `ARTICLE 26-DISSOLUTION
+
+La société à responsabilité limitée est dissoute pour les causes communes à toutes sociétés.
+
+La dissolution de la société entraîne sa mise en liquidation. Le ou les gérants en fonction lors de la dissolution exercent les fonctions de liquidateurs, à moins qu'une décision collective des associés ne désigne un ou plusieurs autres liquidateurs, choisis parmi les associés ou les tiers. Les pouvoirs du liquidateur ou de chacun d'eux, s'ils sont plusieurs, sont déterminés par la collectivité des associés.
+
+Le boni de liquidation est réparti entre les associés au prorata du nombre de parts qu'ils détiennent.
+
+Si toutes les parts sociales sont réunies en une seule main, l'expiration de la société ou sa dissolution pour quelque cause que ce soit, entraîne la transmission universelle du patrimoine social à l'associé unique, sans qu'il y ait lieu à liquidation, sous réserve du droit d'opposition des créanciers.
+
+ARTICLE 27- CONTESTATIONS ENTRE ASSOCIES OU ENTRE UN OU PLUSIEURS ASSOCIES ET LA SOCIETE
+
+Les contestations relatives aux affaires de la société survenant pendant la vie de la société ou au cours de sa liquidation, entre les associés ou entre un ou plusieurs associés et la société, sont soumises au tribunal chargé des affaires commerciales.`}
+
+${isUnipersonnelle ? `ARTICLE 22 : ENGAGEMENTS POUR LE COMPTE DE LA SOCIETE
+
+1. Un état des actes accomplis par l'associé unique pour le compte de la société en formation, avec l'indication, de l'engagement qui en résulterait pour la société, est annexé aux présents statuts.
+
+2. En outre, le soussigné se réserve le droit de prendre les engagements suivants au nom et pour le compte de la société : ${company.company_name || '[NOM SOCIÉTÉ]'}` : `ARTICLE 28 : ENGAGEMENTS POUR LE COMPTE DE LA SOCIETE
+
+Un état des actes accomplis par les fondateurs pour le compte de la société en formation, avec indication de l'engagement qui en résulterait, sera présenté à la société qui s'engage à les reprendre.
+
+En outre, les soussignés donnent mandat à M. ${gerantNom}, à l'effet de prendre les engagements suivants au nom et pour le compte de la société.`}
+
+${isUnipersonnelle ? `ARTICLE 23 : FRAIS
+
+Les frais, droits et honoraires des présents statuts sont à la charge de la société.` : `ARTICLE 29 : FRAIS
+
+Les frais, droits et honoraires des présents Statuts sont à la charge de la société.`}
+
+${isUnipersonnelle ? `ARTICLE 24 : ELECTION DE DOMICILE
+
+Pour l'exécution des présentes et de leurs suites, le soussigné déclare faire élection de domicile au siège social.` : `ARTICLE 30 : ELECTION DE DOMICILE
+
+Pour l'exécution des présentes et de leurs suites, les parties déclarent faire élection de domicile au siège sociale.`}
+
+${isUnipersonnelle ? `ARTICLE 25 : POUVOIRS
+
+L'associé donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId} de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.` : `ARTICLE 31 : POUVOIRS
+
+Les associés donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId} à l'effet de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.`}
+
+Fait à ${company.city || 'Abidjan'}, le ${dateActuelle}
+
+${isUnipersonnelle ? 'EN QUATRE (4) EXEMPLAIRES ORIGINAUX' : 'En Deux (2) exemplaires originaux'}
+
+${isUnipersonnelle ? 
+  `M. ${gerantNom}
+
+Associé unique` :
+  associates.map((a, index) => `M. ${a.name || '[NOM ASSOCIÉ]'}`).join('\n\n')
+}
 `;
 };
 
@@ -322,6 +723,20 @@ export const generateDSV = (company, associates) => {
   const gerantDateValiditeId = gerant?.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
   const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
   
+  // Construire l'objet social complet
+  const objetSocial = company.activity || '[OBJET SOCIAL]';
+  const objetSocialComplet = `${objetSocial}
+
+- l'acquisition, la location et la vente de tous biens meubles et immeubles.
+
+- l'emprunt de toutes sommes auprès de tous établissements financiers avec possibilité de donner en garantie tout ou partie des biens sociaux.
+
+- la prise en location gérance de tous fonds de commerce.
+
+- la prise de participation dans toute société existante ou devant être créée
+
+- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
+  
   // Construire le tableau des associés
   let tableauAssocies = '';
   let totalSouscrit = 0;
@@ -333,19 +748,39 @@ export const generateDSV = (company, associates) => {
       const montantSouscrit = (capital * parts) / totalParts;
       totalSouscrit += montantSouscrit;
       totalVerse += montantSouscrit;
+      const debutParts = index === 0 ? 1 : associates.slice(0, index).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) + 1;
+      const finParts = associates.slice(0, index + 1).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0);
       
-      return `M. ${associe.name || '[NOM ASSOCIÉ]'}\n${parts} parts numérotés de ${index === 0 ? 1 : (associates.slice(0, index).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) + 1)} à ${associates.slice(0, index + 1).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0)} inclus\n\n${valeurPart.toLocaleString('fr-FR')} FCFA\n\n${montantSouscrit.toLocaleString('fr-FR')} CFA\n\n${montantSouscrit.toLocaleString('fr-FR')} CFA`;
+      return `M. ${associe.name || '[NOM ASSOCIÉ]'}
+
+${parts} parts numérotés de ${debutParts} à ${finParts} inclus
+
+${valeurPart.toLocaleString('fr-FR')} FCFA
+
+${montantSouscrit.toLocaleString('fr-FR')} CFA
+
+${montantSouscrit.toLocaleString('fr-FR')} CFA`;
     }).join('\n\n');
   } else {
-    tableauAssocies = `M. ${gerantNom}\n${totalParts} parts numérotés de 1 à ${totalParts} inclus\n\n${valeurPart.toLocaleString('fr-FR')} FCFA\n\n${capital.toLocaleString('fr-FR')} CFA\n\n${capital.toLocaleString('fr-FR')} CFA`;
+    tableauAssocies = `M. ${gerantNom}
+
+${totalParts} parts numérotés de 1 à ${totalParts} inclus
+
+${valeurPart.toLocaleString('fr-FR')} FCFA
+
+${capital.toLocaleString('fr-FR')} CFA
+
+${capital.toLocaleString('fr-FR')} CFA`;
     totalSouscrit = capital;
     totalVerse = capital;
   }
   
+  const isUnipersonnelle = !associates || associates.length <= 1;
+  
   return `
-DSV DE LA SOCIÉTÉ « ${company.company_name || '[NOM SOCIÉTÉ]'} »
+DSV DE LA SOCIETE « ${company.company_name || '[NOM SOCIÉTÉ]'} »
 
-DÉCLARATION DE SOUSCRIPTION ET DE VERSEMENT
+DECLARATION DE SOUSCRIPTION ET DE VERSEMENT
 
 (cf Art 314 de l'Acte uniforme révisé du 30 janvier 2014, Art 6 de l'Ordonnance N° 2014-161 du 02 avril 2014 relative à la formes des statuts et au capital social de la société à responsabilité limitée)
 
@@ -357,17 +792,17 @@ Le soussigné,
 
 M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId}.
 
-EXPOSÉ PRÉALABLE
+EXPOSE PREALABLE
 
 Par Acte sous seing Privé en date du ${dateJour},
 
-Ont établi, les statuts de la Société à Responsabilité Limitée devant exister entre eux et tous propriétaires de parts sociales ultérieures, dont les principales caractéristiques sont les suivantes :
+Ont établi, les statuts de la Société à Responsabilité Limitée devant exister entre ${isUnipersonnelle ? 'lui' : 'eux'} et tous propriétaires de parts sociales ultérieures, dont les principales caractéristiques sont les suivantes :
 
 1-FORME
 
 La société constituée est une société à Responsabilité Limitée régie par les dispositions de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales et du Groupement d'intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires applicables et ses présents statuts.
 
-2- DÉNOMINATION
+2- DENOMINATION
 
 La société a pour dénomination : ${company.company_name || '[NOM SOCIÉTÉ]'}
 
@@ -375,21 +810,21 @@ La société a pour dénomination : ${company.company_name || '[NOM SOCIÉTÉ]'}
 
 La société a pour objet en CÔTE-D'IVOIRE :
 
-${company.activity || '[OBJET SOCIAL]'}
+${objetSocialComplet}
 
-4- SIÈGE SOCIAL
+4- SIEGE SOCIAL
 
 Le siège social est fixé à : ${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}
 
-5- DURÉE
+5- DUREE
 
-La durée de la société est de ${company.duree_societe || 99} (${numberToWords(company.duree_societe || 99)}) années, sauf dissolution anticipée ou prorogation.
+La durée de la société est de ${numberToWords(company.duree_societe || 99)} (${company.duree_societe || 99}) années, sauf dissolution anticipée ou prorogation.
 
 6- CAPITAL SOCIAL
 
-Le capital social est fixé à la somme de ${capitalWords.toUpperCase()} Franc CFA (F CFA ${capital.toLocaleString('fr-FR')}) divisé en ${totalParts} parts sociales de F CFA ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}.
+Le capital social est fixé à la somme de ${capitalWords} Franc CFA (F CFA ${capital.toLocaleString('fr-FR')}) divisé en ${totalParts} parts sociales de F CFA ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}
 
-II- CONSTATATION DE LA LIBÉRATION ET DU DÉPÔT DES FONDS PROVENANT DES PARTS SOCIALES
+II- CONSTATATION DE LA LIBERATION ET DU DEPOT DES FONDS PROVENANT DES PARTS SOCIALES
 
 Les soussignées déclarent, que les souscriptions et les versements des fonds provenant de la libération des parts sociales ont été effectués comme suit :
 
@@ -415,7 +850,7 @@ ${totalSouscrit.toLocaleString('fr-FR')} CFA
 
 ${totalVerse.toLocaleString('fr-FR')} CFA
 
-La somme correspondante à l'ensemble des souscriptions et versements effectué à ce jour, de ${numberToWords(Math.floor(totalVerse)).toLowerCase()} (${totalVerse.toLocaleString('fr-FR')} FCFA) a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à [NOM BANQUE].
+La somme correspondante à l'ensemble des souscriptions et versements effectué à ce jour, de ${numberToWords(Math.floor(totalVerse)).toLowerCase()} (${totalVerse.toLocaleString('fr-FR')} FCFA) a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à [NOM BANQUE]
 
 En Foi de quoi, ils ont dressé la présente, pour servir et valoir ce que de droit
 
@@ -423,7 +858,7 @@ Fait à ${company.city || 'Abidjan'}, le ${dateJour}
 
 En Deux (2) exemplaires originaux
 
-L'associé${associates && associates.length > 1 ? 's' : ''}
+${isUnipersonnelle ? 'L\'associé Unique' : 'L\'associé' + (associates && associates.length > 1 ? 's' : '')}
 
 ${gerantNom}
 `;
