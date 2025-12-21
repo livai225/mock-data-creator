@@ -240,13 +240,19 @@ Article 3 : Renouvellement et cession
 
 Article 4 : Obligation du bailleur
 
-Le bailleur fait procéder, à ses frais dans les locaux donnés à bail, à toutes les grosses réparations devenues nécessaires et urgentes.
+• Le bailleur fait procéder, à ses frais dans les locaux donnés à bail, à toutes les grosses réparations devenues nécessaires et urgentes.
+
+Le bailleur délivre les locaux en bon état.
+
+• Le bailleur autorise le preneur à apposer sur les façades extérieures des locaux les enseignes et plaques indicatrices relatives à son commerce.
 
 Article 5 : Obligation du preneur
 
 • Le preneur doit payer le loyer aux termes convenus, entre les mains du bailleur.
+
 • Le preneur est tenu d'exploiter les locaux donnés à bail, en bon père de famille, et conformément à la destination prévue au bail, à défaut de convention écrite, suivant celle présumée d'après les circonstances.
-• Le preneur est tenu des réparations d'entretien ; il répond des dégradations ou des pertes dues à un défaut d'entretien en cours de bail.
+
+Le preneur est tenu des réparations d'entretien ; il répond des dégradations ou des pertes dues à un défaut d'entretien en cours de bail.
 
 Article 6 : Loyer
 
@@ -285,57 +291,134 @@ export const generateDSV = (company, associates) => {
   const capital = parseFloat(company.capital) || 0;
   const capitalWords = numberToWords(Math.floor(capital));
   const dateSignature = formatDate(new Date().toISOString());
+  const dateParts = dateSignature.split(' ');
+  const dateJour = dateParts[0] || '';
+  const annee = new Date().getFullYear();
+  const anneeWords = numberToWords(annee);
   
-  let associésText = '';
+  // Calculer le nombre de parts et la valeur nominale
+  const totalParts = associates && associates.length > 0 
+    ? associates.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0)
+    : Math.floor(capital / 5000); // Par défaut, parts de 5000 FCFA
+  const valeurPart = capital / totalParts;
+  
+  const gerant = company.managers && company.managers.length > 0 ? company.managers[0] : null;
+  const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
+  const gerantProfession = gerant?.profession || '[PROFESSION]';
+  const gerantAdresse = gerant?.adresse || '[ADRESSE]';
+  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
+  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
+  const gerantLieuNaissance = gerant?.lieu_naissance || '[LIEU NAISSANCE]';
+  const gerantTypeId = gerant?.type_identite || 'CNI';
+  const gerantNumId = gerant?.numero_identite || '[NUMÉRO]';
+  const gerantDateDelivranceId = gerant?.date_delivrance_id ? formatDate(gerant.date_delivrance_id) : '[DATE DÉLIVRANCE]';
+  const gerantDateValiditeId = gerant?.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
+  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
+  
+  // Construire le tableau des associés
+  let tableauAssocies = '';
+  let totalSouscrit = 0;
+  let totalVerse = 0;
+  
   if (associates && associates.length > 0) {
-    const totalParts = associates.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0);
-    associésText = associates.map((associe, index) => {
+    tableauAssocies = associates.map((associe, index) => {
       const parts = parseInt(associe.parts) || 0;
-      const pourcentage = totalParts > 0 ? ((parts / totalParts) * 100).toFixed(2) : 0;
-      const apport = (capital * parts) / totalParts;
-      return `${index + 1}. ${associe.name || '[NOM ASSOCIÉ]'} : ${parts} parts (${pourcentage}%) - Apport : ${apport.toLocaleString('fr-FR')} FCFA`;
-    }).join('\n');
+      const montantSouscrit = (capital * parts) / totalParts;
+      totalSouscrit += montantSouscrit;
+      totalVerse += montantSouscrit;
+      
+      return `M. ${associe.name || '[NOM ASSOCIÉ]'}\n${parts} parts numérotés de ${index === 0 ? 1 : (associates.slice(0, index).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) + 1)} à ${associates.slice(0, index + 1).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0)} inclus\n\n${valeurPart.toLocaleString('fr-FR')} FCFA\n\n${montantSouscrit.toLocaleString('fr-FR')} CFA\n\n${montantSouscrit.toLocaleString('fr-FR')} CFA`;
+    }).join('\n\n');
   } else {
-    associésText = '1. [NOM ASSOCIÉ] : [PARTS] parts - Apport : [MONTANT] FCFA';
+    tableauAssocies = `M. ${gerantNom}\n${totalParts} parts numérotés de 1 à ${totalParts} inclus\n\n${valeurPart.toLocaleString('fr-FR')} FCFA\n\n${capital.toLocaleString('fr-FR')} CFA\n\n${capital.toLocaleString('fr-FR')} CFA`;
+    totalSouscrit = capital;
+    totalVerse = capital;
   }
   
   return `
-RÉPUBLIQUE DE CÔTE D'IVOIRE
-Union - Discipline - Travail
-
-═══════════════════════════════════════════════════════════════════
+DSV DE LA SOCIÉTÉ « ${company.company_name || '[NOM SOCIÉTÉ]'} »
 
 DÉCLARATION DE SOUSCRIPTION ET DE VERSEMENT
-DU CAPITAL SOCIAL
 
-═══════════════════════════════════════════════════════════════════
+(cf Art 314 de l'Acte uniforme révisé du 30 janvier 2014, Art 6 de l'Ordonnance N° 2014-161 du 02 avril 2014 relative à la formes des statuts et au capital social de la société à responsabilité limitée)
 
-Je soussigné(e), ${company.gerant || '[NOM GÉRANT]'}, Gérant de la société :
+L'An ${anneeWords},
 
-« ${company.company_name || '[NOM SOCIÉTÉ]'} »
-Société à Responsabilité Limitée (SARL)
-Siège social : ${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}
+Le ${dateJour}
 
-DÉCLARE :
+Le soussigné,
 
-1. Que le capital social de la société est fixé à la somme de ${capital.toLocaleString('fr-FR')} (${capitalWords}) francs CFA.
+M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId}.
 
-2. Que ce capital est divisé en parts sociales de valeur nominale égale.
+EXPOSÉ PRÉALABLE
 
-3. Que les parts sociales ont été souscrites et libérées intégralement par les associés suivants :
+Par Acte sous seing Privé en date du ${dateJour},
 
-${associésText}
+Ont établi, les statuts de la Société à Responsabilité Limitée devant exister entre eux et tous propriétaires de parts sociales ultérieures, dont les principales caractéristiques sont les suivantes :
 
-4. Que les versements ont été effectués en numéraire et sont disponibles sur le compte bancaire de la société.
+1-FORME
 
-5. Que les fonds sont libres de toute hypothèque ou nantissement.
+La société constituée est une société à Responsabilité Limitée régie par les dispositions de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales et du Groupement d'intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires applicables et ses présents statuts.
 
-Fait à ${company.city || 'Abidjan'}, le ${dateSignature}
+2- DÉNOMINATION
 
-Le Gérant
+La société a pour dénomination : ${company.company_name || '[NOM SOCIÉTÉ]'}
 
-_____________________
-${company.gerant || '[NOM GÉRANT]'}
+3- OBJET
+
+La société a pour objet en CÔTE-D'IVOIRE :
+
+${company.activity || '[OBJET SOCIAL]'}
+
+4- SIÈGE SOCIAL
+
+Le siège social est fixé à : ${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}
+
+5- DURÉE
+
+La durée de la société est de ${company.duree_societe || 99} (${numberToWords(company.duree_societe || 99)}) années, sauf dissolution anticipée ou prorogation.
+
+6- CAPITAL SOCIAL
+
+Le capital social est fixé à la somme de ${capitalWords.toUpperCase()} Franc CFA (F CFA ${capital.toLocaleString('fr-FR')}) divisé en ${totalParts} parts sociales de F CFA ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}.
+
+II- CONSTATATION DE LA LIBÉRATION ET DU DÉPÔT DES FONDS PROVENANT DES PARTS SOCIALES
+
+Les soussignées déclarent, que les souscriptions et les versements des fonds provenant de la libération des parts sociales ont été effectués comme suit :
+
+Identité des associés et leur domicile
+
+Nombre de parts Souscrites
+
+Montant nominal
+
+Montant total souscrit F CFA
+
+Versement effectué F CFA
+
+${tableauAssocies}
+
+TOTAL
+
+${totalParts} parts
+
+${valeurPart.toLocaleString('fr-FR')} FCFA
+
+${totalSouscrit.toLocaleString('fr-FR')} CFA
+
+${totalVerse.toLocaleString('fr-FR')} CFA
+
+La somme correspondante à l'ensemble des souscriptions et versements effectué à ce jour, de ${numberToWords(Math.floor(totalVerse)).toLowerCase()} (${totalVerse.toLocaleString('fr-FR')} FCFA) a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à [NOM BANQUE].
+
+En Foi de quoi, ils ont dressé la présente, pour servir et valoir ce que de droit
+
+Fait à ${company.city || 'Abidjan'}, le ${dateJour}
+
+En Deux (2) exemplaires originaux
+
+L'associé${associates && associates.length > 1 ? 's' : ''}
+
+${gerantNom}
 `;
 };
 
@@ -349,28 +432,28 @@ export const generateListeGerants = (company, managers) => {
   
   const gerant = managers[0];
   const capital = parseFloat(company.capital) || 0;
-  const dureeMandat = gerant.duree_mandat || 4;
+  const dureeMandat = gerant.duree_mandat || 99;
+  const dureeMandatWords = numberToWords(dureeMandat);
+  
+  // Extraire le numéro de pièce d'identité
+  const numeroIdentite = gerant.numero_identite || '[NUMÉRO]';
+  const typeIdentite = gerant.type_identite || 'CNI';
+  const dateDelivranceId = gerant.date_delivrance_id ? formatDate(gerant.date_delivrance_id) : '[DATE DÉLIVRANCE]';
+  const dateValiditeId = gerant.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
+  const lieuDelivranceId = gerant.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
   
   return `
 « ${company.company_name || '[NOM SOCIÉTÉ]'} »
 
-Au capital de ${capital.toLocaleString('fr-FR')} FCFA, située à ${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}
-
-═══════════════════════════════════════════════════════════════════
-
-LISTE DE DIRIGEANT
-
-═══════════════════════════════════════════════════════════════════
-
-Est nommé Gérant pour une durée de ${dureeMandat} ans (${numberToWords(dureeMandat)} ans)
-
-M. ${gerant.nom || ''} ${gerant.prenoms || ''}, ${gerant.profession || '[PROFESSION]'} résidant à ${gerant.adresse || '[ADRESSE]'} de nationalité ${gerant.nationalite || '[NATIONALITÉ]'}, né le ${formatDate(gerant.date_naissance)} à ${gerant.lieu_naissance || '[LIEU NAISSANCE]'} et titulaire du ${gerant.type_identite || '[TYPE PIÈCE]'} N° ${gerant.numero_identite || '[NUMÉRO]'} délivrée le ${formatDate(gerant.date_delivrance_id)} et valable jusqu'au ${formatDate(gerant.date_validite_id)} par ${gerant.lieu_delivrance_id || '[ÉMETTEUR]'}
+AYANT SON SIÈGE SOCIAL À ${company.address?.toUpperCase() || '[ADRESSE]'}, ${company.city?.toUpperCase() || 'ABIDJAN'}
 
 ───────────────────────────────────────────────────────────────────
 
-Signature
+LISTE DE DIRIGEANT
 
-_____________________
+Est nommé gérant de la société pour une durée de ${dureeMandatWords} ans (${dureeMandat} ans),
+
+M. ${gerant.nom || ''} ${gerant.prenoms || ''}, ${gerant.profession || '[PROFESSION]'}, résident à ${gerant.adresse || '[ADRESSE]'} de nationalité ${gerant.nationalite || '[NATIONALITÉ]'} né(e) le ${formatDate(gerant.date_naissance)} à ${gerant.lieu_naissance || '[LIEU NAISSANCE]'} et titulaire de la ${typeIdentite} ${numeroIdentite} délivré(e) le ${dateDelivranceId} et valable ${dateValiditeId} par ${lieuDelivranceId}.
 `;
 };
 
@@ -405,60 +488,45 @@ _____________________
 export const generateDeclarationHonneur = (company, managers) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM]';
-  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
+  const gerantPrenoms = gerant?.prenoms || '[PRÉNOMS]';
+  const gerantPereNom = gerant?.pere_nom || '[NOM PÈRE]';
+  const gerantMereNom = gerant?.mere_nom || '[NOM MÈRE]';
   const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
-  const gerantLieuNaissance = gerant?.lieu_naissance || '[LIEU NAISSANCE]';
+  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
   const gerantDomicile = gerant?.adresse || '[DOMICILE]';
   
   return `
-RÉPUBLIQUE DE CÔTE D'IVOIRE
-Union - Discipline - Travail
-
-═══════════════════════════════════════════════════════════════════
-
 DÉCLARATION SUR L'HONNEUR
 
-═══════════════════════════════════════════════════════════════════
+(Article 47 de l'Acte Uniforme relatif au Droit commercial général adopté le 15 décembre 2010)
 
-Je soussigné(e),
+NOM : ${gerant?.nom || '[NOM]'}
 
-${gerantNom}
+PRÉNOMS : ${gerantPrenoms}
 
-De nationalité ${gerantNationalite}
+DE : ${gerantPereNom}
 
-Né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance}
+Et DE : ${gerantMereNom}
 
-Domicilié(e) à ${gerantDomicile}
+DATE DE NAISSANCE : ${gerantDateNaissance}
 
-Agissant en qualité de Gérant de la société :
+NATIONALITÉ : ${gerantNationalite}
 
-« ${company.company_name || '[NOM SOCIÉTÉ]'} »
-SARL
-Siège social : ${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}
+DOMICILE : ${gerantDomicile}
 
-───────────────────────────────────────────────────────────────────
+QUALITÉ : GÉRANT
 
-DÉCLARE SUR L'HONNEUR :
+Déclare, conformément à l'article 47 de l'Acte Uniforme relatif au Droit Commercial Général adopté le 15 décembre 2010, au titre du Registre de commerce et du Crédit Mobilier,
 
-1. N'avoir fait l'objet d'aucune condamnation pénale pour crime ou délit ;
+N'avoir fait l'objet d'aucune condamnation pénale, ni de sanction professionnelle ou administrative de nature à m'interdire de gérer, administrer ou diriger une société ou l'exercice d'une activité commerciale.
 
-2. N'avoir fait l'objet d'aucune mesure d'interdiction, de déchéance ou d'incapacité prévue par les textes en vigueur ;
+M'engage dans un délai de 75 jours à compter de l'immatriculation à fournir mon casier judiciaire ou tout autre document en tenant lieu.
 
-3. Ne pas exercer de fonction incompatible avec l'exercice d'une activité commerciale ;
+Je prends acte de ce qu'à défaut de produire l'extrait du casier judiciaire ou tout document en tenant lieu dans le délai de soixante-quinze (75) jours, il sera procédé au retrait de mon immatriculation et à ma radiation.
 
-4. Que les informations fournies dans le cadre de cette déclaration sont exactes et sincères.
+Fait à ${company.city || 'Abidjan'}, le ${formatDate(new Date().toISOString())}
 
-───────────────────────────────────────────────────────────────────
-
-Je reconnais avoir été informé(e) des sanctions pénales encourues en cas de fausse déclaration.
-
-Fait pour servir et valoir ce que de droit.
-
-À ${company.city || 'Abidjan'}, le ${formatDate(new Date().toISOString())}
-
-Signature précédée de la mention « Lu et approuvé »
-
-_____________________
+(Lu et approuvé suivi de la signature)
 `;
 };
 
