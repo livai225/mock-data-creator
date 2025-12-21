@@ -28,9 +28,17 @@ const safeFilePart = (value) => {
 // @access  Private
 export const generateDocuments = async (req, res, next) => {
   try {
+    console.log('📥 Requête de génération reçue:', {
+      userId: req.user.id,
+      body: JSON.stringify(req.body, null, 2)
+    });
+
     const { companyId, docs, formats = ['pdf', 'docx'] } = req.body;
 
+    console.log(`🔍 Paramètres extraits: companyId=${companyId}, docs=${docs?.length || 0}, formats=${formats.join(',')}`);
+
     if (!Array.isArray(docs) || docs.length === 0) {
+      console.error('❌ Liste de documents invalide:', docs);
       return next(new AppError('Liste de documents invalide', 400));
     }
 
@@ -40,29 +48,39 @@ export const generateDocuments = async (req, res, next) => {
     let managers = [];
 
     if (companyId) {
+      console.log(`🔍 Recherche entreprise ID: ${companyId}`);
       company = await Company.findById(companyId);
       if (!company) {
+        console.error(`❌ Entreprise ${companyId} non trouvée`);
         return next(new AppError('Entreprise non trouvée', 404));
       }
+      console.log(`✅ Entreprise trouvée: ${company.company_name} (user_id: ${company.user_id})`);
+      
       // Vérifier que l'utilisateur est propriétaire
       if (company.user_id !== req.user.id && req.user.role !== 'admin') {
+        console.error(`❌ Accès non autorisé: user ${req.user.id} != company.user_id ${company.user_id}`);
         return next(new AppError('Accès non autorisé', 403));
       }
       associates = company.associates || [];
       managers = company.managers || [];
+      console.log(`📊 Données récupérées: ${associates.length} associés, ${managers.length} gérants`);
     } else {
       // Si pas de companyId, utiliser les données fournies dans le body
+      console.log('⚠️ Pas de companyId fourni, utilisation des données du body');
       company = req.body.company || {};
       associates = req.body.associates || [];
       managers = req.body.managers || [];
     }
 
     if (!company || !company.company_name) {
+      console.error('❌ Données d\'entreprise manquantes:', company);
       return next(new AppError('Données d\'entreprise manquantes', 400));
     }
 
     const created = [];
 
+    console.log(`🚀 Début génération de ${docs.length} documents...`);
+    
     // Générer tous les documents
     const results = await generateMultipleDocuments(
       docs,
@@ -73,65 +91,99 @@ export const generateDocuments = async (req, res, next) => {
       { formats }
     );
 
+    console.log(`📦 Résultats génération: ${results.length} résultats obtenus`);
+
     // Enregistrer chaque document généré
-    for (const result of results) {
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      console.log(`\n📄 Traitement résultat ${i + 1}/${results.length}:`, {
+        docName: result.docName,
+        hasError: !!result.error,
+        hasPdf: !!result.pdf,
+        hasDocx: !!result.docx
+      });
+
       if (result.error) {
         console.error(`❌ Erreur génération ${result.docName}:`, result.error);
+        console.error('   Stack:', result.error.stack);
         continue;
       }
 
       const docType = safeFilePart(result.docName) || 'document';
+      console.log(`   Type document: ${docType}`);
 
       // Enregistrer PDF si généré
       if (result.pdf) {
-        const pdfId = await Document.create({
-          userId: req.user.id,
-          companyId: companyId || null,
-          docType: `${docType}_pdf`,
-          docName: result.docName,
-          fileName: result.pdf.fileName,
-          filePath: result.pdf.filePath,
-          mimeType: result.pdf.mimeType
-        });
+        console.log(`   📄 Enregistrement PDF: ${result.pdf.fileName}`);
+        console.log(`   📁 Chemin: ${result.pdf.filePath}`);
+        console.log(`   👤 UserID: ${req.user.id}, CompanyID: ${companyId || 'null'}`);
+        
+        try {
+          const pdfId = await Document.create({
+            userId: req.user.id,
+            companyId: companyId || null,
+            docType: `${docType}_pdf`,
+            docName: result.docName,
+            fileName: result.pdf.fileName,
+            filePath: result.pdf.filePath,
+            mimeType: result.pdf.mimeType
+          });
 
-        console.log(`✅ Document PDF créé: ${result.docName} (ID: ${pdfId}, CompanyID: ${companyId || 'null'})`);
+          console.log(`   ✅ Document PDF créé en DB: ID=${pdfId}`);
 
-        created.push({
-          id: pdfId,
-          docType: `${docType}_pdf`,
-          docName: result.docName,
-          fileName: result.pdf.fileName,
-          format: 'pdf',
-          createdAt: new Date().toISOString(),
-        });
+          created.push({
+            id: pdfId,
+            docType: `${docType}_pdf`,
+            docName: result.docName,
+            fileName: result.pdf.fileName,
+            format: 'pdf',
+            createdAt: new Date().toISOString(),
+          });
+        } catch (dbError) {
+          console.error(`   ❌ Erreur DB lors création PDF:`, dbError);
+          console.error('   Stack:', dbError.stack);
+        }
+      } else {
+        console.log(`   ⚠️ Pas de PDF généré pour ${result.docName}`);
       }
 
       // Enregistrer Word si généré
       if (result.docx) {
-        const docxId = await Document.create({
-          userId: req.user.id,
-          companyId: companyId || null,
-          docType: `${docType}_docx`,
-          docName: result.docName,
-          fileName: result.docx.fileName,
-          filePath: result.docx.filePath,
-          mimeType: result.docx.mimeType
-        });
+        console.log(`   📄 Enregistrement DOCX: ${result.docx.fileName}`);
+        console.log(`   📁 Chemin: ${result.docx.filePath}`);
+        
+        try {
+          const docxId = await Document.create({
+            userId: req.user.id,
+            companyId: companyId || null,
+            docType: `${docType}_docx`,
+            docName: result.docName,
+            fileName: result.docx.fileName,
+            filePath: result.docx.filePath,
+            mimeType: result.docx.mimeType
+          });
 
-        console.log(`✅ Document DOCX créé: ${result.docName} (ID: ${docxId}, CompanyID: ${companyId || 'null'})`);
+          console.log(`   ✅ Document DOCX créé en DB: ID=${docxId}`);
 
-        created.push({
-          id: docxId,
-          docType: `${docType}_docx`,
-          docName: result.docName,
-          fileName: result.docx.fileName,
-          format: 'docx',
-          createdAt: new Date().toISOString(),
-        });
+          created.push({
+            id: docxId,
+            docType: `${docType}_docx`,
+            docName: result.docName,
+            fileName: result.docx.fileName,
+            format: 'docx',
+            createdAt: new Date().toISOString(),
+          });
+        } catch (dbError) {
+          console.error(`   ❌ Erreur DB lors création DOCX:`, dbError);
+          console.error('   Stack:', dbError.stack);
+        }
+      } else {
+        console.log(`   ⚠️ Pas de DOCX généré pour ${result.docName}`);
       }
     }
     
-    console.log(`📦 Total documents créés: ${created.length} pour entreprise ${companyId || 'sans entreprise'}`);
+    console.log(`\n📦 Résumé: ${created.length} documents créés en DB pour entreprise ${companyId || 'sans entreprise'}`);
+    console.log(`   IDs créés:`, created.map(c => `${c.docName} (${c.format}) ID=${c.id}`));
 
     res.status(201).json({
       success: true,
