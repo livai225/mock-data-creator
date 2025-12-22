@@ -162,6 +162,13 @@ export default function PreviewDocuments() {
         }
 
         // Appeler l'API de prévisualisation (sans token car route publique)
+        console.log('📤 Appel API /api/documents/preview avec:', {
+          company: company.company_name,
+          docsCount: docs.length,
+          docs: docs,
+          hasAdditionalData: !!additionalData.bailleur_nom
+        });
+        
         const previewRes = await previewDocumentsApi('', {
           company,
           associates,
@@ -171,12 +178,24 @@ export default function PreviewDocuments() {
           additionalData
         });
 
+        console.log('📥 Réponse API prévisualisation:', {
+          success: previewRes.success,
+          dataLength: previewRes.data?.length || 0,
+          message: previewRes.message
+        });
+
         if (previewRes.success && previewRes.data) {
           console.log(`✅ ${previewRes.data.length} documents générés pour prévisualisation`);
+          console.log('📄 Noms des documents:', previewRes.data.map(d => d.docName));
           
           // Convertir les données base64 en URLs blob
           const urls: Record<string, string> = {};
           for (const preview of previewRes.data) {
+            if (preview.error) {
+              console.error(`❌ Erreur pour ${preview.docName}:`, preview.error);
+              continue;
+            }
+            
             if (preview.pdf && preview.pdf.data) {
               try {
                 // Convertir base64 en blob
@@ -202,17 +221,26 @@ export default function PreviewDocuments() {
                 if (tabId) {
                   urls[tabId] = url;
                   console.log(`✅ URL blob créée pour prévisualisation: ${tabId} (${preview.docName})`);
+                } else {
+                  console.warn(`⚠️ Aucun tabId trouvé pour: ${preview.docName}`);
                 }
               } catch (error) {
                 console.error(`❌ Erreur conversion base64 pour ${preview.docName}:`, error);
               }
+            } else {
+              console.warn(`⚠️ Pas de PDF pour ${preview.docName}`);
             }
           }
           
           setPreviewUrls(urls);
-          console.log(`📋 ${Object.keys(urls).length} URLs blob créées pour prévisualisation`);
+          console.log(`📋 ${Object.keys(urls).length} URLs blob créées pour prévisualisation:`, Object.keys(urls));
+          
+          if (Object.keys(urls).length === 0) {
+            console.error('❌ Aucune URL blob créée ! Vérifiez les logs ci-dessus.');
+          }
         } else {
           console.error('❌ Erreur prévisualisation:', previewRes);
+          toast.error('Erreur lors de la génération de la prévisualisation. Vérifiez la console pour plus de détails.');
         }
       } catch (error) {
         console.error("❌ Erreur génération prévisualisation:", error);

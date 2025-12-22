@@ -44,6 +44,8 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const { token, headers, ...rest } = options;
 
+  console.log(`🌐 API Request: ${rest.method || 'GET'} ${API_URL}${path}`);
+
   const res = await fetch(`${API_URL}${path}`, {
     ...rest,
     headers: {
@@ -57,9 +59,11 @@ export async function apiRequest<T>(
 
   if (!res.ok) {
     const message = json?.message ?? `HTTP ${res.status}`;
+    console.error(`❌ API Error ${res.status}:`, message, json);
     throw new Error(message);
   }
 
+  console.log(`✅ API Response:`, json?.success ? 'Success' : 'Failed', json?.data?.length || 0, 'items');
   return json as T;
 }
 
