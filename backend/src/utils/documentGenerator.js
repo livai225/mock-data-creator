@@ -294,9 +294,11 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
       // Fonction helper pour calculer la hauteur d'un texte
       const getTextHeight = (text, fontSize, width) => {
         const oldY = doc.y;
+        const oldFont = doc._font;
         doc.fontSize(fontSize);
-        const height = doc.heightOfString(text, { width });
+        const height = doc.heightOfString(text, { width, lineGap: 2 });
         doc.y = oldY; // Restaurer la position
+        doc._font = oldFont; // Restaurer la police
         return height;
       };
 
@@ -304,8 +306,8 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
         const trimmedLine = line.trim();
         
         if (trimmedLine === '') {
-          // Ligne vide : espacement minimal
-          doc.y += 5;
+          // Ligne vide : espacement professionnel
+          doc.y += 6;
         } else if (trimmedLine.match(/^STATUTS$/i) && isStatuts) {
           // Titre principal "STATUTS" centré en grand (format image 4)
           const fontSize = 24;
@@ -417,48 +419,50 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
           // PDFKit met à jour doc.y automatiquement quand on utilise width, on ajoute juste l'espacement
           doc.y += 6;
         } else if (trimmedLine.includes(':') && trimmedLine.indexOf(':') < 30) {
-          // Label avec valeur
+          // Label avec valeur (format professionnel avec meilleur espacement)
           const colonIndex = trimmedLine.indexOf(':');
           const label = trimmedLine.substring(0, colonIndex + 1);
-          const value = trimmedLine.substring(colonIndex + 1);
+          const value = trimmedLine.substring(colonIndex + 1).trim();
           
           const fontSize = 10;
-          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 4;
+          const lineSpacing = 6; // Espacement entre les lignes
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + lineSpacing;
           checkPageBreak(estimatedHeight);
           
-          const startY = doc.y;
-          
+          // Écrire le label en gras
           doc.font('Times-Bold')
              .fontSize(fontSize)
              .fillColor('#1E1E1E')
              .text(label, 50, doc.y, { width: textWidth, continued: true });
           
-          if (value.trim()) {
+          // Écrire la valeur en normal
+          if (value) {
             doc.font('Times-Roman')
+               .fontSize(fontSize)
+               .fillColor('#1E1E1E')
                .text(value, { width: textWidth });
           }
           
-          // Utiliser la position Y réelle après le texte + espacement
-          doc.y += 4;
+          // Espacement après le label/valeur
+          doc.y += lineSpacing;
         } else {
-          // Paragraphe normal
+          // Paragraphe normal (format professionnel avec meilleur espacement)
           const fontSize = 10;
-          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 4;
+          const lineSpacing = 5; // Espacement entre les paragraphes
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + lineSpacing;
           checkPageBreak(estimatedHeight);
-          
-          const startY = doc.y;
           
           doc.font('Times-Roman')
              .fontSize(fontSize)
              .fillColor('#1E1E1E')
              .text(trimmedLine, 50, doc.y, { 
                width: textWidth,
-               align: 'left'
+               align: 'left',
+               lineGap: 2 // Espacement entre les lignes dans le paragraphe
              });
           
-          // Utiliser la position Y réelle après le texte + espacement minimal
-          // PDFKit met déjà à jour doc.y automatiquement, on ajoute juste un espacement
-          doc.y += 4;
+          // PDFKit met déjà à jour doc.y automatiquement, on ajoute juste l'espacement entre paragraphes
+          doc.y += lineSpacing;
         }
       });
 

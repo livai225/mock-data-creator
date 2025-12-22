@@ -69,7 +69,25 @@ export const generateDocuments = async (req, res, next) => {
       console.log('⚠️ Pas de companyId fourni, utilisation des données du body');
       company = req.body.company || {};
       associates = req.body.associates || [];
-      managers = req.body.managers || [];
+      // Normaliser les managers : mapper camelCase vers snake_case
+      managers = (req.body.managers || []).map(m => ({
+        nom: m.nom || m.name,
+        prenoms: m.prenoms || m.firstName || '',
+        date_naissance: m.date_naissance || m.dateNaissance || m.date_naissance,
+        lieu_naissance: m.lieu_naissance || m.lieuNaissance || m.lieu_naissance,
+        nationalite: m.nationalite || m.nationalite || m.nationality,
+        adresse: m.adresse || m.adresse || m.address,
+        profession: m.profession || m.profession || m.profession,
+        type_identite: m.type_identite || m.typeIdentite || m.type_identite,
+        numero_identite: m.numero_identite || m.numeroIdentite || m.numero_identite,
+        date_delivrance_id: m.date_delivrance_id || m.dateDelivranceId || m.date_delivrance_id,
+        date_validite_id: m.date_validite_id || m.dateValiditeId || m.date_validite_id,
+        lieu_delivrance_id: m.lieu_delivrance_id || m.lieuDelivranceId || m.lieu_delivrance_id,
+        pere_nom: m.pere_nom || m.pereNom || m.pere_nom || null,
+        mere_nom: m.mere_nom || m.mereNom || m.mere_nom || null,
+        duree_mandat: m.duree_mandat || m.dureeMandat || m.duree_mandat
+      }));
+      console.log(`📊 Managers normalisés: ${managers.length} gérants`);
     }
 
     if (!company || !company.company_name) {
@@ -410,7 +428,7 @@ export const generateDocumentManual = async (req, res, next) => {
 // @access  Public (pas besoin d'authentification pour prévisualiser)
 export const previewDocuments = async (req, res, next) => {
   try {
-    const { company, associates = [], managers = [], docs, formats = ['pdf'] } = req.body;
+    const { company, associates = [], managers: rawManagers = [], docs, formats = ['pdf'] } = req.body;
 
     if (!company || !company.company_name) {
       return next(new AppError('Données d\'entreprise manquantes', 400));
@@ -419,6 +437,25 @@ export const previewDocuments = async (req, res, next) => {
     if (!Array.isArray(docs) || docs.length === 0) {
       return next(new AppError('Liste de documents invalide', 400));
     }
+
+    // Normaliser les managers : mapper camelCase vers snake_case
+    const managers = (rawManagers || []).map(m => ({
+      nom: m.nom || m.name,
+      prenoms: m.prenoms || m.firstName || '',
+      date_naissance: m.date_naissance || m.dateNaissance || m.date_naissance,
+      lieu_naissance: m.lieu_naissance || m.lieuNaissance || m.lieu_naissance,
+      nationalite: m.nationalite || m.nationalite || m.nationality,
+      adresse: m.adresse || m.adresse || m.address,
+      profession: m.profession || m.profession || m.profession,
+      type_identite: m.type_identite || m.typeIdentite || m.type_identite,
+      numero_identite: m.numero_identite || m.numeroIdentite || m.numero_identite,
+      date_delivrance_id: m.date_delivrance_id || m.dateDelivranceId || m.date_delivrance_id,
+      date_validite_id: m.date_validite_id || m.dateValiditeId || m.date_validite_id,
+      lieu_delivrance_id: m.lieu_delivrance_id || m.lieuDelivranceId || m.lieu_delivrance_id,
+      pere_nom: m.pere_nom || m.pereNom || m.pere_nom || null,
+      mere_nom: m.mere_nom || m.mereNom || m.mere_nom || null,
+      duree_mandat: m.duree_mandat || m.dureeMandat || m.duree_mandat
+    }));
 
     console.log(`🔍 Prévisualisation: ${docs.length} documents pour "${company.company_name}"`);
 

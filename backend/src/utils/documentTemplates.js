@@ -942,9 +942,9 @@ NOM : ${gerant?.nom || '[NOM]'}
 
 PRÉNOMS : ${gerantPrenoms}
 
-DE : ${gerantPereNom}
+DE : ${gerantPereNom || '[NOM ET PRÉNOMS DU PÈRE]'}
 
-Et DE : ${gerantMereNom}
+Et DE : ${gerantMereNom || '[NOM ET PRÉNOMS DE LA MÈRE]'}
 
 DATE DE NAISSANCE : ${gerantDateNaissance}
 
