@@ -979,42 +979,18 @@ export const generateFormulaireCEPICI = (company, managers, associates) => {
   const dureeSociete = company.duree_societe || 99;
   
   return `
-REPUBLIQUE DE COTE D'IVOIRE
+RÉPUBLIQUE DE CÔTE D'IVOIRE
 Union - Discipline - Travail
-Presidence de la Republique
+
 CEPICI
 CENTRE DE PROMOTION DES INVESTISSEMENTS EN COTE D'IVOIRE
 
-================================================================================
+GUICHET UNIQUE
+Création d'Entreprise
 
-FORMULAIRE UNIQUE D'IMMATRICULATION DES ENTREPRISES (PERSONNES MORALES)
+FORMULAIRE UNIQUE DE DEMANDE DE CRÉATION D'ENTREPRISE
 
-================================================================================
-
-CADRE RESERVE AU CEPICI
-
-+-----------------------------------------------------------------------------+
-| DOSSIER N° ......................                                           |
-| DATE DE RECEPTION ......................                                    |
-| NUMERO REGISTRE DE COMMERCE / / / / / / / /                                |
-| NUMERO COMPTE CONTRIBUABLE / / / / / / / /                                 |
-| NUMERO CNPS ENTREPRISE / / / / / / / /                                     |
-| CODE IMPORT-EXPORT / / / / / / / /                                         |
-+-----------------------------------------------------------------------------+
-
-───────────────────────────────────────────────────────────────────
-DECLARANT RESPONSABLE POUR L'ACCOMPLISSEMENT DES FORMALITES
-───────────────────────────────────────────────────────────────────
-
-DECLARATION ETABLIE PAR : [NOM DECLARANT]
-AGISSANT EN QUALITE DE : [QUALITE]
-ADRESSE PERSONNELLE : [ADRESSE]
-MOBILE : [MOBILE]
-E-MAIL : [EMAIL]
-
-================================================================================
-I- IDENTIFICATION
-================================================================================
+SECTION A: IDENTIFICATION DE L'ENTREPRISE
 
 Denomination sociale : ${company.company_name || '[DENOMINATION]'}
 Nom commercial : 
