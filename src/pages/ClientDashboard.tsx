@@ -418,7 +418,10 @@ export default function ClientDashboard() {
                           <span>{companyDocs.length} document{companyDocs.length > 1 ? 's' : ''}</span>
                         </div>
                         {company.status === 'draft' && (
-                          <div className="flex items-center gap-2 text-amber-600 mb-2">
+                          <div 
+                            className="flex items-center gap-2 text-amber-600 mb-2 cursor-help"
+                            title="Votre dossier est en cours de création. Il sera validé après vérification du paiement et des documents. Vous pouvez déjà télécharger vos documents générés."
+                          >
                             <AlertCircle className="h-4 w-4" />
                             <span>Dossier incomplet</span>
                           </div>
