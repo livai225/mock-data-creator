@@ -3,7 +3,19 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import PDFDocument from 'pdfkit';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx';
-import { generatePdfWithPdfMake } from './pdfmakeGenerator.js';
+
+// Import pdfmake avec gestion d'erreur
+let generatePdfWithPdfMake;
+try {
+  console.log('🔍 [documentGenerator] Tentative d\'import de pdfmakeGenerator...');
+  const pdfmakeModule = await import('./pdfmakeGenerator.js');
+  generatePdfWithPdfMake = pdfmakeModule.generatePdfWithPdfMake;
+  console.log('✅ [documentGenerator] Import de pdfmakeGenerator réussi');
+} catch (importError) {
+  console.error('❌ [documentGenerator] Erreur import pdfmakeGenerator:', importError);
+  console.error('   Stack:', importError.stack);
+  generatePdfWithPdfMake = null;
+}
 import {
   documentGenerators,
   generateStatutsSARL,
