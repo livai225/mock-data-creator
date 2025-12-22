@@ -13,6 +13,8 @@ import Connexion from "./pages/Connexion";
 import Inscription from "./pages/Inscription";
 import EspaceDocuments from "./pages/EspaceDocuments";
 import ClientDashboard from "./pages/ClientDashboard";
+import MonCompte from "./pages/MonCompte";
+import MesPaiements from "./pages/MesPaiements";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminCompanies from "./pages/admin/AdminCompanies";
@@ -44,6 +46,8 @@ const App = () => (
             <Route path="/inscription" element={<Inscription />} />
             <Route path="/espace/documents" element={<EspaceDocuments />} />
             <Route path="/dashboard" element={<ClientDashboard />} />
+            <Route path="/mon-compte" element={<MonCompte />} />
+            <Route path="/mes-paiements" element={<MesPaiements />} />
             <Route path="/preview-documents" element={<PreviewDocuments />} />
 
             <Route

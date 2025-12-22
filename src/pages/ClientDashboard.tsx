@@ -3,7 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, CheckCircle, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { CheckCircle2, CheckCircle, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp, RefreshCw, User, CreditCard } from "lucide-react";
+import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { useAuth } from "@/auth/AuthContext";
 import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, deleteCompanyDocumentsApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -340,6 +341,9 @@ export default function ClientDashboard() {
       </section>
 
       <div className="container py-8 space-y-8">
+        
+        {/* Navigation Dashboard */}
+        <DashboardNav activeTab="entreprises" />
         
         {/* Section Entreprises */}
         <section>

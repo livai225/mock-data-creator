@@ -195,3 +195,30 @@ export const changePassword = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Mettre à jour les préférences utilisateur
+// @route   PUT /api/auth/preferences
+// @access  Private
+export const updatePreferences = async (req, res, next) => {
+  try {
+    const { emailNotifications, smsNotifications, documentUpdates, paymentReminders } = req.body;
+
+    // Pour l'instant, on log les préférences (à implémenter avec une vraie table de préférences)
+    console.log(`📋 Mise à jour préférences utilisateur ${req.user.id}:`, {
+      emailNotifications,
+      smsNotifications,
+      documentUpdates,
+      paymentReminders
+    });
+
+    // TODO: Sauvegarder dans une table user_preferences
+    // Pour l'instant, on retourne simplement un succès
+
+    res.status(200).json({
+      success: true,
+      message: 'Préférences mises à jour avec succès'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

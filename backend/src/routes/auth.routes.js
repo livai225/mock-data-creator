@@ -8,7 +8,8 @@ import {
   login,
   getMe,
   updateProfile,
-  changePassword
+  changePassword,
+  updatePreferences
 } from '../controllers/auth.controller.js';
 
 const router = express.Router();
@@ -54,5 +55,6 @@ router.post('/login', authLimiter, loginValidation, validate, login);
 router.get('/me', protect, getMe);
 router.put('/profile', protect, profileValidation, validate, updateProfile);
 router.put('/change-password', protect, changePasswordValidation, validate, changePassword);
+router.put('/preferences', protect, updatePreferences);
 
 export default router;
