@@ -143,11 +143,51 @@ export function DocumentPreviewContratBail({ formData, companyType }: DocumentPr
 
         {/* Article 6 */}
         <section>
-          <h3 className="font-bold text-base mb-2">ARTICLE 6 - RÉSILIATION</h3>
+          <h3 className="font-bold text-base mb-2">ARTICLE 6 - LOYER</h3>
+          <div className="bg-amber-50 p-4 border border-amber-300 rounded">
+            <p className="text-lg">
+              Le loyer mensuel est fixé à : <span className="bg-yellow-100 px-2 py-1 font-bold text-xl">{loyerMensuel.toLocaleString('fr-FR')} FCFA</span>
+            </p>
+            <p className="mt-2 text-sm text-gray-600">
+              Soit un loyer annuel de {(loyerMensuel * 12).toLocaleString('fr-FR')} FCFA
+            </p>
+          </div>
+          <p className="mt-3">
+            Le loyer sera payable mensuellement et d'avance, au plus tard le cinq (5) de chaque mois.
+          </p>
+          <p className="mt-2">
+            Les parties conviennent que le prix fixé ci-dessus ne peut être révisé au cours du bail.
+          </p>
+          <p className="mt-2">
+            Dans le cas où il surviendrait une contestation sur le montant du loyer tel qu'il est défini par le présent bail, 
+            le preneur devra aviser le bailleur qui s'engage à s'en remettre à une expertise amiable.
+          </p>
+        </section>
+
+        {/* Article 7 */}
+        <section>
+          <h3 className="font-bold text-base mb-2">ARTICLE 7 - SOUS-LOCATION</h3>
           <p>
-            À défaut de paiement du loyer ou en cas de non-respect des clauses du présent bail, 
-            celui-ci sera résilié de plein droit un mois après commandement de payer ou mise en 
-            demeure restée infructueuse.
+            Sauf stipulation contraire du bail, toute sous-location totale ou partielle est interdite.
+          </p>
+        </section>
+
+        {/* Article 8 */}
+        <section>
+          <h3 className="font-bold text-base mb-2">ARTICLE 8 - CLAUSE RÉSOLUTOIRE</h3>
+          <p>
+            À défaut de paiement d'un seul terme de loyer ou en cas d'inexécution d'une clause du bail, 
+            le bailleur pourra demander à la juridiction compétente la résiliation du bail et l'expulsion 
+            du preneur, et de tous occupants de son chef, après avoir fait délivrer, par acte extrajudiciaire, 
+            une mise en demeure d'avoir à respecter les clauses et conditions du bail.
+          </p>
+        </section>
+
+        {/* Article 9 */}
+        <section>
+          <h3 className="font-bold text-base mb-2">ARTICLE 9 - ÉLECTION DE DOMICILE</h3>
+          <p>
+            En cas de litige, si aucun accord amiable n'est trouvé, le tribunal d'Abidjan sera seul compétent.
           </p>
         </section>
 
