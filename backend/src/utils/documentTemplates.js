@@ -885,7 +885,7 @@ export const generateListeGerants = (company, managers) => {
 
 AYANT SON SIÈGE SOCIAL À ${company.address?.toUpperCase() || '[ADRESSE]'}, ${company.city?.toUpperCase() || 'ABIDJAN'}
 
-───────────────────────────────────────────────────────────────────
+__________________________________________________________________________
 
 LISTE DE DIRIGEANT
 
@@ -902,17 +902,17 @@ const generateListeGerantsDefault = (company) => {
 
 Au capital de ${capital.toLocaleString('fr-FR')} FCFA, située à ${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}
 
-═══════════════════════════════════════════════════════════════════
+__________________________________________________________________________
 
 LISTE DE DIRIGEANT
 
-═══════════════════════════════════════════════════════════════════
+__________________________________________________________________________
 
 Est nommé Gérant pour une durée de 4 ans (quatre ans)
 
 M. ${company.gerant || '[NOM GÉRANT]'}, [PROFESSION] résidant à [ADRESSE] de nationalité [NATIONALITÉ], né le [DATE NAISSANCE] à [LIEU NAISSANCE] et titulaire du [TYPE PIÈCE] N° [NUMÉRO] délivrée le [DATE DÉLIVRANCE] et valable jusqu'au [DATE VALIDITÉ] par [ÉMETTEUR]
 
-───────────────────────────────────────────────────────────────────
+__________________________________________________________________________
 
 Signature
 
@@ -1001,17 +1001,13 @@ Montant du capital : ${capital.toLocaleString('fr-FR')} FCFA
     Dont : Montant en numéraire : ${capitalNumeraire.toLocaleString('fr-FR')} FCFA
     Evaluation des apports en nature : ${apportsNature.toLocaleString('fr-FR')} FCFA
 
-+----------------------------------+--------------+--------------+--------------+
-|                                  |   ANNEE 1    |   ANNEE 2    |   ANNEE 3    |
-+----------------------------------+--------------+--------------+--------------+
-| Montant d'Investissement (projete) |      -       |      -       |      -       |
-+----------------------------------+--------------+--------------+--------------+
-| Nombre d'Emplois (projetes)      |      -       |      -       |      -       |
-+----------------------------------+--------------+--------------+--------------+
+PREVISIONS SUR 3 ANS:
+    Montant d'Investissement : A determiner
+    Nombre d'Emplois : A determiner
 
-================================================================================
+__________________________________________________________________________
 II- ACTIVITE
-================================================================================
+__________________________________________________________________________
 
 Activite principale : 
 ${company.activity || '[ACTIVITE PRINCIPALE]'}
@@ -1023,9 +1019,9 @@ Nombre d'employes : 1
 Date embauche 1er employe : ${formatDate(new Date().toISOString())}
 Date de debut d'activite : ${formatDate(new Date().toISOString())}
 
-================================================================================
+__________________________________________________________________________
 III- LOCALISATION DU SIEGE SOCIAL
-================================================================================
+__________________________________________________________________________
 
 Ville : ${company.city || 'ABIDJAN'}
 Commune : [COMMUNE]
@@ -1036,27 +1032,20 @@ Numero etage :      Numero porte :
 Tel. : [TELEPHONE]
 Email : [EMAIL]
 
-================================================================================
+__________________________________________________________________________
 V- INFORMATIONS SUR LES DIRIGEANTS
-================================================================================
+__________________________________________________________________________
 
 DIRIGEANT SOCIAL
 
-+----------------------------+--------------------------------------------------+
-| Nom et Prenoms             | ${gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : '[NOM]'} |
-+----------------------------+--------------------------------------------------+
-| Adresse                    | ${gerant?.adresse || '[ADRESSE]'} |
-+----------------------------+--------------------------------------------------+
-| Nationalite                | ${gerant?.nationalite || '[NATIONALITE]'} |
-+----------------------------+--------------------------------------------------+
-| Date et lieu de naissance  | ${gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE]'} a ${gerant?.lieu_naissance || '[LIEU]'} |
-+----------------------------+--------------------------------------------------+
-| Regime matrimonial         | [REGIME] |
-+----------------------------+--------------------------------------------------+
-| Fonction                   | GERANT |
-+----------------------------+--------------------------------------------------+
+Nom et Prenoms : ${gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : '[NOM]'}
+Adresse : ${gerant?.adresse || '[ADRESSE]'}
+Nationalite : ${gerant?.nationalite || '[NATIONALITE]'}
+Date et lieu de naissance : ${gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE]'} a ${gerant?.lieu_naissance || '[LIEU]'}
+Regime matrimonial : [REGIME]
+Fonction : GERANT
 
-================================================================================
+__________________________________________________________________________
 
 Fait a Abidjan, le ${formatDate(new Date().toISOString())}
 
@@ -1065,7 +1054,7 @@ Signature
 _____________________
 
 
-───────────────────────────────────────────────────────────────────
+__________________________________________________________________________
 CEPICI : BP V152 ABIDJAN 01 - ABIDJAN PLATEAU 2eme etage immeuble DJEKANOU
 Tel : (225) 20 30 23 85 - Fax : (225) 20 21 40 71 - Site web : www.cepici.gouv.ci
 `;
