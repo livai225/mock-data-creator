@@ -224,7 +224,7 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
       const stream = fs.createWriteStream(outputPath);
       doc.pipe(stream);
 
-      // Header
+      // Header sur la première page uniquement
       doc.rect(0, 0, doc.page.width, 60).fill('#1E293B');
       doc.rect(0, 58, doc.page.width, 2).fill('#D4AF37');
       
@@ -246,40 +246,50 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
          .fillColor('#B4B4B4')
          .text(currentDate, doc.page.width - 200, 20, { align: 'right' });
 
-      // Contenu
-      doc.moveDown(3);
+      // Contenu avec position Y manuelle (ancien style)
       doc.fillColor('#1E1E1E');
       doc.fontSize(10);
       doc.font('Times-Roman');
 
       const lines = content.split('\n');
+      let y = 100; // Position Y initiale après le header
 
       lines.forEach((line) => {
         const trimmedLine = line.trim();
         
         if (trimmedLine === '') {
-          doc.moveDown(0.5);
+          y += 5;
         } else if (trimmedLine.match(/^[A-ZÉÈÊËÀÂÄÎÏÔÖÛÜÇ\s\-:]+$/) && trimmedLine.length > 3 && !trimmedLine.includes(':')) {
           // Titre (tout en majuscules)
+          // Vérifier si on a besoin d'une nouvelle page
+          if (y > doc.page.height - 100) {
+            doc.addPage();
+            y = 50;
+          }
           doc.font('Times-Bold')
              .fontSize(12)
-             .text(trimmedLine, { 
-               width: doc.page.width - 100,
-               align: 'left'
-             });
-          doc.moveDown(1);
+             .fillColor('#1E1E1E')
+             .text(trimmedLine, 50, y, { width: doc.page.width - 100 });
+          y += 15;
         } else if (trimmedLine.toLowerCase().startsWith('article')) {
           // Article
+          // Vérifier si on a besoin d'une nouvelle page
+          if (y > doc.page.height - 100) {
+            doc.addPage();
+            y = 50;
+          }
           doc.font('Times-Bold')
              .fontSize(11)
              .fillColor('#D4AF37')
-             .text(trimmedLine, { 
-               width: doc.page.width - 100,
-               align: 'left'
-             });
-          doc.moveDown(0.5);
+             .text(trimmedLine, 50, y, { width: doc.page.width - 100 });
+          y += 12;
         } else if (trimmedLine.includes(':') && trimmedLine.indexOf(':') < 30) {
           // Label avec valeur
+          // Vérifier si on a besoin d'une nouvelle page
+          if (y > doc.page.height - 100) {
+            doc.addPage();
+            y = 50;
+          }
           const colonIndex = trimmedLine.indexOf(':');
           const label = trimmedLine.substring(0, colonIndex + 1);
           const value = trimmedLine.substring(colonIndex + 1);
@@ -287,25 +297,29 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
           doc.font('Times-Bold')
              .fontSize(10)
              .fillColor('#1E1E1E')
-             .text(label, { width: doc.page.width - 100, continued: true });
+             .text(label, 50, y, { width: doc.page.width - 100, continued: true });
           doc.font('Times-Roman')
-             .text(value, { width: doc.page.width - 100 });
-          doc.moveDown(0.5);
+             .text(value);
+          y += 8;
         } else {
           // Paragraphe normal
+          // Vérifier si on a besoin d'une nouvelle page
+          if (y > doc.page.height - 100) {
+            doc.addPage();
+            y = 50;
+          }
           doc.font('Times-Roman')
              .fontSize(10)
              .fillColor('#1E1E1E')
-             .text(trimmedLine, { 
+             .text(trimmedLine, 50, y, { 
                width: doc.page.width - 100,
                align: 'left'
              });
-          doc.moveDown(0.5);
+          y += 8;
         }
       });
 
       // Footer sur la dernière page uniquement (pour éviter la récursion)
-      // On ajoute le footer après que tout le contenu soit écrit
       const footerY = doc.page.height - 30;
       doc.strokeColor('#D4AF37')
          .lineWidth(0.5)
@@ -320,7 +334,7 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
            'Document généré automatiquement par ARCH EXCELLENCE - Usage professionnel',
            50,
            footerY + 5,
-           { align: 'center' }
+           { width: doc.page.width - 100, align: 'center' }
          );
       
       doc.font('Helvetica-Bold')
