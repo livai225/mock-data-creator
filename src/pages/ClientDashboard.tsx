@@ -407,18 +407,18 @@ export default function ClientDashboard() {
                       </div>
                       <CardDescription>{company.company_type}</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="text-sm text-muted-foreground space-y-2">
-                        <div className="flex items-center gap-2">
+                    <CardContent className="pt-0">
+                      <div className="text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 mb-1">
                           <Clock className="h-4 w-4" />
                           <span>Créé le {new Date(company.created_at).toLocaleDateString('fr-FR')}</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 mb-1">
                           <FileText className="h-4 w-4" />
                           <span>{companyDocs.length} document{companyDocs.length > 1 ? 's' : ''}</span>
                         </div>
                         {company.status === 'draft' && (
-                          <div className="flex items-center gap-2 text-amber-600 mt-2">
+                          <div className="flex items-center gap-2 text-amber-600 mb-2">
                             <AlertCircle className="h-4 w-4" />
                             <span>Dossier incomplet</span>
                           </div>
@@ -429,7 +429,7 @@ export default function ClientDashboard() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="w-full mt-3"
+                            className="w-full mt-2"
                             onClick={() => toggleCompanyExpansion(company.id)}
                           >
                             {isExpanded ? (
@@ -445,46 +445,46 @@ export default function ClientDashboard() {
                             )}
                           </Button>
                         )}
-                        
-                        {/* Liste des documents de l'entreprise */}
-                        {isExpanded && companyDocs.length > 0 && (
-                          <div className="mt-3 pt-3 border-t space-y-2">
-                            {companyDocs.map((doc) => (
-                              <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <FileText className="h-3 w-3 text-primary flex-shrink-0" />
-                                  <span className="truncate font-medium">{doc.doc_name}</span>
-                                </div>
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => handlePreview(doc)}
-                                    title="Prévisualiser"
-                                  >
-                                    <Eye className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => handleDownload(doc)}
-                                    disabled={downloadingId === doc.id}
-                                    title="Télécharger"
-                                  >
-                                    {downloadingId === doc.id ? (
-                                      <span className="animate-spin text-xs">⏳</span>
-                                    ) : (
-                                      <Download className="h-3 w-3" />
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </div>
+                      
+                      {/* Liste des documents de l'entreprise - en dehors du div principal */}
+                      {isExpanded && companyDocs.length > 0 && (
+                        <div className="mt-3 pt-3 border-t space-y-2">
+                          {companyDocs.map((doc) => (
+                            <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <FileText className="h-3 w-3 text-primary flex-shrink-0" />
+                                <span className="truncate font-medium">{doc.doc_name}</span>
+                              </div>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => handlePreview(doc)}
+                                  title="Prévisualiser"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => handleDownload(doc)}
+                                  disabled={downloadingId === doc.id}
+                                  title="Télécharger"
+                                >
+                                  {downloadingId === doc.id ? (
+                                    <span className="animate-spin text-xs">⏳</span>
+                                  ) : (
+                                    <Download className="h-3 w-3" />
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 );
