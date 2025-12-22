@@ -123,17 +123,13 @@ export const generateStatutsSARL = (company, associates, managers) => {
 - et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
   
   return `
-LES STATUTS DE LA SOCIETE « ${company.company_name || '[NOM SOCIÉTÉ]'} »
+STATUTS
 
-Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d'Intérêt Economique
+SOCIÉTÉ À RESPONSABILITÉ LIMITÉE
 
-STATUT TYPE SOUS SEING PRIVE
+${company.company_name || '[NOM SOCIÉTÉ]'}
 
-${isUnipersonnelle ? 'Cas d\'une Société à Responsabilité Limitée comportant un seul associé et constituée exclusivement par apports en numéraire' : 'Cas d\'une Société à Responsabilité Limitée comportant plusieurs associés et constituée exclusivement par apports en numéraire'}
-
-STATUTS DE LA SOCIETE A RESPONSABILITE LIMITEE DENOMMEE
-
-« ${company.company_name || '[NOM SOCIÉTÉ]'} »
+${company.sigle ? `Sigle : ${company.sigle}` : ''}
 
 AYANT SON SIEGE SOCIAL A ${(company.address || '[ADRESSE]').toUpperCase()}, ${(company.city || 'ABIDJAN').toUpperCase()}
 

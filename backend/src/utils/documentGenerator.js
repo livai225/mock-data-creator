@@ -224,27 +224,24 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
       const stream = fs.createWriteStream(outputPath);
       doc.pipe(stream);
 
-      // Header sur la première page uniquement
-      doc.rect(0, 0, doc.page.width, 60).fill('#1E293B');
-      doc.rect(0, 58, doc.page.width, 2).fill('#D4AF37');
+      // Header simple en haut (format épuré comme image 4)
+      const headerTitle = templateName.includes('Statuts') ? 'Statuts de la société' : 
+                         templateName.includes('Bail') ? 'Contrat de bail' :
+                         templateName.includes('CEPICI') ? 'Formulaire CEPICI' :
+                         templateName.includes('Gérant') || templateName.includes('Dirigeant') ? 'Liste des dirigeants' :
+                         templateName.includes('Déclaration') ? 'Déclaration sur l\'honneur' :
+                         templateName.includes('DSV') ? 'Déclaration Souscription/Versement' :
+                         templateName;
       
-      doc.fillColor('#FFFFFF')
-         .fontSize(18)
+      doc.fillColor('#1E293B')
+         .fontSize(14)
          .font('Helvetica-Bold')
-         .text('DOCUMENT JURIDIQUE', 50, 20);
+         .text(headerTitle, 50, 20);
       
-      doc.fontSize(11)
+      doc.fontSize(10)
          .font('Helvetica')
-         .text(templateName.toUpperCase(), 50, 40);
-      
-      const currentDate = new Date().toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      });
-      doc.fontSize(9)
-         .fillColor('#B4B4B4')
-         .text(currentDate, doc.page.width - 200, 20, { align: 'right' });
+         .fillColor('#666666')
+         .text('Document 1 sur 1', 50, 35);
 
       // Contenu avec gestion intelligente de l'espacement et des sauts de page
       doc.fillColor('#1E1E1E');
@@ -255,10 +252,34 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
       const textWidth = doc.page.width - 100; // Largeur disponible pour le texte
       const lineHeight = 12; // Hauteur de ligne de base
       const minBottomMargin = 80; // Marge minimale en bas de page
-      const topMargin = 50; // Marge en haut de page (après header)
+      const topMargin = 70; // Marge en haut de page (après header simple)
       
-      // Position initiale après le header
-      doc.y = 100;
+      // Position initiale après le header simple
+      doc.y = 70;
+      
+      // Détecter si c'est un document de statuts pour centrer le titre principal
+      const isStatuts = templateName.toLowerCase().includes('statuts');
+      
+      // Extraire le nom de la société depuis le contenu pour le mettre en évidence
+      const extractCompanyName = (content) => {
+        // Chercher le nom de la société après "STATUTS" et "SOCIÉTÉ À RESPONSABILITÉ LIMITÉE"
+        const contentLines = content.split('\n');
+        let foundStatuts = false;
+        let foundSociete = false;
+        for (let i = 0; i < contentLines.length; i++) {
+          const line = contentLines[i].trim();
+          if (line.match(/^STATUTS$/i)) {
+            foundStatuts = true;
+          } else if (foundStatuts && line.match(/^SOCIÉTÉ À RESPONSABILITÉ LIMITÉE/i)) {
+            foundSociete = true;
+          } else if (foundSociete && line && !line.match(/^Sigle/i)) {
+            return line.replace(/[«»"]/g, '').trim();
+          }
+        }
+        return null;
+      };
+      
+      const companyName = extractCompanyName(content);
 
       // Fonction helper pour vérifier et gérer les sauts de page
       const checkPageBreak = (requiredHeight) => {
@@ -285,6 +306,86 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
         if (trimmedLine === '') {
           // Ligne vide : espacement minimal
           doc.moveDown(0.3);
+        } else if (trimmedLine.match(/^STATUTS$/i) && isStatuts) {
+          // Titre principal "STATUTS" centré en grand (format image 4)
+          const fontSize = 24;
+          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
+          checkPageBreak(textHeight + 10);
+          
+          doc.font('Times-Bold')
+             .fontSize(fontSize)
+             .fillColor('#1E1E1E')
+             .text(trimmedLine.toUpperCase(), { 
+               width: doc.page.width - 100,
+               align: 'center'
+             });
+          
+          doc.y += textHeight + 10;
+        } else if (trimmedLine.match(/^SOCIÉTÉ À RESPONSABILITÉ LIMITÉE/i) && isStatuts) {
+          // Sous-titre centré (format image 4)
+          const fontSize = 14;
+          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
+          checkPageBreak(textHeight + 15);
+          
+          doc.font('Times-Bold')
+             .fontSize(fontSize)
+             .fillColor('#1E1E1E')
+             .text(trimmedLine.toUpperCase(), { 
+               width: doc.page.width - 100,
+               align: 'center'
+             });
+          
+          doc.y += textHeight + 15;
+        } else if (companyName && trimmedLine.trim().toUpperCase() === companyName.toUpperCase() && isStatuts) {
+          // Nom de la société avec fond jaune (format image 4)
+          const fontSize = 18;
+          const textToDisplay = trimmedLine.toUpperCase();
+          const textWidthMeasured = doc.widthOfString(textToDisplay, { fontSize });
+          const textHeight = getTextHeight(textToDisplay, fontSize, textWidth);
+          checkPageBreak(textHeight + 10);
+          
+          // Dessiner le fond jaune centré
+          const padding = 10;
+          const highlightX = (doc.page.width - textWidthMeasured) / 2 - padding;
+          const highlightY = doc.y - 3;
+          
+          doc.rect(highlightX, highlightY, textWidthMeasured + (padding * 2), textHeight + 6)
+             .fill('#FFEB3B');
+          
+          // Écrire le texte par-dessus
+          doc.font('Times-Bold')
+             .fontSize(fontSize)
+             .fillColor('#1E1E1E')
+             .text(textToDisplay, highlightX + padding, doc.y, { 
+               width: textWidthMeasured
+             });
+          
+          doc.y += textHeight + 10;
+        } else if (trimmedLine.match(/^Sigle/i) && isStatuts) {
+          // Sigle centré (format image 4)
+          const fontSize = 10;
+          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
+          checkPageBreak(textHeight + 15);
+          
+          doc.font('Times-Roman')
+             .fontSize(fontSize)
+             .fillColor('#1E1E1E')
+             .text(trimmedLine, { 
+               width: doc.page.width - 100,
+               align: 'center'
+             });
+          
+          doc.y += textHeight + 8;
+          
+          // Ligne de séparation après le sigle (format image 4)
+          const lineY = doc.y + 5;
+          doc.strokeColor('#1E1E1E')
+             .lineWidth(0.5)
+             .moveTo(50, lineY)
+             .lineTo(doc.page.width - 50, lineY)
+             .stroke();
+          
+          doc.y += 15;
         } else if (trimmedLine.match(/^[A-ZÉÈÊËÀÂÄÎÏÔÖÛÜÇ\s\-:]+$/) && trimmedLine.length > 3 && !trimmedLine.includes(':')) {
           // Titre (tout en majuscules)
           const fontSize = 12;
