@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle2, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, deleteCompanyDocumentsApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -38,6 +38,7 @@ export default function ClientDashboard() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | "all">("all");
   const [expandedCompanies, setExpandedCompanies] = useState<Set<number>>(new Set());
+  const [regeneratingCompanyId, setRegeneratingCompanyId] = useState<number | null>(null);
 
   // Protection de la route
   useEffect(() => {
@@ -243,6 +244,52 @@ export default function ClientDashboard() {
       }
       return newSet;
     });
+  };
+
+  // Régénérer les documents d'une entreprise
+  const handleRegenerateDocuments = async (companyId: number) => {
+    if (!token) return;
+    
+    setRegeneratingCompanyId(companyId);
+    try {
+      // Supprimer les anciens documents
+      await deleteCompanyDocumentsApi(token, companyId);
+      
+      // Trouver l'entreprise pour récupérer ses données
+      const company = companies.find(c => c.id === companyId);
+      if (!company) {
+        throw new Error("Entreprise non trouvée");
+      }
+      
+      // Régénérer les documents standards
+      const defaultDocs = [
+        'Statuts SARL',
+        'Contrat de bail commercial',
+        'Formulaire unique CEPICI',
+        'Liste des dirigeants/gérants',
+        'Déclaration sur l\'honneur (greffe)',
+        'Déclaration de Souscription et Versement (DSV)'
+      ];
+      
+      await generateDocumentsApi(token, {
+        companyId,
+        docs: defaultDocs,
+        formats: ['pdf', 'docx'],
+        regenerate: true
+      });
+      
+      toast.success("Documents régénérés avec succès !");
+      
+      // Recharger les données après un court délai
+      setTimeout(() => {
+        loadData();
+      }, 1000);
+    } catch (error: any) {
+      console.error("Erreur régénération:", error);
+      toast.error(error.message || "Erreur lors de la régénération des documents");
+    } finally {
+      setRegeneratingCompanyId(null);
+    }
   };
 
   // Obtenir les documents filtrés par entreprise sélectionnée
