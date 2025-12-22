@@ -33,9 +33,9 @@ export const generateDocuments = async (req, res, next) => {
       body: JSON.stringify(req.body, null, 2)
     });
 
-    const { companyId, docs, formats = ['pdf', 'docx'] } = req.body;
+    const { companyId, docs, formats = ['pdf', 'docx'], regenerate = false } = req.body;
 
-    console.log(`🔍 Paramètres extraits: companyId=${companyId}, docs=${docs?.length || 0}, formats=${formats.join(',')}`);
+    console.log(`🔍 Paramètres extraits: companyId=${companyId}, docs=${docs?.length || 0}, formats=${formats.join(',')}, regenerate=${regenerate}`);
 
     if (!Array.isArray(docs) || docs.length === 0) {
       console.error('❌ Liste de documents invalide:', docs);
@@ -61,6 +61,30 @@ export const generateDocuments = async (req, res, next) => {
         console.error(`❌ Accès non autorisé: user ${req.user.id} != company.user_id ${company.user_id}`);
         return next(new AppError('Accès non autorisé', 403));
       }
+
+      // Si regenerate est true, supprimer les anciens documents de l'entreprise
+      if (regenerate) {
+        console.log(`🔄 Mode régénération: suppression des anciens documents...`);
+        const existingDocs = await Document.findByCompanyId(companyId);
+        console.log(`   📋 ${existingDocs.length} documents existants trouvés`);
+        
+        // Supprimer les fichiers physiques
+        for (const doc of existingDocs) {
+          if (doc.file_path && fs.existsSync(doc.file_path)) {
+            try {
+              fs.unlinkSync(doc.file_path);
+              console.log(`   🗑️  Fichier supprimé: ${doc.file_path}`);
+            } catch (fileError) {
+              console.error(`   ⚠️  Erreur suppression fichier ${doc.file_path}:`, fileError);
+            }
+          }
+        }
+        
+        // Supprimer les documents de la base de données
+        const deleted = await Document.deleteByCompanyId(companyId);
+        console.log(`   ✅ ${deleted ? existingDocs.length : 0} documents supprimés de la base de données`);
+      }
+
       associates = company.associates || [];
       managers = company.managers || [];
       console.log(`📊 Données récupérées: ${associates.length} associés, ${managers.length} gérants`);

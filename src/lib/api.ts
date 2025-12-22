@@ -139,6 +139,7 @@ export async function generateDocumentsApi(
     companyTypeName?: string; 
     docs: string[];
     formats?: ('pdf' | 'docx')[];
+    regenerate?: boolean; // Nouveau paramètre pour régénérer les documents
   }
 ) {
   return apiRequest<ApiResult<Array<{ id: number; docType: string; docName: string; fileName: string; format?: string; createdAt: string }>>>(
@@ -147,6 +148,16 @@ export async function generateDocumentsApi(
       method: "POST",
       token,
       body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function deleteCompanyDocumentsApi(token: string, companyId: number) {
+  return apiRequest<ApiResult<{ deletedCount: number; deletedFiles: number }>>(
+    `/api/documents/company/${companyId}`,
+    {
+      method: "DELETE",
+      token,
     },
   );
 }

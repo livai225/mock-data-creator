@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
-import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, type UserDocument } from "@/lib/api";
+import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, deleteCompanyDocumentsApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { toast } from "sonner";
 import {
@@ -331,6 +331,22 @@ export default function ClientDashboard() {
                         <CardTitle className="text-lg">{company.company_name || "Sans nom"}</CardTitle>
                         <div className="flex items-center gap-2">
                           <StatusBadge status={company.status} />
+                          {companyDocs.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-primary hover:text-primary hover:bg-primary/10"
+                              onClick={() => handleRegenerateDocuments(company.id)}
+                              disabled={regeneratingCompanyId === company.id}
+                              title="Régénérer les documents"
+                            >
+                              {regeneratingCompanyId === company.id ? (
+                                <span className="animate-spin text-xs">⏳</span>
+                              ) : (
+                                <RefreshCw className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
