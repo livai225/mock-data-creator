@@ -985,106 +985,108 @@ export const generateFormulaireCEPICI = (company, managers, associates) => {
   return `
 REPUBLIQUE DE COTE D'IVOIRE
 Union - Discipline - Travail
-Présidence de la République
+Presidence de la Republique
 CEPICI
 CENTRE DE PROMOTION DES INVESTISSEMENTS EN COTE D'IVOIRE
 
-═══════════════════════════════════════════════════════════════════
+================================================================================
 
 FORMULAIRE UNIQUE D'IMMATRICULATION DES ENTREPRISES (PERSONNES MORALES)
 
-═══════════════════════════════════════════════════════════════════
+================================================================================
 
 CADRE RESERVE AU CEPICI
-┌─────────────────────────────────────────────────────────────────┐
-│ DOSSIER N° ......................                                │
-│ DATE DE RECEPTION ......................                         │
-│ NUMERO REGISTRE DE COMMERCE / / / / / / / /                     │
-│ NUMERO COMPTE CONTRIBUABLE / / / / / / / /                      │
-│ NUMERO CNPS ENTREPRISE / / / / / / / /                          │
-│ CODE IMPORT-EXPORT / / / / / / / /                              │
-└─────────────────────────────────────────────────────────────────┘
+
++-----------------------------------------------------------------------------+
+| DOSSIER N° ......................                                           |
+| DATE DE RECEPTION ......................                                    |
+| NUMERO REGISTRE DE COMMERCE / / / / / / / /                                |
+| NUMERO COMPTE CONTRIBUABLE / / / / / / / /                                 |
+| NUMERO CNPS ENTREPRISE / / / / / / / /                                     |
+| CODE IMPORT-EXPORT / / / / / / / /                                         |
++-----------------------------------------------------------------------------+
 
 ───────────────────────────────────────────────────────────────────
 DECLARANT RESPONSABLE POUR L'ACCOMPLISSEMENT DES FORMALITES
 ───────────────────────────────────────────────────────────────────
 
-DECLARATION ETABLIE PAR : [NOM DÉCLARANT]
-AGISSANT EN QUALITE DE : [QUALITÉ]
+DECLARATION ETABLIE PAR : [NOM DECLARANT]
+AGISSANT EN QUALITE DE : [QUALITE]
 ADRESSE PERSONNELLE : [ADRESSE]
 MOBILE : [MOBILE]
 E-MAIL : [EMAIL]
 
-═══════════════════════════════════════════════════════════════════
+================================================================================
 I- IDENTIFICATION
-═══════════════════════════════════════════════════════════════════
+================================================================================
 
-Dénomination sociale : ${company.company_name || '[DÉNOMINATION]'}
+Denomination sociale : ${company.company_name || '[DENOMINATION]'}
 Nom commercial : 
 Sigle : 
-Durée : ${dureeSociete} ANS
+Duree : ${dureeSociete} ANS
 Forme juridique : ${company.company_type || 'SARL'}
 Montant du capital : ${capital.toLocaleString('fr-FR')} FCFA
     Dont : Montant en numéraire : ${capitalNumeraire.toLocaleString('fr-FR')} FCFA
     Evaluation des apports en nature : ${apportsNature.toLocaleString('fr-FR')} FCFA
 
-┌───────────────────────────────────┬──────────────┬──────────────┬──────────────┐
-│                                   │   ANNEE 1    │   ANNEE 2    │   ANNEE 3    │
-├───────────────────────────────────┼──────────────┼──────────────┼──────────────┤
-│ Montant d'Investissement (projeté) │      -       │      -       │      -       │
-├───────────────────────────────────┼──────────────┼──────────────┼──────────────┤
-│ Nombre d'Emplois (projetés)       │      -       │      -       │      -       │
-└───────────────────────────────────┴──────────────┴──────────────┴──────────────┘
++----------------------------------+--------------+--------------+--------------+
+|                                  |   ANNEE 1    |   ANNEE 2    |   ANNEE 3    |
++----------------------------------+--------------+--------------+--------------+
+| Montant d'Investissement (projete) |      -       |      -       |      -       |
++----------------------------------+--------------+--------------+--------------+
+| Nombre d'Emplois (projetes)      |      -       |      -       |      -       |
++----------------------------------+--------------+--------------+--------------+
 
-═══════════════════════════════════════════════════════════════════
+================================================================================
 II- ACTIVITE
-═══════════════════════════════════════════════════════════════════
+================================================================================
 
-Activité principale : 
-${company.activity || '[ACTIVITÉ PRINCIPALE]'}
+Activite principale : 
+${company.activity || '[ACTIVITE PRINCIPALE]'}
 
-Activités secondaires : 
+Activites secondaires : 
 
-Chiffre d'affaires prévisionnel : ${company.chiffre_affaires_prev ? company.chiffre_affaires_prev.toLocaleString('fr-FR') : '-'} FCFA
-Nombre d'employés : 1
-Date embauche 1er employé : ${formatDate(new Date().toISOString())}
-Date de début d'activité : ${formatDate(new Date().toISOString())}
+Chiffre d'affaires previsionnel : ${company.chiffre_affaires_prev ? company.chiffre_affaires_prev.toLocaleString('fr-FR') : '-'} FCFA
+Nombre d'employes : 1
+Date embauche 1er employe : ${formatDate(new Date().toISOString())}
+Date de debut d'activite : ${formatDate(new Date().toISOString())}
 
-═══════════════════════════════════════════════════════════════════
+================================================================================
 III- LOCALISATION DU SIEGE SOCIAL
-═══════════════════════════════════════════════════════════════════
+================================================================================
 
 Ville : ${company.city || 'ABIDJAN'}
 Commune : [COMMUNE]
 Quartier : [QUARTIER]
 Rue : 
-Lot n° :      Îlot n° : 
-Numéro étage :      Numéro porte : 
-Tél. : [TÉLÉPHONE]
+Lot n° :      Ilot n° : 
+Numero etage :      Numero porte : 
+Tel. : [TELEPHONE]
 Email : [EMAIL]
 
-═══════════════════════════════════════════════════════════════════
+================================================================================
 V- INFORMATIONS SUR LES DIRIGEANTS
-═══════════════════════════════════════════════════════════════════
+================================================================================
 
 DIRIGEANT SOCIAL
-┌────────────────────────────┬─────────────────────────────────────┐
-│ Nom et Prénoms             │ ${gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : '[NOM]'} │
-├────────────────────────────┼─────────────────────────────────────┤
-│ Adresse                    │ ${gerant?.adresse || '[ADRESSE]'} │
-├────────────────────────────┼─────────────────────────────────────┤
-│ Nationalité                │ ${gerant?.nationalite || '[NATIONALITÉ]'} │
-├────────────────────────────┼─────────────────────────────────────┤
-│ Date et lieu de naissance  │ ${gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE]'} à ${gerant?.lieu_naissance || '[LIEU]'} │
-├────────────────────────────┼─────────────────────────────────────┤
-│ Régime matrimonial         │ [RÉGIME] │
-├────────────────────────────┼─────────────────────────────────────┤
-│ Fonction                   │ GERANT │
-└────────────────────────────┴─────────────────────────────────────┘
 
-═══════════════════════════════════════════════════════════════════
++----------------------------+--------------------------------------------------+
+| Nom et Prenoms             | ${gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : '[NOM]'} |
++----------------------------+--------------------------------------------------+
+| Adresse                    | ${gerant?.adresse || '[ADRESSE]'} |
++----------------------------+--------------------------------------------------+
+| Nationalite                | ${gerant?.nationalite || '[NATIONALITE]'} |
++----------------------------+--------------------------------------------------+
+| Date et lieu de naissance  | ${gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE]'} a ${gerant?.lieu_naissance || '[LIEU]'} |
++----------------------------+--------------------------------------------------+
+| Regime matrimonial         | [REGIME] |
++----------------------------+--------------------------------------------------+
+| Fonction                   | GERANT |
++----------------------------+--------------------------------------------------+
 
-Fait à Abidjan, le ${formatDate(new Date().toISOString())}
+================================================================================
+
+Fait a Abidjan, le ${formatDate(new Date().toISOString())}
 
 Signature
 
@@ -1092,8 +1094,8 @@ _____________________
 
 
 ───────────────────────────────────────────────────────────────────
-CEPICI : BP V152 ABIDJAN 01 – ABIDJAN PLATEAU 2ème étage immeuble DJEKANOU
-Tel : (225) 20 30 23 85 – Fax : (225) 20 21 40 71 – Site web : www.cepici.gouv.ci
+CEPICI : BP V152 ABIDJAN 01 - ABIDJAN PLATEAU 2eme etage immeuble DJEKANOU
+Tel : (225) 20 30 23 85 - Fax : (225) 20 21 40 71 - Site web : www.cepici.gouv.ci
 `;
 };
 

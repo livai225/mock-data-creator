@@ -246,76 +246,108 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
          .fillColor('#B4B4B4')
          .text(currentDate, doc.page.width - 200, 20, { align: 'right' });
 
-      // Contenu avec position Y manuelle (ancien style)
+      // Contenu avec gestion intelligente de l'espacement et des sauts de page
       doc.fillColor('#1E1E1E');
       doc.fontSize(10);
       doc.font('Times-Roman');
 
       const lines = content.split('\n');
-      let y = 100; // Position Y initiale après le header
+      const textWidth = doc.page.width - 100; // Largeur disponible pour le texte
+      const lineHeight = 12; // Hauteur de ligne de base
+      const minBottomMargin = 80; // Marge minimale en bas de page
+      const topMargin = 50; // Marge en haut de page (après header)
+      
+      // Position initiale après le header
+      doc.y = 100;
+
+      // Fonction helper pour vérifier et gérer les sauts de page
+      const checkPageBreak = (requiredHeight) => {
+        if (doc.y + requiredHeight > doc.page.height - minBottomMargin) {
+          doc.addPage();
+          doc.y = topMargin;
+          return true;
+        }
+        return false;
+      };
+
+      // Fonction helper pour calculer la hauteur d'un texte
+      const getTextHeight = (text, fontSize, width) => {
+        const oldY = doc.y;
+        doc.fontSize(fontSize);
+        const height = doc.heightOfString(text, { width });
+        doc.y = oldY; // Restaurer la position
+        return height;
+      };
 
       lines.forEach((line) => {
         const trimmedLine = line.trim();
         
         if (trimmedLine === '') {
-          y += 5;
+          // Ligne vide : espacement minimal
+          doc.moveDown(0.3);
         } else if (trimmedLine.match(/^[A-ZÉÈÊËÀÂÄÎÏÔÖÛÜÇ\s\-:]+$/) && trimmedLine.length > 3 && !trimmedLine.includes(':')) {
           // Titre (tout en majuscules)
-          // Vérifier si on a besoin d'une nouvelle page
-          if (y > doc.page.height - 100) {
-            doc.addPage();
-            y = 50;
-          }
+          const fontSize = 12;
+          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
+          checkPageBreak(textHeight + 8);
+          
           doc.font('Times-Bold')
-             .fontSize(12)
+             .fontSize(fontSize)
              .fillColor('#1E1E1E')
-             .text(trimmedLine, 50, y, { width: doc.page.width - 100 });
-          y += 15;
+             .text(trimmedLine, 50, doc.y, { width: textWidth });
+          
+          doc.y += textHeight + 8; // Espacement après le titre
         } else if (trimmedLine.toLowerCase().startsWith('article')) {
           // Article
-          // Vérifier si on a besoin d'une nouvelle page
-          if (y > doc.page.height - 100) {
-            doc.addPage();
-            y = 50;
-          }
+          const fontSize = 11;
+          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
+          checkPageBreak(textHeight + 6);
+          
           doc.font('Times-Bold')
-             .fontSize(11)
+             .fontSize(fontSize)
              .fillColor('#D4AF37')
-             .text(trimmedLine, 50, y, { width: doc.page.width - 100 });
-          y += 12;
+             .text(trimmedLine, 50, doc.y, { width: textWidth });
+          
+          doc.y += textHeight + 6; // Espacement après l'article
         } else if (trimmedLine.includes(':') && trimmedLine.indexOf(':') < 30) {
           // Label avec valeur
-          // Vérifier si on a besoin d'une nouvelle page
-          if (y > doc.page.height - 100) {
-            doc.addPage();
-            y = 50;
-          }
           const colonIndex = trimmedLine.indexOf(':');
           const label = trimmedLine.substring(0, colonIndex + 1);
           const value = trimmedLine.substring(colonIndex + 1);
           
+          const fontSize = 10;
+          const labelHeight = getTextHeight(label, fontSize, textWidth);
+          const valueHeight = value.trim() ? getTextHeight(value, fontSize, textWidth) : 0;
+          const totalHeight = Math.max(labelHeight, valueHeight) + 4;
+          
+          checkPageBreak(totalHeight);
+          
           doc.font('Times-Bold')
-             .fontSize(10)
+             .fontSize(fontSize)
              .fillColor('#1E1E1E')
-             .text(label, 50, y, { width: doc.page.width - 100, continued: true });
-          doc.font('Times-Roman')
-             .text(value);
-          y += 8;
+             .text(label, 50, doc.y, { width: textWidth, continued: true });
+          
+          if (value.trim()) {
+            doc.font('Times-Roman')
+               .text(value, { width: textWidth });
+          }
+          
+          doc.y += totalHeight;
         } else {
           // Paragraphe normal
-          // Vérifier si on a besoin d'une nouvelle page
-          if (y > doc.page.height - 100) {
-            doc.addPage();
-            y = 50;
-          }
+          const fontSize = 10;
+          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
+          checkPageBreak(textHeight + 4);
+          
           doc.font('Times-Roman')
-             .fontSize(10)
+             .fontSize(fontSize)
              .fillColor('#1E1E1E')
-             .text(trimmedLine, 50, y, { 
-               width: doc.page.width - 100,
+             .text(trimmedLine, 50, doc.y, { 
+               width: textWidth,
                align: 'left'
              });
-          y += 8;
+          
+          doc.y += textHeight + 4; // Espacement après le paragraphe
         }
       });
 
