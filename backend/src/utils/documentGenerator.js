@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import PDFDocument from 'pdfkit';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx';
+import { generatePdfWithPdfMake } from './pdfmakeGenerator.js';
 import {
   documentGenerators,
   generateStatutsSARL,
@@ -625,10 +626,19 @@ export const generateDocument = async (docName, company, associates = [], manage
   // Générer PDF
   if (options.formats.includes('pdf')) {
     try {
-      console.log(`   📄 Génération PDF...`);
+      console.log(`   📄 Génération PDF avec pdfmake (format professionnel)...`);
       const pdfFileName = `${baseFileName}_${timestamp}.pdf`;
       const pdfPath = path.join(GENERATED_DIR, pdfFileName);
-      await generatePdfDocument(content, docName, pdfPath);
+      
+      // Utiliser pdfmake pour un meilleur rendu professionnel
+      try {
+        await generatePdfWithPdfMake(content, docName, pdfPath);
+        console.log(`   ✅ PDF généré avec pdfmake`);
+      } catch (pdfmakeError) {
+        console.warn(`   ⚠️ Erreur pdfmake, fallback vers PDFKit:`, pdfmakeError.message);
+        // Fallback vers PDFKit si pdfmake échoue
+        await generatePdfDocument(content, docName, pdfPath);
+      }
       
       // Vérifier que le fichier existe
       if (!fs.existsSync(pdfPath)) {
