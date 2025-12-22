@@ -642,21 +642,39 @@ export const generateDocument = async (docName, company, associates = [], manage
       const pdfFileName = `${baseFileName}_${timestamp}.pdf`;
       const pdfPath = path.join(GENERATED_DIR, pdfFileName);
       
+      // Importer pdfmake dynamiquement si ce n'est pas déjà fait
+      if (!generatePdfWithPdfMake) {
+        try {
+          console.log(`   🔍 [generateDocument] Import dynamique de pdfmakeGenerator...`);
+          const pdfmakeModule = await import('./pdfmakeGenerator.js');
+          generatePdfWithPdfMake = pdfmakeModule.generatePdfWithPdfMake;
+          console.log(`   ✅ [generateDocument] Import de generatePdfWithPdfMake réussi`);
+        } catch (importError) {
+          console.error(`   ❌ [generateDocument] Erreur import pdfmakeGenerator:`, importError.message);
+          console.error(`   ❌ Stack:`, importError.stack);
+          generatePdfWithPdfMake = null;
+        }
+      }
+      
       // Utiliser pdfmake pour un meilleur rendu professionnel
-      console.log(`   🔧 Tentative avec pdfmake (format professionnel)...`);
-      console.log(`   🔍 [generateDocument] Import de generatePdfWithPdfMake réussi`);
-      try {
-        console.log(`   🔍 [generateDocument] Appel generatePdfWithPdfMake...`);
-        await generatePdfWithPdfMake(content, docName, pdfPath);
-        console.log(`   ✅ PDF généré avec pdfmake (format professionnel)`);
-        console.log(`   📊 Format: pdfmake - Structure déclarative avec styles professionnels`);
-      } catch (pdfmakeError) {
-        console.error(`   ❌ ERREUR pdfmake:`, pdfmakeError.message);
-        console.error(`   ❌ Stack:`, pdfmakeError.stack);
-        console.log(`   ⚠️  pdfmake a échoué, mais PDFKit a des bugs de récursion.`);
-        console.log(`   ⚠️  Veuillez vérifier l'installation de pdfmake: npm install pdfmake`);
-        // Ne pas faire de fallback vers PDFKit car il a des bugs de récursion
-        throw new Error(`Génération PDF échouée: pdfmake a échoué (${pdfmakeError.message}). Veuillez vérifier l'installation.`);
+      if (generatePdfWithPdfMake) {
+        console.log(`   🔧 Tentative avec pdfmake (format professionnel)...`);
+        try {
+          console.log(`   🔍 [generateDocument] Appel generatePdfWithPdfMake...`);
+          await generatePdfWithPdfMake(content, docName, pdfPath);
+          console.log(`   ✅ PDF généré avec pdfmake (format professionnel)`);
+          console.log(`   📊 Format: pdfmake - Structure déclarative avec styles professionnels`);
+        } catch (pdfmakeError) {
+          console.error(`   ❌ ERREUR pdfmake:`, pdfmakeError.message);
+          console.error(`   ❌ Stack:`, pdfmakeError.stack);
+          console.log(`   ⚠️  pdfmake a échoué, mais PDFKit a des bugs de récursion.`);
+          console.log(`   ⚠️  Veuillez vérifier l'installation de pdfmake: npm install pdfmake`);
+          // Ne pas faire de fallback vers PDFKit car il a des bugs de récursion
+          throw new Error(`Génération PDF échouée: pdfmake a échoué (${pdfmakeError.message}). Veuillez vérifier l'installation.`);
+        }
+      } else {
+        console.error(`   ❌ generatePdfWithPdfMake n'est pas disponible`);
+        throw new Error(`Génération PDF échouée: pdfmakeGenerator n'a pas pu être importé.`);
       }
       
       // Vérifier que le fichier existe
