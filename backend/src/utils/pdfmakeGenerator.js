@@ -1,32 +1,41 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import PdfPrinter from 'pdfmake';
-import {
-  documentGenerators,
-  generateStatutsSARL,
-  generateContratBail,
-  generateDSV,
-  generateListeGerants,
-  generateDeclarationHonneur,
-  generateFormulaireCEPICI
-} from './documentTemplates.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Configuration des polices pour pdfmake
-// Utiliser les polices système standard pour éviter les problèmes de dépendances
-const fonts = {
-  Roboto: {
-    normal: 'Helvetica',
-    bold: 'Helvetica-Bold',
-    italics: 'Helvetica-Oblique',
-    bolditalics: 'Helvetica-BoldOblique'
-  }
-};
+// Import dynamique de pdfmake pour éviter les problèmes d'import ES modules
+let PdfPrinter;
+let printer;
 
-const printer = new PdfPrinter(fonts);
+// Initialiser pdfmake de manière asynchrone
+const initPdfMake = async () => {
+  if (!PdfPrinter) {
+    try {
+      const pdfmakeModule = await import('pdfmake');
+      PdfPrinter = pdfmakeModule.default || pdfmakeModule.PdfPrinter || pdfmakeModule;
+      
+      // Configuration des polices pour pdfmake
+      // Utiliser les polices système standard pour éviter les problèmes de dépendances
+      const fonts = {
+        Roboto: {
+          normal: 'Helvetica',
+          bold: 'Helvetica-Bold',
+          italics: 'Helvetica-Oblique',
+          bolditalics: 'Helvetica-BoldOblique'
+        }
+      };
+      
+      printer = new PdfPrinter(fonts);
+      return true;
+    } catch (error) {
+      console.error('❌ Erreur initialisation pdfmake:', error);
+      throw error;
+    }
+  }
+  return true;
+};
 
 /**
  * Convertir le contenu texte en structure pdfmake
@@ -297,7 +306,7 @@ const parseContentToPdfMake = (content, templateName) => {
       continue;
     }
 
-    // Paragraphe normal
+    // Paragraphe normal - TOUJOURS inclure toutes les lignes
     docDefinition.content.push({
       text: line,
       style: 'paragraph'
@@ -305,6 +314,8 @@ const parseContentToPdfMake = (content, templateName) => {
     i++;
   }
 
+  console.log(`   📝 pdfmake: ${docDefinition.content.length} éléments de contenu générés`);
+  
   return docDefinition;
 };
 
@@ -312,8 +323,15 @@ const parseContentToPdfMake = (content, templateName) => {
  * Générer un PDF avec pdfmake
  */
 export const generatePdfWithPdfMake = async (content, templateName, outputPath) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
+      // Initialiser pdfmake si ce n'est pas déjà fait
+      await initPdfMake();
+      
+      if (!printer) {
+        throw new Error('pdfmake printer non initialisé après initPdfMake');
+      }
+      
       const docDefinition = parseContentToPdfMake(content, templateName);
       
       const pdfDoc = printer.createPdfKitDocument(docDefinition);
@@ -327,9 +345,17 @@ export const generatePdfWithPdfMake = async (content, templateName, outputPath) 
       });
       
       stream.on('error', (error) => {
+        console.error('❌ Erreur stream pdfmake:', error);
+        reject(error);
+      });
+      
+      pdfDoc.on('error', (error) => {
+        console.error('❌ Erreur PDFKit document pdfmake:', error);
         reject(error);
       });
     } catch (error) {
+      console.error('❌ Erreur génération pdfmake:', error);
+      console.error('   Stack:', error.stack);
       reject(error);
     }
   });

@@ -626,18 +626,23 @@ export const generateDocument = async (docName, company, associates = [], manage
   // Générer PDF
   if (options.formats.includes('pdf')) {
     try {
-      console.log(`   📄 Génération PDF avec pdfmake (format professionnel)...`);
+      console.log(`   📄 Génération PDF...`);
       const pdfFileName = `${baseFileName}_${timestamp}.pdf`;
       const pdfPath = path.join(GENERATED_DIR, pdfFileName);
       
       // Utiliser pdfmake pour un meilleur rendu professionnel
+      console.log(`   🔧 Tentative avec pdfmake (format professionnel)...`);
       try {
         await generatePdfWithPdfMake(content, docName, pdfPath);
-        console.log(`   ✅ PDF généré avec pdfmake`);
+        console.log(`   ✅ PDF généré avec pdfmake (format professionnel)`);
+        console.log(`   📊 Format: pdfmake - Structure déclarative avec styles professionnels`);
       } catch (pdfmakeError) {
-        console.warn(`   ⚠️ Erreur pdfmake, fallback vers PDFKit:`, pdfmakeError.message);
-        // Fallback vers PDFKit si pdfmake échoue
-        await generatePdfDocument(content, docName, pdfPath);
+        console.error(`   ❌ ERREUR pdfmake:`, pdfmakeError.message);
+        console.error(`   ❌ Stack:`, pdfmakeError.stack);
+        console.log(`   ⚠️  pdfmake a échoué, mais PDFKit a des bugs de récursion.`);
+        console.log(`   ⚠️  Veuillez vérifier l'installation de pdfmake: npm install pdfmake`);
+        // Ne pas faire de fallback vers PDFKit car il a des bugs de récursion
+        throw new Error(`Génération PDF échouée: pdfmake a échoué (${pdfmakeError.message}). Veuillez vérifier l'installation.`);
       }
       
       // Vérifier que le fichier existe
