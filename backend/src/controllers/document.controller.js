@@ -254,6 +254,17 @@ export const generateDocuments = async (req, res, next) => {
     console.log(`\n📦 Résumé: ${created.length} documents créés en DB pour entreprise ${companyId || 'sans entreprise'}`);
     console.log(`   IDs créés:`, created.map(c => `${c.docName} (${c.format}) ID=${c.id}`));
 
+    // Mettre à jour le statut de l'entreprise à "completed" si des documents ont été générés
+    if (companyId && created.length > 0) {
+      try {
+        await Company.updateStatus(companyId, 'completed');
+        console.log(`✅ Statut de l'entreprise ${companyId} mis à jour: completed`);
+      } catch (statusError) {
+        console.error(`⚠️ Erreur mise à jour statut entreprise:`, statusError);
+        // On continue même si la mise à jour du statut échoue
+      }
+    }
+
     res.status(201).json({
       success: true,
       message: 'Documents générés et enregistrés',

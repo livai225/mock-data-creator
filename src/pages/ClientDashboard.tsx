@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { CheckCircle2, CheckCircle, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, deleteCompanyDocumentsApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -420,10 +420,19 @@ export default function ClientDashboard() {
                         {company.status === 'draft' && (
                           <div 
                             className="flex items-center gap-2 text-amber-600 mb-2 cursor-help"
-                            title="Votre dossier est en cours de création. Il sera validé après vérification du paiement et des documents. Vous pouvez déjà télécharger vos documents générés."
+                            title="Votre dossier est en cours de création. Générez vos documents pour compléter le dossier."
                           >
                             <AlertCircle className="h-4 w-4" />
                             <span>Dossier incomplet</span>
+                          </div>
+                        )}
+                        {company.status === 'completed' && (
+                          <div 
+                            className="flex items-center gap-2 text-green-600 mb-2"
+                            title="Tous les documents ont été générés. Vous pouvez les télécharger."
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            <span>Dossier complet</span>
                           </div>
                         )}
                         
