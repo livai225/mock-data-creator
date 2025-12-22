@@ -305,12 +305,12 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
         
         if (trimmedLine === '') {
           // Ligne vide : espacement minimal
-          doc.moveDown(0.3);
+          doc.y += 5;
         } else if (trimmedLine.match(/^STATUTS$/i) && isStatuts) {
           // Titre principal "STATUTS" centré en grand (format image 4)
           const fontSize = 24;
-          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
-          checkPageBreak(textHeight + 10);
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 10;
+          checkPageBreak(estimatedHeight);
           
           doc.font('Times-Bold')
              .fontSize(fontSize)
@@ -320,12 +320,13 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
                align: 'center'
              });
           
-          doc.y += textHeight + 10;
+          // PDFKit met à jour doc.y automatiquement, on ajoute juste l'espacement
+          doc.y += 10;
         } else if (trimmedLine.match(/^SOCIÉTÉ À RESPONSABILITÉ LIMITÉE/i) && isStatuts) {
           // Sous-titre centré (format image 4)
           const fontSize = 14;
-          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
-          checkPageBreak(textHeight + 15);
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 15;
+          checkPageBreak(estimatedHeight);
           
           doc.font('Times-Bold')
              .fontSize(fontSize)
@@ -335,7 +336,8 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
                align: 'center'
              });
           
-          doc.y += textHeight + 15;
+          // PDFKit met à jour doc.y automatiquement, on ajoute juste l'espacement
+          doc.y += 15;
         } else if (companyName && trimmedLine.trim().toUpperCase() === companyName.toUpperCase() && isStatuts) {
           // Nom de la société avec fond jaune (format image 4)
           const fontSize = 18;
@@ -360,12 +362,13 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
                width: textWidthMeasured
              });
           
+          // Mettre à jour Y manuellement car on utilise une position X explicite
           doc.y += textHeight + 10;
         } else if (trimmedLine.match(/^Sigle/i) && isStatuts) {
           // Sigle centré (format image 4)
           const fontSize = 10;
-          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
-          checkPageBreak(textHeight + 15);
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 23;
+          checkPageBreak(estimatedHeight);
           
           doc.font('Times-Roman')
              .fontSize(fontSize)
@@ -375,7 +378,8 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
                align: 'center'
              });
           
-          doc.y += textHeight + 8;
+          // PDFKit met à jour doc.y automatiquement, on ajoute juste l'espacement
+          doc.y += 8;
           
           // Ligne de séparation après le sigle (format image 4)
           const lineY = doc.y + 5;
@@ -389,27 +393,29 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
         } else if (trimmedLine.match(/^[A-ZÉÈÊËÀÂÄÎÏÔÖÛÜÇ\s\-:]+$/) && trimmedLine.length > 3 && !trimmedLine.includes(':')) {
           // Titre (tout en majuscules)
           const fontSize = 12;
-          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
-          checkPageBreak(textHeight + 8);
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 8;
+          checkPageBreak(estimatedHeight);
           
           doc.font('Times-Bold')
              .fontSize(fontSize)
              .fillColor('#1E1E1E')
              .text(trimmedLine, 50, doc.y, { width: textWidth });
           
-          doc.y += textHeight + 8; // Espacement après le titre
+          // PDFKit met à jour doc.y automatiquement quand on utilise width, on ajoute juste l'espacement
+          doc.y += 8;
         } else if (trimmedLine.toLowerCase().startsWith('article')) {
           // Article
           const fontSize = 11;
-          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
-          checkPageBreak(textHeight + 6);
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 6;
+          checkPageBreak(estimatedHeight);
           
           doc.font('Times-Bold')
              .fontSize(fontSize)
              .fillColor('#D4AF37')
              .text(trimmedLine, 50, doc.y, { width: textWidth });
           
-          doc.y += textHeight + 6; // Espacement après l'article
+          // PDFKit met à jour doc.y automatiquement quand on utilise width, on ajoute juste l'espacement
+          doc.y += 6;
         } else if (trimmedLine.includes(':') && trimmedLine.indexOf(':') < 30) {
           // Label avec valeur
           const colonIndex = trimmedLine.indexOf(':');
@@ -417,11 +423,10 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
           const value = trimmedLine.substring(colonIndex + 1);
           
           const fontSize = 10;
-          const labelHeight = getTextHeight(label, fontSize, textWidth);
-          const valueHeight = value.trim() ? getTextHeight(value, fontSize, textWidth) : 0;
-          const totalHeight = Math.max(labelHeight, valueHeight) + 4;
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 4;
+          checkPageBreak(estimatedHeight);
           
-          checkPageBreak(totalHeight);
+          const startY = doc.y;
           
           doc.font('Times-Bold')
              .fontSize(fontSize)
@@ -433,12 +438,15 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
                .text(value, { width: textWidth });
           }
           
-          doc.y += totalHeight;
+          // Utiliser la position Y réelle après le texte + espacement
+          doc.y += 4;
         } else {
           // Paragraphe normal
           const fontSize = 10;
-          const textHeight = getTextHeight(trimmedLine, fontSize, textWidth);
-          checkPageBreak(textHeight + 4);
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 4;
+          checkPageBreak(estimatedHeight);
+          
+          const startY = doc.y;
           
           doc.font('Times-Roman')
              .fontSize(fontSize)
@@ -448,7 +456,9 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
                align: 'left'
              });
           
-          doc.y += textHeight + 4; // Espacement après le paragraphe
+          // Utiliser la position Y réelle après le texte + espacement minimal
+          // PDFKit met déjà à jour doc.y automatiquement, on ajoute juste un espacement
+          doc.y += 4;
         }
       });
 
