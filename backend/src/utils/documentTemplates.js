@@ -587,10 +587,9 @@ export const generateContratBail = (company, bailleurData = {}) => {
   const gerant = company.managers && company.managers.length > 0 ? company.managers[0] : null;
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   
-  // Extraire lot et îlot de l'adresse si possible
-  const addressParts = (company.address || '').match(/LOT\s*(\d+)|ILOT\s*(\d+)/gi);
-  const lotNumero = addressParts?.find(p => p.toUpperCase().includes('LOT'))?.replace(/LOT\s*/i, '') || '';
-  const ilotNumero = addressParts?.find(p => p.toUpperCase().includes('ILOT'))?.replace(/ILOT\s*/i, '') || '';
+  // Utiliser lot et îlot des données si fournis, sinon extraire de l'adresse
+  const lotNumero = bailleurData.lot || company.lot || '';
+  const ilotNumero = bailleurData.ilot || company.ilot || '';
   
   const dureeBail = bailleurData.duree_bail || 1;
   const dureeBailWords = dureeBail === 1 ? 'un (01)' : `${numberToWords(dureeBail)} (${String(dureeBail).padStart(2, '0')})`;
@@ -891,7 +890,7 @@ LISTE DE DIRIGEANT
 
 Est nommé gérant de la société pour une durée de ${dureeMandatWords} ans (${dureeMandat} ans),
 
-M. ${gerant.nom || ''} ${gerant.prenoms || ''}, ${gerant.profession || '[PROFESSION]'}, résident à ${gerant.adresse || '[ADRESSE]'} de nationalité ${gerant.nationalite || '[NATIONALITÉ]'} né(e) le ${formatDate(gerant.date_naissance)} à ${gerant.lieu_naissance || '[LIEU NAISSANCE]'} et titulaire de la ${typeIdentite} ${numeroIdentite} délivré(e) le ${dateDelivranceId} et valable ${dateValiditeId} par ${lieuDelivranceId}.
+M. ${gerant.nom || ''} ${gerant.prenoms || ''}, ${gerant.profession || '[PROFESSION]'}, résident à ${gerant.adresse || '[ADRESSE]'} de nationalité ${gerant.nationalite || '[NATIONALITÉ]'} né(e) le ${formatDate(gerant.date_naissance || gerant.dateNaissance)} à ${gerant.lieu_naissance || gerant.lieuNaissance || '[LIEU NAISSANCE]'} et titulaire de la ${typeIdentite} ${numeroIdentite} délivré(e) le ${dateDelivranceId} et valable ${dateValiditeId} par ${lieuDelivranceId}.
 `;
 };
 
@@ -1024,13 +1023,13 @@ III- LOCALISATION DU SIEGE SOCIAL
 __________________________________________________________________________
 
 Ville : ${company.city || 'ABIDJAN'}
-Commune : [COMMUNE]
-Quartier : [QUARTIER]
-Rue : 
-Lot n° :      Ilot n° : 
+Commune : ${company.commune || '[COMMUNE]'}
+Quartier : ${company.quartier || '[QUARTIER]'}
+Rue : ${company.address || ''}
+Lot n° : ${company.lot || ''}      Ilot n° : ${company.ilot || ''}
 Numero etage :      Numero porte : 
-Tel. : [TELEPHONE]
-Email : [EMAIL]
+Tel. : ${company.telephone || '[TELEPHONE]'}
+Email : ${company.email || '[EMAIL]'}
 
 __________________________________________________________________________
 V- INFORMATIONS SUR LES DIRIGEANTS

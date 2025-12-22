@@ -33,6 +33,9 @@ export interface SARLPluriFormData {
   // Siège social
   adresseSiege: string;
   commune: string;
+  quartier: string;
+  lot: string;
+  ilot: string;
   ville: string;
   boitePostale: string;
   telephone: string;
@@ -61,10 +64,12 @@ export interface GerantInfo {
   dateNaissance: string;
   lieuNaissance: string;
   nationalite: string;
+  profession: string;
   adresse: string;
   typeIdentite: 'CNI' | 'Passeport';
   numeroIdentite: string;
   dateDelivranceId: string;
+  dateValiditeId: string;
   lieuDelivranceId: string;
   pereNom: string;
   mereNom: string;
@@ -97,10 +102,12 @@ export const defaultGerantInfo: GerantInfo = {
   dateNaissance: '',
   lieuNaissance: '',
   nationalite: 'Ivoirienne',
+  profession: '',
   adresse: '',
   typeIdentite: 'CNI',
   numeroIdentite: '',
   dateDelivranceId: '',
+  dateValiditeId: '',
   lieuDelivranceId: '',
   pereNom: '',
   mereNom: '',
@@ -121,6 +128,9 @@ export const defaultSARLPluriFormData: SARLPluriFormData = {
   
   adresseSiege: '',
   commune: '',
+  quartier: '',
+  lot: '',
+  ilot: '',
   ville: 'Abidjan',
   boitePostale: '',
   telephone: '',

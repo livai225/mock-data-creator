@@ -123,13 +123,40 @@ export const generateDocuments = async (req, res, next) => {
 
     console.log(`🚀 Début génération de ${docs.length} documents...`);
     
+    // Construire les données additionnelles (bailleur, etc.)
+    const additionalData = req.body.additionalData || {};
+    
+    // Si bailleur est fourni dans le body, le convertir au format attendu par les templates
+    if (req.body.bailleur) {
+      const b = req.body.bailleur;
+      additionalData.bailleur_nom = b.nom && b.prenom 
+        ? `${b.nom} ${b.prenom}`.trim() 
+        : b.nom || '[NOM DU BAILLEUR]';
+      additionalData.bailleur_telephone = b.telephone || '[TELEPHONE]';
+      additionalData.loyer_mensuel = b.loyerMensuel || 0;
+      additionalData.caution_mois = b.cautionMois || 2;
+      additionalData.avance_mois = b.avanceMois || 2;
+      additionalData.duree_bail = b.dureeBailAnnees || 1;
+      additionalData.bailleur_adresse = b.adresse || '[ADRESSE BAILLEUR]';
+    }
+    
+    // Ajouter les détails de l'adresse si fournis
+    if (req.body.commune) additionalData.commune = req.body.commune;
+    if (req.body.quartier) additionalData.quartier = req.body.quartier;
+    if (req.body.lot) additionalData.lot = req.body.lot;
+    if (req.body.ilot) additionalData.ilot = req.body.ilot;
+    if (req.body.telephone) additionalData.telephone = req.body.telephone;
+    if (req.body.email) additionalData.email = req.body.email;
+    
+    console.log(`📋 Données additionnelles:`, JSON.stringify(additionalData, null, 2));
+    
     // Générer tous les documents
     const results = await generateMultipleDocuments(
       docs,
       company,
       associates,
       managers,
-      req.body.additionalData || {},
+      additionalData,
       { formats }
     );
 

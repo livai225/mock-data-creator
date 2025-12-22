@@ -130,16 +130,45 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
     const payload = {
       companyType: 'SARL_PLURI',
       companyName: formData.denominationSociale,
+      sigle: formData.sigle,
       activity: formData.objetSocial,
       capital: formData.capitalSocial,
+      capitalEnLettres: formData.capitalEnLettres,
+      duree_societe: formData.dureeAnnees,
       address: formData.adresseSiege,
+      commune: formData.commune,
+      quartier: formData.quartier,
+      lot: formData.lot,
+      ilot: formData.ilot,
       city: formData.ville,
+      telephone: formData.telephone,
+      email: formData.email,
+      boitePostale: formData.boitePostale,
       gerant: gerantName,
       paymentAmount: price,
       chiffreAffairesPrev: formData.chiffreAffairesPrev,
+      // Informations du bailleur
+      bailleur: {
+        nom: formData.bailleurNom,
+        prenom: formData.bailleurPrenom,
+        adresse: formData.bailleurAdresse,
+        telephone: formData.bailleurContact,
+        loyerMensuel: formData.loyerMensuel,
+        cautionMois: formData.cautionMois,
+        dureeBailAnnees: formData.dureeBailAnnees
+      },
       associates: formData.associes.map(a => ({
         name: `${a.nom} ${a.prenoms}`,
-        parts: a.nombreParts
+        parts: a.nombreParts,
+        profession: a.profession,
+        nationalite: a.nationalite,
+        dateNaissance: a.dateNaissance,
+        lieuNaissance: a.lieuNaissance,
+        adresse: a.adresseDomicile,
+        typeIdentite: a.typeIdentite,
+        numeroIdentite: a.numeroIdentite,
+        dateDelivranceId: a.dateDelivranceId,
+        lieuDelivranceId: a.lieuDelivranceId
       })),
       managers: formData.gerants.map((g, idx) => ({
         nom: g.nom,
@@ -147,14 +176,17 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         dateNaissance: g.dateNaissance,
         lieuNaissance: g.lieuNaissance,
         nationalite: g.nationalite,
+        profession: g.profession,
         adresse: g.adresse,
         typeIdentite: g.typeIdentite,
         numeroIdentite: g.numeroIdentite,
         dateDelivranceId: g.dateDelivranceId,
+        dateValiditeId: g.dateValiditeId,
         lieuDelivranceId: g.lieuDelivranceId,
         pereNom: g.pereNom,
         mereNom: g.mereNom,
         dureeMandat: g.dureeMandat === 'determinee' ? `${g.dureeMandatAnnees} ans` : 'Durée indéterminée',
+        dureeMandatAnnees: g.dureeMandatAnnees,
         isMain: idx === 0
       })),
       docs: docs,
@@ -355,6 +387,33 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     placeholder="Ex: Cocody"
                     value={formData.commune}
                     onChange={(e) => updateField('commune', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="quartier">Quartier *</Label>
+                  <Input
+                    id="quartier"
+                    placeholder="Ex: Angré"
+                    value={formData.quartier}
+                    onChange={(e) => updateField('quartier', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lot">Lot n°</Label>
+                  <Input
+                    id="lot"
+                    placeholder="Ex: 123"
+                    value={formData.lot}
+                    onChange={(e) => updateField('lot', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ilot">Îlot n°</Label>
+                  <Input
+                    id="ilot"
+                    placeholder="Ex: 45"
+                    value={formData.ilot}
+                    onChange={(e) => updateField('ilot', e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -739,6 +798,15 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor={`gerantProfession-${index}`}>Profession *</Label>
+                    <Input
+                      id={`gerantProfession-${index}`}
+                      placeholder="Ex: Commerçant"
+                      value={gerant.profession}
+                      onChange={(e) => updateGerant(index, 'profession', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor={`gerantAdresse-${index}`}>Adresse domicile *</Label>
                     <Input
                       id={`gerantAdresse-${index}`}
@@ -776,6 +844,15 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       type="date"
                       value={gerant.dateDelivranceId}
                       onChange={(e) => updateGerant(index, 'dateDelivranceId', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`gerantDateValiditeId-${index}`}>Date de validité *</Label>
+                    <Input
+                      id={`gerantDateValiditeId-${index}`}
+                      type="date"
+                      value={gerant.dateValiditeId}
+                      onChange={(e) => updateGerant(index, 'dateValiditeId', e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
