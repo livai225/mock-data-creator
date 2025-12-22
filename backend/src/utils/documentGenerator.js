@@ -302,12 +302,75 @@ const generatePdfDocument = async (content, templateName, outputPath) => {
         return height;
       };
 
+      // Détecter si c'est le formulaire CEPICI pour un traitement spécial
+      const isCEPICI = templateName.toLowerCase().includes('cepici');
+      
       lines.forEach((line) => {
         const trimmedLine = line.trim();
         
         if (trimmedLine === '') {
           // Ligne vide : espacement professionnel
           doc.y += 6;
+        } else if (isCEPICI && trimmedLine.match(/^RÉPUBLIQUE DE CÔTE D'IVOIRE/i)) {
+          // En-tête CEPICI - première ligne
+          const fontSize = 10;
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 8;
+          checkPageBreak(estimatedHeight);
+          
+          doc.font('Times-Bold')
+             .fontSize(fontSize)
+             .fillColor('#1E1E1E')
+             .text(trimmedLine, 50, doc.y, { width: textWidth, align: 'center' });
+          
+          doc.y += 8;
+        } else if (isCEPICI && trimmedLine.match(/^CEPICI$/i)) {
+          // CEPICI centré en gras
+          const fontSize = 14;
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 6;
+          checkPageBreak(estimatedHeight);
+          
+          doc.font('Times-Bold')
+             .fontSize(fontSize)
+             .fillColor('#1E1E1E')
+             .text(trimmedLine, 50, doc.y, { width: textWidth, align: 'center' });
+          
+          doc.y += 6;
+        } else if (isCEPICI && trimmedLine.match(/^GUICHET UNIQUE/i)) {
+          // GUICHET UNIQUE centré
+          const fontSize = 10;
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 10;
+          checkPageBreak(estimatedHeight);
+          
+          doc.font('Times-Bold')
+             .fontSize(fontSize)
+             .fillColor('#1E1E1E')
+             .text(trimmedLine, 50, doc.y, { width: textWidth, align: 'center' });
+          
+          doc.y += 10;
+        } else if (isCEPICI && trimmedLine.match(/^FORMULAIRE UNIQUE/i)) {
+          // Titre principal CEPICI
+          const fontSize = 12;
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 12;
+          checkPageBreak(estimatedHeight);
+          
+          doc.font('Times-Bold')
+             .fontSize(fontSize)
+             .fillColor('#1E1E1E')
+             .text(trimmedLine, 50, doc.y, { width: textWidth, align: 'center' });
+          
+          doc.y += 12;
+        } else if (isCEPICI && trimmedLine.match(/^SECTION [A-Z]:/i)) {
+          // Section CEPICI en gras
+          const fontSize = 11;
+          const estimatedHeight = getTextHeight(trimmedLine, fontSize, textWidth) + 8;
+          checkPageBreak(estimatedHeight);
+          
+          doc.font('Times-Bold')
+             .fontSize(fontSize)
+             .fillColor('#1E1E1E')
+             .text(trimmedLine, 50, doc.y, { width: textWidth });
+          
+          doc.y += 8;
         } else if (trimmedLine.match(/^STATUTS$/i) && isStatuts) {
           // Titre principal "STATUTS" centré en grand (format image 4)
           const fontSize = 24;
