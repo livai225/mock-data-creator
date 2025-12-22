@@ -3,19 +3,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import PDFDocument from 'pdfkit';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx';
-
-// Import pdfmake avec gestion d'erreur
-let generatePdfWithPdfMake;
-try {
-  console.log('🔍 [documentGenerator] Tentative d\'import de pdfmakeGenerator...');
-  const pdfmakeModule = await import('./pdfmakeGenerator.js');
-  generatePdfWithPdfMake = pdfmakeModule.generatePdfWithPdfMake;
-  console.log('✅ [documentGenerator] Import de pdfmakeGenerator réussi');
-} catch (importError) {
-  console.error('❌ [documentGenerator] Erreur import pdfmakeGenerator:', importError);
-  console.error('   Stack:', importError.stack);
-  generatePdfWithPdfMake = null;
-}
+// Import dynamique de pdfmakeGenerator (sera chargé dans la fonction si nécessaire)
+let generatePdfWithPdfMake = null;
 import {
   documentGenerators,
   generateStatutsSARL,
