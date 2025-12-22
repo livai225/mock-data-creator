@@ -632,7 +632,9 @@ export const generateDocument = async (docName, company, associates = [], manage
       
       // Utiliser pdfmake pour un meilleur rendu professionnel
       console.log(`   🔧 Tentative avec pdfmake (format professionnel)...`);
+      console.log(`   🔍 [generateDocument] Import de generatePdfWithPdfMake réussi`);
       try {
+        console.log(`   🔍 [generateDocument] Appel generatePdfWithPdfMake...`);
         await generatePdfWithPdfMake(content, docName, pdfPath);
         console.log(`   ✅ PDF généré avec pdfmake (format professionnel)`);
         console.log(`   📊 Format: pdfmake - Structure déclarative avec styles professionnels`);

@@ -11,10 +11,19 @@ let printer;
 
 // Initialiser pdfmake de manière asynchrone
 const initPdfMake = async () => {
+  console.log('   🔍 [initPdfMake] Début initialisation pdfmake...');
   if (!PdfPrinter) {
     try {
+      console.log('   🔍 [initPdfMake] Import dynamique de pdfmake...');
       const pdfmakeModule = await import('pdfmake');
+      console.log('   🔍 [initPdfMake] Module importé:', Object.keys(pdfmakeModule));
+      
       PdfPrinter = pdfmakeModule.default || pdfmakeModule.PdfPrinter || pdfmakeModule;
+      console.log('   🔍 [initPdfMake] PdfPrinter:', PdfPrinter ? 'Trouvé' : 'Non trouvé');
+      
+      if (!PdfPrinter) {
+        throw new Error('PdfPrinter non trouvé dans le module pdfmake');
+      }
       
       // Configuration des polices pour pdfmake
       // Utiliser les polices système standard pour éviter les problèmes de dépendances
@@ -27,12 +36,17 @@ const initPdfMake = async () => {
         }
       };
       
+      console.log('   🔍 [initPdfMake] Création de l\'instance printer...');
       printer = new PdfPrinter(fonts);
+      console.log('   ✅ [initPdfMake] Printer créé avec succès');
       return true;
     } catch (error) {
-      console.error('❌ Erreur initialisation pdfmake:', error);
+      console.error('❌ [initPdfMake] Erreur initialisation pdfmake:', error);
+      console.error('   Stack:', error.stack);
       throw error;
     }
+  } else {
+    console.log('   ✅ [initPdfMake] PdfPrinter déjà initialisé');
   }
   return true;
 };
@@ -323,38 +337,54 @@ const parseContentToPdfMake = (content, templateName) => {
  * Générer un PDF avec pdfmake
  */
 export const generatePdfWithPdfMake = async (content, templateName, outputPath) => {
+  console.log(`   🔍 [generatePdfWithPdfMake] Début génération PDF avec pdfmake`);
+  console.log(`   🔍 [generatePdfWithPdfMake] Template: ${templateName}`);
+  console.log(`   🔍 [generatePdfWithPdfMake] Output: ${outputPath}`);
+  
   return new Promise(async (resolve, reject) => {
     try {
       // Initialiser pdfmake si ce n'est pas déjà fait
+      console.log('   🔍 [generatePdfWithPdfMake] Appel initPdfMake...');
       await initPdfMake();
       
       if (!printer) {
         throw new Error('pdfmake printer non initialisé après initPdfMake');
       }
       
+      console.log('   🔍 [generatePdfWithPdfMake] Parsing du contenu...');
       const docDefinition = parseContentToPdfMake(content, templateName);
+      console.log(`   🔍 [generatePdfWithPdfMake] DocDefinition créé avec ${docDefinition.content.length} éléments`);
       
+      console.log('   🔍 [generatePdfWithPdfMake] Création du document PDFKit...');
       const pdfDoc = printer.createPdfKitDocument(docDefinition);
+      console.log('   🔍 [generatePdfWithPdfMake] Document PDFKit créé');
+      
       const stream = fs.createWriteStream(outputPath);
+      console.log('   🔍 [generatePdfWithPdfMake] Stream créé');
       
       pdfDoc.pipe(stream);
       pdfDoc.end();
+      console.log('   🔍 [generatePdfWithPdfMake] Document terminé, attente du stream...');
       
       stream.on('finish', () => {
+        console.log('   ✅ [generatePdfWithPdfMake] Stream terminé avec succès');
         resolve();
       });
       
       stream.on('error', (error) => {
-        console.error('❌ Erreur stream pdfmake:', error);
+        console.error('❌ [generatePdfWithPdfMake] Erreur stream:', error);
+        console.error('   Stack:', error.stack);
         reject(error);
       });
       
       pdfDoc.on('error', (error) => {
-        console.error('❌ Erreur PDFKit document pdfmake:', error);
+        console.error('❌ [generatePdfWithPdfMake] Erreur PDFKit document:', error);
+        console.error('   Stack:', error.stack);
         reject(error);
       });
     } catch (error) {
-      console.error('❌ Erreur génération pdfmake:', error);
+      console.error('❌ [generatePdfWithPdfMake] Erreur génération:', error);
+      console.error('   Message:', error.message);
       console.error('   Stack:', error.stack);
       reject(error);
     }
