@@ -254,6 +254,58 @@ export const getMyDocuments = async (req, res, next) => {
   }
 };
 
+// @desc    Supprimer les documents d'une entreprise
+// @route   DELETE /api/documents/company/:companyId
+// @access  Private
+export const deleteCompanyDocuments = async (req, res, next) => {
+  try {
+    const { companyId } = req.params;
+
+    // Vérifier que l'entreprise existe et appartient à l'utilisateur
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return next(new AppError('Entreprise non trouvée', 404));
+    }
+
+    if (company.user_id !== req.user.id && req.user.role !== 'admin') {
+      return next(new AppError('Accès non autorisé', 403));
+    }
+
+    // Récupérer tous les documents de l'entreprise
+    const documents = await Document.findByCompanyId(companyId);
+    console.log(`🗑️  Suppression de ${documents.length} documents pour l'entreprise ${companyId}`);
+
+    // Supprimer les fichiers physiques
+    let deletedFiles = 0;
+    for (const doc of documents) {
+      if (doc.file_path && fs.existsSync(doc.file_path)) {
+        try {
+          fs.unlinkSync(doc.file_path);
+          deletedFiles++;
+          console.log(`   ✅ Fichier supprimé: ${doc.file_path}`);
+        } catch (fileError) {
+          console.error(`   ⚠️  Erreur suppression fichier ${doc.file_path}:`, fileError);
+        }
+      }
+    }
+
+    // Supprimer les documents de la base de données
+    const deleted = await Document.deleteByCompanyId(companyId);
+
+    res.status(200).json({
+      success: true,
+      message: `${deleted ? documents.length : 0} documents supprimés avec succès`,
+      data: {
+        deletedCount: deleted ? documents.length : 0,
+        deletedFiles
+      }
+    });
+  } catch (error) {
+    console.error('❌ Erreur suppression documents:', error);
+    next(error);
+  }
+};
+
 // @desc    Télécharger un document
 // @route   GET /api/documents/:id/download
 // @access  Private
