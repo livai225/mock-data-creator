@@ -1,10 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import PDFDocument from 'pdfkit';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx';
-// Import dynamique de pdfmakeGenerator (sera chargé dans la fonction si nécessaire)
-let generatePdfWithPdfMake = null;
 import {
   documentGenerators,
   generateStatutsSARL,
@@ -14,6 +11,9 @@ import {
   generateDeclarationHonneur,
   generateFormulaireCEPICI
 } from './documentTemplates.js';
+
+// Import dynamique de puppeteerGenerator (sera chargé dans la fonction si nécessaire)
+let puppeteerGenerator = null;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -624,46 +624,41 @@ export const generateDocument = async (docName, company, associates = [], manage
   const timestamp = Date.now();
   const result = {};
 
-  // Générer PDF
+  // Générer PDF avec Puppeteer (méthode professionnelle)
   if (options.formats.includes('pdf')) {
     try {
-      console.log(`   📄 Génération PDF...`);
+      console.log(`   📄 Génération PDF avec Puppeteer...`);
       const pdfFileName = `${baseFileName}_${timestamp}.pdf`;
       const pdfPath = path.join(GENERATED_DIR, pdfFileName);
       
-      // Importer pdfmake dynamiquement si ce n'est pas déjà fait
-      if (!generatePdfWithPdfMake) {
+      // Importer puppeteerGenerator dynamiquement si ce n'est pas déjà fait
+      if (!puppeteerGenerator) {
         try {
-          console.log(`   🔍 [generateDocument] Import dynamique de pdfmakeGenerator...`);
-          const pdfmakeModule = await import('./pdfmakeGenerator.js');
-          generatePdfWithPdfMake = pdfmakeModule.generatePdfWithPdfMake;
-          console.log(`   ✅ [generateDocument] Import de generatePdfWithPdfMake réussi`);
+          console.log(`   🔍 [generateDocument] Import dynamique de puppeteerGenerator...`);
+          puppeteerGenerator = await import('./puppeteerGenerator.js');
+          console.log(`   ✅ [generateDocument] Import de puppeteerGenerator réussi`);
         } catch (importError) {
-          console.error(`   ❌ [generateDocument] Erreur import pdfmakeGenerator:`, importError.message);
+          console.error(`   ❌ [generateDocument] Erreur import puppeteerGenerator:`, importError.message);
           console.error(`   ❌ Stack:`, importError.stack);
-          generatePdfWithPdfMake = null;
+          puppeteerGenerator = null;
         }
       }
       
-      // Utiliser pdfmake pour un meilleur rendu professionnel
-      if (generatePdfWithPdfMake) {
-        console.log(`   🔧 Tentative avec pdfmake (format professionnel)...`);
+      // Utiliser Puppeteer pour un rendu PDF parfait
+      if (puppeteerGenerator && puppeteerGenerator.generateDocumentPDF) {
+        console.log(`   🚀 Génération PDF avec Puppeteer (rendu Chrome)...`);
         try {
-          console.log(`   🔍 [generateDocument] Appel generatePdfWithPdfMake...`);
-          await generatePdfWithPdfMake(content, docName, pdfPath);
-          console.log(`   ✅ PDF généré avec pdfmake (format professionnel)`);
-          console.log(`   📊 Format: pdfmake - Structure déclarative avec styles professionnels`);
-        } catch (pdfmakeError) {
-          console.error(`   ❌ ERREUR pdfmake:`, pdfmakeError.message);
-          console.error(`   ❌ Stack:`, pdfmakeError.stack);
-          console.log(`   ⚠️  pdfmake a échoué, mais PDFKit a des bugs de récursion.`);
-          console.log(`   ⚠️  Veuillez vérifier l'installation de pdfmake: npm install pdfmake`);
-          // Ne pas faire de fallback vers PDFKit car il a des bugs de récursion
-          throw new Error(`Génération PDF échouée: pdfmake a échoué (${pdfmakeError.message}). Veuillez vérifier l'installation.`);
+          await puppeteerGenerator.generateDocumentPDF(docName, company, associates, managers, additionalData, pdfPath);
+          console.log(`   ✅ PDF généré avec Puppeteer (rendu professionnel)`);
+          console.log(`   📊 Format: Puppeteer/Chrome - Rendu HTML parfait`);
+        } catch (puppeteerError) {
+          console.error(`   ❌ ERREUR Puppeteer:`, puppeteerError.message);
+          console.error(`   ❌ Stack:`, puppeteerError.stack);
+          throw new Error(`Génération PDF échouée: Puppeteer a échoué (${puppeteerError.message}). Veuillez vérifier l'installation.`);
         }
       } else {
-        console.error(`   ❌ generatePdfWithPdfMake n'est pas disponible`);
-        throw new Error(`Génération PDF échouée: pdfmakeGenerator n'a pas pu être importé.`);
+        console.error(`   ❌ puppeteerGenerator n'est pas disponible`);
+        throw new Error(`Génération PDF échouée: puppeteerGenerator n'a pas pu être importé. Vérifiez l'installation de Puppeteer.`);
       }
       
       // Vérifier que le fichier existe
