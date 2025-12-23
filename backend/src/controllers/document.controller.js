@@ -132,12 +132,24 @@ export const generateDocuments = async (req, res, next) => {
       additionalData.bailleur_nom = b.nom && b.prenom 
         ? `${b.nom} ${b.prenom}`.trim() 
         : b.nom || '[NOM DU BAILLEUR]';
-      additionalData.bailleur_telephone = b.telephone || '[TELEPHONE]';
+      additionalData.bailleur_telephone = b.telephone || b.contact || '[TELEPHONE]';
+      additionalData.bailleur_contact = b.telephone || b.contact || '[TELEPHONE]';
       additionalData.loyer_mensuel = b.loyerMensuel || 0;
       additionalData.caution_mois = b.cautionMois || 2;
       additionalData.avance_mois = b.avanceMois || 2;
       additionalData.duree_bail = b.dureeBailAnnees || 1;
       additionalData.bailleur_adresse = b.adresse || '[ADRESSE BAILLEUR]';
+      
+      // Calculer la date de fin du bail si date de début fournie
+      if (b.dateDebutBail) {
+        additionalData.date_debut = b.dateDebutBail;
+        const dateDebut = new Date(b.dateDebutBail);
+        const dateFin = new Date(dateDebut);
+        dateFin.setFullYear(dateFin.getFullYear() + (b.dureeBailAnnees || 1));
+        additionalData.date_fin = dateFin.toISOString().split('T')[0];
+      } else if (b.dateFinBail) {
+        additionalData.date_fin = b.dateFinBail;
+      }
     }
     
     // Ajouter les détails de l'adresse si fournis

@@ -415,13 +415,11 @@ const generateStatutsHTML = (company, associates, managers) => {
         <h3 class="article-title">ARTICLE 3 - OBJET</h3>
         <p class="article-content">La société a pour objet en CÔTE D'IVOIRE :</p>
         <p class="article-content">${escapeHtml(objetSocial)}</p>
-        <ul>
-          <li>l'acquisition, la location et la vente de tous biens meubles et immeubles.</li>
-          <li>l'emprunt de toutes sommes auprès de tous établissements financiers avec possibilité de donner en garantie tout ou partie des biens sociaux.</li>
-          <li>la prise en location gérance de tous fonds de commerce.</li>
-          <li>la prise de participation dans toute société existante ou devant être créée.</li>
-          <li>et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.</li>
-        </ul>
+        <p class="article-content">- l'acquisition, la location et la vente de tous biens meubles et immeubles.</p>
+        <p class="article-content">- l'emprunt de toutes sommes auprès de tous établissements financiers avec possibilité de donner en garantie tout ou partie des biens sociaux.</p>
+        <p class="article-content">- la prise en location gérance de tous fonds de commerce.</p>
+        <p class="article-content">- la prise de participation dans toute société existante ou devant être créée</p>
+        <p class="article-content">- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.</p>
         
         <h3 class="article-title">ARTICLE 4 - SIÈGE SOCIAL</h3>
         <p class="article-content">
@@ -530,8 +528,25 @@ const generateContratBailHTML = (company, additionalData = {}) => {
   const gerant = company.managers && company.managers.length > 0 ? company.managers[0] : null;
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   
-  const bailleurNom = additionalData.bailleur_nom || '[NOM DU BAILLEUR]';
-  const bailleurTel = additionalData.bailleur_telephone || '[TÉLÉPHONE]';
+  // Récupérer les données du bailleur - vérifier plusieurs sources
+  let bailleurNom = additionalData.bailleur_nom || '[NOM DU BAILLEUR]';
+  let bailleurTel = additionalData.bailleur_telephone || additionalData.bailleur_contact || '[TÉLÉPHONE]';
+  
+  // Si bailleur est un objet dans additionalData
+  if (additionalData.bailleur && typeof additionalData.bailleur === 'object') {
+    const b = additionalData.bailleur;
+    if (b.nom && b.prenom) {
+      bailleurNom = `${b.nom} ${b.prenom}`.trim();
+    } else if (b.nom) {
+      bailleurNom = b.nom;
+    }
+    if (b.telephone) {
+      bailleurTel = b.telephone;
+    } else if (b.contact) {
+      bailleurTel = b.contact;
+    }
+  }
+  
   const loyerMensuel = additionalData.loyer_mensuel || 0;
   const cautionMois = additionalData.caution_mois || 2;
   const avanceMois = additionalData.avance_mois || 2;
@@ -540,6 +555,18 @@ const generateContratBailHTML = (company, additionalData = {}) => {
   
   const lotNumero = additionalData.lot || company.lot || '';
   const ilotNumero = additionalData.ilot || company.ilot || '';
+  
+  // Calculer les dates de début et fin du bail
+  const dateDebut = additionalData.date_debut ? formatDate(additionalData.date_debut) : formatDate(new Date().toISOString());
+  let dateFin = additionalData.date_fin ? formatDate(additionalData.date_fin) : null;
+  
+  // Si pas de date de fin fournie, calculer à partir de la durée
+  if (!dateFin && dureeBail) {
+    const dateDebutObj = additionalData.date_debut ? new Date(additionalData.date_debut) : new Date();
+    const dateFinObj = new Date(dateDebutObj);
+    dateFinObj.setFullYear(dateFinObj.getFullYear() + dureeBail);
+    dateFin = formatDate(dateFinObj.toISOString());
+  }
   
   const dateActuelle = formatDate(new Date().toISOString());
 
@@ -557,7 +584,7 @@ const generateContratBailHTML = (company, additionalData = {}) => {
         <p class="mt-20"><strong>Entre les soussignés :</strong></p>
         
         <p class="mt-20">
-          <strong>${escapeHtml(bailleurNom)}</strong>, Téléphone : ${escapeHtml(bailleurTel)}, 
+          <strong>${escapeHtml(bailleurNom)}</strong>, Téléphone : <strong>${escapeHtml(bailleurTel)}</strong>, 
           Propriétaire, ci-après dénommé « <strong>le bailleur</strong> »
         </p>
         
@@ -580,7 +607,7 @@ const generateContratBailHTML = (company, additionalData = {}) => {
         <p class="article-content">
           Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à 
           ${escapeHtml(company.address || '[ADRESSE]')}${lotNumero ? `, LOT ${lotNumero}` : ''}${ilotNumero ? `, ILOT ${ilotNumero}` : ''} 
-          en vue de l'exploitation de la « ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} ».
+          en vue de l'exploitation de la société « ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} ».
         </p>
         
         <h3 class="article-title">Article 1 : Désignation</h3>
@@ -595,7 +622,8 @@ const generateContratBailHTML = (company, additionalData = {}) => {
         
         <h3 class="article-title">Article 2 : Durée</h3>
         <p class="article-content">
-          Le présent bail est conclu pour une durée de <strong>${numberToWords(dureeBail)} (${String(dureeBail).padStart(2, '0')}) an${dureeBail > 1 ? 's' : ''}</strong>. 
+          Le présent bail est conclu pour une durée de <strong>${numberToWords(dureeBail)} (${String(dureeBail).padStart(2, '0')}) an${dureeBail > 1 ? 's' : ''}</strong> 
+          allant du ${dateDebut}${dateFin ? ` au ${dateFin}` : ''}. 
           À son expiration, le bail se renouvellera par tacite reconduction, sauf dénonciation par acte extra judiciaire, 
           au plus tard TROIS (03) mois avant la date d'expiration de la période triennale concernée.
         </p>
@@ -686,21 +714,44 @@ const generateContratBailHTML = (company, additionalData = {}) => {
 /**
  * Template HTML: Liste des Gérants
  */
-const generateListeGerantsHTML = (company, managers) => {
+const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
-  const dureeMandat = gerant?.duree_mandat || 'Durée indéterminée';
+  
+  // Gérer la durée du mandat correctement
+  let dureeMandatText = 'Durée indéterminée';
+  let dureeMandatAnnees = null;
+  
+  if (gerant?.duree_mandat) {
+    if (typeof gerant.duree_mandat === 'number') {
+      dureeMandatAnnees = gerant.duree_mandat;
+      dureeMandatText = `${numberToWords(gerant.duree_mandat)} (${gerant.duree_mandat}) ans`;
+    } else if (gerant.duree_mandat === 'determinee' && gerant.duree_mandat_annees) {
+      dureeMandatAnnees = gerant.duree_mandat_annees;
+      dureeMandatText = `${numberToWords(gerant.duree_mandat_annees)} (${gerant.duree_mandat_annees}) ans`;
+    } else if (gerant.duree_mandat === 'indeterminee') {
+      dureeMandatText = 'Durée indéterminée';
+    }
+  } else {
+    // Par défaut, 4 ans
+    dureeMandatAnnees = 4;
+    dureeMandatText = `${numberToWords(4)} (4) ans`;
+  }
   
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   const gerantProfession = gerant?.profession || '[PROFESSION]';
   const gerantAdresse = gerant?.adresse || '[ADRESSE]';
   const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
   const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
-  const gerantLieuNaissance = gerant?.lieu_naissance || '[LIEU NAISSANCE]';
-  const gerantTypeId = gerant?.type_identite || 'CNI';
-  const gerantNumId = gerant?.numero_identite || '[NUMÉRO]';
-  const gerantDateDelivranceId = gerant?.date_delivrance_id ? formatDate(gerant.date_delivrance_id) : '[DATE DÉLIVRANCE]';
-  const gerantDateValiditeId = gerant?.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
-  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
+  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
+  const gerantTypeId = gerant?.type_identite || gerant?.typeIdentite || 'CNI';
+  const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '[NUMÉRO]';
+  const gerantDateDelivranceId = gerant?.date_delivrance_id || gerant?.dateDelivranceId ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
+  const gerantDateValiditeId = gerant?.date_validite_id || gerant?.dateValiditeId ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
+  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la république de Côte d\'Ivoire';
+  
+  // Récupérer lot et îlot
+  const lotNumero = additionalData.lot || company.lot || '';
+  const ilotNumero = additionalData.ilot || company.ilot || '';
 
   return `
     <!DOCTYPE html>
@@ -716,7 +767,7 @@ const generateListeGerantsHTML = (company, managers) => {
         </div>
         
         <p class="text-center">
-          AYANT SON SIÈGE SOCIAL À ${escapeHtml((company.address || '[ADRESSE]').toUpperCase())}, ${escapeHtml((company.city || 'ABIDJAN').toUpperCase())}
+          AYANT SON SIÈGE SOCIAL À ${escapeHtml((company.address || '[ADRESSE]').toUpperCase())}, ${escapeHtml((company.city || 'ABIDJAN').toUpperCase())}${lotNumero ? `, LOT ${lotNumero}` : ''}${ilotNumero ? `, ILOT ${ilotNumero}` : ''}
         </p>
         
         <div class="separator"></div>
@@ -724,7 +775,7 @@ const generateListeGerantsHTML = (company, managers) => {
         <h1 class="main-title">LISTE DE DIRIGEANT</h1>
         
         <p class="article-content">
-          Est nommé gérant de la société pour une durée de <strong>${escapeHtml(dureeMandat)}</strong>,
+          Est nommé gérant de la société pour une durée de <strong>${dureeMandatText}</strong>,
         </p>
         
         <p class="article-content mt-20">
@@ -751,11 +802,12 @@ const generateDeclarationHonneurHTML = (company, managers) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
   const gerantNom = gerant?.nom || '[NOM]';
   const gerantPrenoms = gerant?.prenoms || '[PRÉNOMS]';
-  const gerantPereNom = gerant?.pere_nom || '[NOM ET PRÉNOMS DU PÈRE]';
-  const gerantMereNom = gerant?.mere_nom || '[NOM ET PRÉNOMS DE LA MÈRE]';
+  const gerantPereNom = gerant?.pere_nom || gerant?.pereNom || '[NOM ET PRÉNOMS DU PÈRE]';
+  const gerantMereNom = gerant?.mere_nom || gerant?.mereNom || '[NOM ET PRÉNOMS DE LA MÈRE]';
   const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
   const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
   const gerantDomicile = gerant?.adresse || '[DOMICILE]';
+  const gerantProfession = gerant?.profession || '[PROFESSION]';
   
   const dateActuelle = formatDate(new Date().toISOString());
 
@@ -809,6 +861,11 @@ const generateDeclarationHonneurHTML = (company, managers) => {
         <div class="info-row">
           <span class="info-label">DOMICILE :</span>
           <span class="info-value">${escapeHtml(gerantDomicile)}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="info-label">PROFESSION :</span>
+          <span class="info-value">${escapeHtml(gerantProfession)}</span>
         </div>
         
         <div class="info-row">
@@ -876,28 +933,52 @@ const generateDSVHTML = (company, associates, managers) => {
   const annee = new Date().getFullYear();
   const dateActuelle = formatDate(new Date().toISOString());
   
-  // Tableau des associés
+  // Construire l'objet social complet avec le texte additionnel
+  const objetSocial = company.activity || '[OBJET SOCIAL]';
+  const objetSocialComplet = `${objetSocial}
+
+- l'acquisition, la location et la vente de tous biens meubles et immeubles.
+
+- l'emprunt de toutes sommes auprès de tous établissements financiers avec possibilité de donner en garantie tout ou partie des biens sociaux.
+
+- la prise en location gérance de tous fonds de commerce.
+
+- la prise de participation dans toute société existante ou devant être créée
+
+- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
+  
+  // Tableau des associés avec numérotation des parts
   let associesTableRows = '';
+  let totalSouscrit = 0;
+  let totalVerse = 0;
+  
   if (associates && associates.length > 0) {
-    associates.forEach(associe => {
+    associates.forEach((associe, index) => {
       const parts = parseInt(associe.parts) || 0;
       const montant = (capital * parts) / totalParts;
+      totalSouscrit += montant;
+      totalVerse += montant;
+      const debutParts = index === 0 ? 1 : associates.slice(0, index).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) + 1;
+      const finParts = associates.slice(0, index + 1).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0);
+      
       associesTableRows += `
         <tr>
           <td>${escapeHtml(associe.name || '[NOM ASSOCIÉ]')}</td>
-          <td>${parts} parts</td>
-          <td>${valeurPart.toLocaleString('fr-FR')} FCFA</td>
+          <td>${parts} parts numérotées de ${debutParts} à ${finParts} inclus</td>
+          <td>${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA</td>
           <td>${montant.toLocaleString('fr-FR')} FCFA</td>
           <td>${montant.toLocaleString('fr-FR')} FCFA</td>
         </tr>
       `;
     });
   } else {
+    totalSouscrit = capital;
+    totalVerse = capital;
     associesTableRows = `
       <tr>
         <td>${escapeHtml(gerantNom)}</td>
-        <td>${totalParts} parts</td>
-        <td>${valeurPart.toLocaleString('fr-FR')} FCFA</td>
+        <td>${totalParts} parts numérotées de 1 à ${totalParts} inclus</td>
+        <td>${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA</td>
         <td>${capital.toLocaleString('fr-FR')} FCFA</td>
         <td>${capital.toLocaleString('fr-FR')} FCFA</td>
       </tr>
@@ -945,18 +1026,33 @@ const generateDSVHTML = (company, associates, managers) => {
         </p>
         
         <div class="info-row mt-20">
-          <span class="info-label">DÉNOMINATION :</span>
+          <span class="info-label">1 - FORME :</span>
+          <span class="info-value">La société constituée est une société à Responsabilité Limitée régie par les dispositions de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales et du Groupement d'intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires applicables et ses présents statuts.</span>
+        </div>
+        
+        <div class="info-row mt-20">
+          <span class="info-label">2 - DÉNOMINATION :</span>
           <span class="info-value"><strong>${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')}</strong></span>
         </div>
         
-        <div class="info-row">
-          <span class="info-label">SIÈGE SOCIAL :</span>
-          <span class="info-value">${escapeHtml(company.address || '[ADRESSE]')}, ${escapeHtml(company.city || 'Abidjan')}</span>
+        <div class="info-row mt-20">
+          <span class="info-label">3 - OBJET :</span>
+          <span class="info-value">La société a pour objet en CÔTE D'IVOIRE :<br><br>${escapeHtml(objetSocialComplet).replace(/\n/g, '<br>')}</span>
         </div>
         
-        <div class="info-row">
-          <span class="info-label">CAPITAL SOCIAL :</span>
-          <span class="info-value"><strong>${capitalWords.toUpperCase()} FRANCS CFA (${capital.toLocaleString('fr-FR')} FCFA)</strong></span>
+        <div class="info-row mt-20">
+          <span class="info-label">4 - SIÈGE SOCIAL :</span>
+          <span class="info-value">Le siège social est fixé à : ${escapeHtml(company.address || '[ADRESSE]')}, ${escapeHtml(company.city || 'Abidjan')}</span>
+        </div>
+        
+        <div class="info-row mt-20">
+          <span class="info-label">5 - DURÉE :</span>
+          <span class="info-value">La durée de la société est de ${numberToWords(company.duree_societe || 99)} (${company.duree_societe || 99}) années, sauf dissolution anticipée ou prorogation.</span>
+        </div>
+        
+        <div class="info-row mt-20">
+          <span class="info-label">6 - CAPITAL SOCIAL :</span>
+          <span class="info-value">Le capital social est fixé à la somme de <strong>${capitalWords.toUpperCase()} FRANCS CFA (${capital.toLocaleString('fr-FR')} FCFA)</strong> divisé en ${totalParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA</span>
         </div>
         
         <h2 class="section-title">II- CONSTATATION DE LA LIBÉRATION ET DU DÉPÔT DES FONDS</h2>
@@ -982,16 +1078,16 @@ const generateDSVHTML = (company, associates, managers) => {
             <tr>
               <th>TOTAL</th>
               <th>${totalParts} parts</th>
-              <th>${valeurPart.toLocaleString('fr-FR')} FCFA</th>
-              <th>${capital.toLocaleString('fr-FR')} FCFA</th>
-              <th>${capital.toLocaleString('fr-FR')} FCFA</th>
+              <th>${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA</th>
+              <th>${totalSouscrit.toLocaleString('fr-FR')} FCFA</th>
+              <th>${totalVerse.toLocaleString('fr-FR')} FCFA</th>
             </tr>
           </tfoot>
         </table>
         
         <p class="article-content mt-20">
           La somme correspondante à l'ensemble des souscriptions et versements effectués à ce jour, de 
-          <strong>${capitalWords.toLowerCase()} (${capital.toLocaleString('fr-FR')} FCFA)</strong> a été déposée pour le compte 
+          <strong>${numberToWords(Math.floor(totalVerse)).toLowerCase()} (${totalVerse.toLocaleString('fr-FR')} FCFA)</strong> a été déposée pour le compte 
           de la société et conformément à la loi, dans un compte ouvert à [NOM BANQUE].
         </p>
         
@@ -1272,9 +1368,9 @@ const htmlGenerators = {
   'Contrat de bail': (company, associates, managers, additionalData) => generateContratBailHTML(company, additionalData),
   'Formulaire unique CEPICI': (company, associates, managers, additionalData) => generateFormulaireCEPICIHTML(company, managers, associates, additionalData),
   'Formulaire CEPICI': (company, associates, managers, additionalData) => generateFormulaireCEPICIHTML(company, managers, associates, additionalData),
-  'Liste des dirigeants/gérants': (company, associates, managers, additionalData) => generateListeGerantsHTML(company, managers),
-  'Liste de Gérant': (company, associates, managers, additionalData) => generateListeGerantsHTML(company, managers),
-  'Liste des gérants': (company, associates, managers, additionalData) => generateListeGerantsHTML(company, managers),
+  'Liste des dirigeants/gérants': (company, associates, managers, additionalData) => generateListeGerantsHTML(company, managers, additionalData),
+  'Liste de Gérant': (company, associates, managers, additionalData) => generateListeGerantsHTML(company, managers, additionalData),
+  'Liste des gérants': (company, associates, managers, additionalData) => generateListeGerantsHTML(company, managers, additionalData),
   "Déclaration sur l'honneur (greffe)": (company, associates, managers, additionalData) => generateDeclarationHonneurHTML(company, managers),
   "Déclaration sur l'honneur": (company, associates, managers, additionalData) => generateDeclarationHonneurHTML(company, managers),
   'Déclaration de Souscription et Versement (DSV)': (company, associates, managers, additionalData) => generateDSVHTML(company, associates, managers),
