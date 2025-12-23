@@ -565,25 +565,41 @@ export const previewDocuments = async (req, res, next) => {
     }
 
     // Normaliser les managers : mapper camelCase vers snake_case
-    const managers = (rawManagers || []).map(m => ({
-      nom: m.nom || m.name,
-      prenoms: m.prenoms || m.firstName || '',
-      date_naissance: m.date_naissance || m.dateNaissance || m.date_naissance,
-      lieu_naissance: m.lieu_naissance || m.lieuNaissance || m.lieu_naissance,
-      nationalite: m.nationalite || m.nationalite || m.nationality,
-      adresse: m.adresse || m.adresse || m.address,
-      profession: m.profession || m.profession || m.profession,
-      type_identite: m.type_identite || m.typeIdentite || m.type_identite,
-      numero_identite: m.numero_identite || m.numeroIdentite || m.numero_identite,
-      date_delivrance_id: m.date_delivrance_id || m.dateDelivranceId || m.date_delivrance_id,
-      date_validite_id: m.date_validite_id || m.dateValiditeId || m.date_validite_id,
-      lieu_delivrance_id: m.lieu_delivrance_id || m.lieuDelivranceId || m.lieu_delivrance_id,
-      pere_nom: m.pere_nom || m.pereNom || m.pere_nom || null,
-      mere_nom: m.mere_nom || m.mereNom || m.mere_nom || null,
-      duree_mandat: m.duree_mandat || m.dureeMandat || m.duree_mandat
-    }));
+    const managers = (rawManagers || []).map(m => {
+      const normalized = {
+        nom: m.nom || m.name || '',
+        prenoms: m.prenoms || m.firstName || '',
+        date_naissance: m.date_naissance || m.dateNaissance || null,
+        lieu_naissance: m.lieu_naissance || m.lieuNaissance || '',
+        nationalite: m.nationalite || m.nationality || '',
+        adresse: m.adresse || m.address || '',
+        profession: m.profession || '', // La profession doit être présente
+        type_identite: m.type_identite || m.typeIdentite || 'CNI',
+        numero_identite: m.numero_identite || m.numeroIdentite || '',
+        date_delivrance_id: m.date_delivrance_id || m.dateDelivranceId || null,
+        date_validite_id: m.date_validite_id || m.dateValiditeId || null,
+        lieu_delivrance_id: m.lieu_delivrance_id || m.lieuDelivranceId || '',
+        pere_nom: m.pere_nom || m.pereNom || null,
+        mere_nom: m.mere_nom || m.mereNom || null,
+        duree_mandat: m.duree_mandat || m.dureeMandat || null,
+        duree_mandat_annees: m.duree_mandat_annees || m.dureeMandatAnnees || null
+      };
+      
+      // Log pour debug si profession manquante
+      if (!normalized.profession && m) {
+        console.warn(`⚠️ Profession manquante pour manager:`, {
+          nom: normalized.nom,
+          prenoms: normalized.prenoms,
+          rawManager: m
+        });
+      }
+      
+      return normalized;
+    });
 
     console.log(`🔍 Prévisualisation: ${docs.length} documents pour "${company.company_name}"`);
+    console.log(`📋 Managers reçus (raw):`, JSON.stringify(rawManagers, null, 2));
+    console.log(`📋 Managers normalisés:`, JSON.stringify(managers, null, 2));
 
     // Générer les documents temporairement (sans sauvegarder en DB)
     const results = await generateMultipleDocuments(
