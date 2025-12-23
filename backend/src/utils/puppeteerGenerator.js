@@ -607,7 +607,7 @@ const generateContratBailHTML = (company, additionalData = {}) => {
         <p class="article-content">
           Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à 
           ${escapeHtml(company.address || '[ADRESSE]')}${lotNumero ? `, LOT ${lotNumero}` : ''}${ilotNumero ? `, ILOT ${ilotNumero}` : ''} 
-          en vue de l'exploitation de la société « ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} ».
+          en vue de l'exploitation de la « ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} ».
         </p>
         
         <h3 class="article-title">Article 1 : Désignation</h3>
