@@ -926,11 +926,12 @@ export const generateDeclarationHonneur = (company, managers) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM]';
   const gerantPrenoms = gerant?.prenoms || '[PRÉNOMS]';
-  const gerantPereNom = gerant?.pere_nom || '[NOM PÈRE]';
-  const gerantMereNom = gerant?.mere_nom || '[NOM MÈRE]';
+  const gerantPereNom = gerant?.pere_nom || gerant?.pereNom || '[NOM ET PRÉNOMS DU PÈRE]';
+  const gerantMereNom = gerant?.mere_nom || gerant?.mereNom || '[NOM ET PRÉNOMS DE LA MÈRE]';
   const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
   const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
   const gerantDomicile = gerant?.adresse || '[DOMICILE]';
+  const gerantProfession = gerant?.profession || '[PROFESSION]';
   
   return `
 DÉCLARATION SUR L'HONNEUR
@@ -941,15 +942,17 @@ NOM : ${gerant?.nom || '[NOM]'}
 
 PRÉNOMS : ${gerantPrenoms}
 
-DE : ${gerantPereNom || '[NOM ET PRÉNOMS DU PÈRE]'}
+DE : ${gerantPereNom}
 
-Et DE : ${gerantMereNom || '[NOM ET PRÉNOMS DE LA MÈRE]'}
+Et DE : ${gerantMereNom}
 
 DATE DE NAISSANCE : ${gerantDateNaissance}
 
 NATIONALITÉ : ${gerantNationalite}
 
 DOMICILE : ${gerantDomicile}
+
+PROFESSION : ${gerantProfession}
 
 QUALITÉ : GÉRANT
 
