@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, restrictTo } from '../middleware/authMiddleware.js';
+import { protect, adminOnly } from '../middleware/auth.js';
 import {
   getMyPayments,
   getPaymentStats,
@@ -18,7 +18,7 @@ router.post('/', protect, createPayment);
 router.get('/:id/receipt', protect, downloadReceipt);
 
 // Routes admin
-router.get('/', protect, restrictTo('admin'), getAllPayments);
+router.get('/', protect, adminOnly, getAllPayments);
 router.put('/:id/status', protect, updatePaymentStatus);
 
 export default router;
