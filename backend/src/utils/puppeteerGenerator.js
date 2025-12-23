@@ -753,6 +753,12 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
   const lotNumero = additionalData.lot || company.lot || '';
   const ilotNumero = additionalData.ilot || company.ilot || '';
 
+  // Format selon le générateur : "Est nommé Gérant pour une durée de X ans (X ans)"
+  const dureeText = dureeMandatAnnees ? `${dureeMandatAnnees} ans (${dureeMandatAnnees} ans)` : dureeMandatText;
+  
+  // Format selon le générateur : une seule ligne avec toutes les infos
+  const gerantInfoLine = `M. ${escapeHtml(gerantNom)}, ${escapeHtml(gerantProfession)} résidant à ${escapeHtml(gerantAdresse)} de nationalité ${escapeHtml(gerantNationalite)}, né le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance)} et titulaire du ${gerantTypeId} N° ${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}`;
+
   return `
     <!DOCTYPE html>
     <html lang="fr">
@@ -762,28 +768,27 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
     </head>
     <body>
       <div class="document">
-        <div class="company-name-container">
-          <span class="company-name">« ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} »</span>
-        </div>
+        <p class="article-content">« ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} »</p>
         
-        <p class="text-center">
-          AYANT SON SIÈGE SOCIAL À ${escapeHtml((company.address || '[ADRESSE]').toUpperCase())}, ${escapeHtml((company.city || 'ABIDJAN').toUpperCase())}${lotNumero ? `, LOT ${lotNumero}` : ''}${ilotNumero ? `, ILOT ${ilotNumero}` : ''}
+        <p class="article-content mt-10">
+          Au capital de ${(company.capital || 0).toLocaleString('fr-FR')} FCFA, située à ${escapeHtml(company.address || '[ADRESSE]')}
         </p>
         
         <div class="separator"></div>
         
         <h1 class="main-title">LISTE DE DIRIGEANT</h1>
         
-        <p class="article-content">
-          Est nommé gérant de la société pour une durée de <strong>${dureeMandatText}</strong>,
+        <div class="separator"></div>
+        
+        <p class="article-content mt-20">
+          Est nommé Gérant pour une durée de ${dureeText}
         </p>
         
         <p class="article-content mt-20">
-          <strong>M. ${escapeHtml(gerantNom)}</strong>, ${escapeHtml(gerantProfession)}, résident à ${escapeHtml(gerantAdresse)} 
-          de nationalité ${escapeHtml(gerantNationalite)} né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance)} 
-          et titulaire de la ${gerantTypeId} ${escapeHtml(gerantNumId)} délivré(e) le ${gerantDateDelivranceId} 
-          et valable ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}.
+          ${gerantInfoLine}
         </p>
+        
+        <div class="separator"></div>
         
         <div class="signature-section">
           <p class="text-center mt-20"><strong>Signature</strong></p>
@@ -800,16 +805,17 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
  */
 const generateDeclarationHonneurHTML = (company, managers) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
-  const gerantNom = gerant?.nom || '[NOM]';
-  const gerantPrenoms = gerant?.prenoms || '[PRÉNOMS]';
-  const gerantPereNom = gerant?.pere_nom || gerant?.pereNom || '[NOM ET PRÉNOMS DU PÈRE]';
-  const gerantMereNom = gerant?.mere_nom || gerant?.mereNom || '[NOM ET PRÉNOMS DE LA MÈRE]';
-  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
+  const gerantNomComplet = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM]';
   const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
+  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
+  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
   const gerantDomicile = gerant?.adresse || '[DOMICILE]';
-  const gerantProfession = gerant?.profession || '[PROFESSION]';
-  
+  const gerantFonction = 'Gérant'; // Fonction dans la société
+  const societeNom = company.company_name || '[NOM SOCIÉTÉ]';
+  const societeForme = company.company_type === 'SARLU' ? 'SARL U' : 'SARL';
+  const societeSiege = company.address ? `${company.address}, ${company.city || 'Abidjan'}` : '[SIÈGE]';
   const dateActuelle = formatDate(new Date().toISOString());
+  const lieu = company.city || 'Abidjan';
 
   return `
     <!DOCTYPE html>
@@ -820,83 +826,82 @@ const generateDeclarationHonneurHTML = (company, managers) => {
     </head>
     <body>
       <div class="document">
+        <p class="text-center mb-10">RÉPUBLIQUE DE CÔTE D'IVOIRE</p>
+        <p class="text-center mb-10">Union - Discipline - Travail</p>
+        
+        <div class="separator"></div>
+        
         <h1 class="main-title">DÉCLARATION SUR L'HONNEUR</h1>
         
-        <p class="text-center mb-10">
-          <em>(Article 47 de l'Acte Uniforme relatif au Droit commercial général adopté le 15 décembre 2010)</em>
+        <div class="separator"></div>
+        
+        <p class="article-content mt-20">Je soussigné(e),</p>
+        
+        <p class="article-content mt-10">
+          <strong>${escapeHtml(gerantNomComplet)}</strong>
+        </p>
+        
+        <p class="article-content mt-10">
+          De nationalité ${escapeHtml(gerantNationalite)}
+        </p>
+        
+        <p class="article-content mt-10">
+          Né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance)}
+        </p>
+        
+        <p class="article-content mt-10">
+          Domicilié(e) à ${escapeHtml(gerantDomicile)}
+        </p>
+        
+        <p class="article-content mt-10">
+          Agissant en qualité de ${gerantFonction} de la société :
+        </p>
+        
+        <p class="article-content mt-10">
+          « ${escapeHtml(societeNom)} »
+        </p>
+        
+        <p class="article-content mt-10">
+          ${societeForme}
+        </p>
+        
+        <p class="article-content mt-10">
+          Siège social : ${escapeHtml(societeSiege)}
         </p>
         
         <div class="separator"></div>
         
-        <div class="info-row">
-          <span class="info-label">NOM :</span>
-          <span class="info-value"><strong>${escapeHtml(gerantNom)}</strong></span>
-        </div>
+        <p class="article-content mt-20 text-bold">DÉCLARE SUR L'HONNEUR :</p>
         
-        <div class="info-row">
-          <span class="info-label">PRÉNOMS :</span>
-          <span class="info-value"><strong>${escapeHtml(gerantPrenoms)}</strong></span>
-        </div>
+        <p class="article-content mt-10">
+          1. N'avoir fait l'objet d'aucune condamnation pénale pour crime ou délit ;
+        </p>
         
-        <div class="info-row">
-          <span class="info-label">DE :</span>
-          <span class="info-value">${escapeHtml(gerantPereNom)}</span>
-        </div>
+        <p class="article-content mt-10">
+          2. N'avoir fait l'objet d'aucune mesure d'interdiction, de déchéance ou d'incapacité prévue par les textes en vigueur ;
+        </p>
         
-        <div class="info-row">
-          <span class="info-label">Et DE :</span>
-          <span class="info-value">${escapeHtml(gerantMereNom)}</span>
-        </div>
+        <p class="article-content mt-10">
+          3. Ne pas exercer de fonction incompatible avec l'exercice d'une activité commerciale ;
+        </p>
         
-        <div class="info-row">
-          <span class="info-label">DATE DE NAISSANCE :</span>
-          <span class="info-value">${gerantDateNaissance}</span>
-        </div>
-        
-        <div class="info-row">
-          <span class="info-label">NATIONALITÉ :</span>
-          <span class="info-value">${escapeHtml(gerantNationalite)}</span>
-        </div>
-        
-        <div class="info-row">
-          <span class="info-label">DOMICILE :</span>
-          <span class="info-value">${escapeHtml(gerantDomicile)}</span>
-        </div>
-        
-        <div class="info-row">
-          <span class="info-label">PROFESSION :</span>
-          <span class="info-value">${escapeHtml(gerantProfession)}</span>
-        </div>
-        
-        <div class="info-row">
-          <span class="info-label">QUALITÉ :</span>
-          <span class="info-value"><strong>GÉRANT</strong></span>
-        </div>
+        <p class="article-content mt-10">
+          4. Que les informations fournies dans le cadre de cette déclaration sont exactes et sincères.
+        </p>
         
         <div class="separator"></div>
         
         <p class="article-content mt-20">
-          Déclare, conformément à l'article 47 de l'Acte Uniforme relatif au Droit Commercial Général adopté le 15 décembre 2010, 
-          au titre du Registre de commerce et du Crédit Mobilier,
+          Je reconnais avoir été informé(e) des sanctions pénales encourues en cas de fausse déclaration.
         </p>
         
-        <p class="article-content text-bold">
-          N'avoir fait l'objet d'aucune condamnation pénale, ni de sanction professionnelle ou administrative de nature à 
-          m'interdire de gérer, administrer ou diriger une société ou l'exercice d'une activité commerciale.
-        </p>
-        
-        <p class="article-content">
-          M'engage dans un délai de 75 jours à compter de l'immatriculation à fournir mon casier judiciaire ou tout autre document en tenant lieu.
-        </p>
-        
-        <p class="article-content">
-          Je prends acte de ce qu'à défaut de produire l'extrait du casier judiciaire ou tout document en tenant lieu dans le délai 
-          de soixante-quinze (75) jours, il sera procédé au retrait de mon immatriculation et à ma radiation.
+        <p class="article-content mt-10">
+          Fait pour servir et valoir ce que de droit.
         </p>
         
         <div class="signature-section">
-          <p>Fait à ${escapeHtml(company.city || 'Abidjan')}, le ${dateActuelle}</p>
-          <p class="mt-20"><em>(Lu et approuvé suivi de la signature)</em></p>
+          <p class="mt-20">À ${escapeHtml(lieu)}, le ${dateActuelle}</p>
+          <p class="mt-20">Signature précédée de la mention « Lu et approuvé »</p>
           <p class="text-center mt-20">_____________________</p>
         </div>
       </div>
