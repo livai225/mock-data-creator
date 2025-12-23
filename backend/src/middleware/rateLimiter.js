@@ -15,10 +15,10 @@ export const rateLimiter = rateLimit({
 // Rate limiter pour l'authentification
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 tentatives de connexion
+  max: 20, // 20 tentatives de connexion/inscription
   message: {
     success: false,
-    message: 'Trop de tentatives de connexion, veuillez réessayer dans 15 minutes.'
+    message: 'Trop de tentatives, veuillez réessayer dans 15 minutes.'
   },
   skipSuccessfulRequests: true,
 });
