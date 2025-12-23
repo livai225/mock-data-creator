@@ -166,7 +166,9 @@ export default function PreviewDocuments() {
           company: company.company_name,
           docsCount: docs.length,
           docs: docs,
-          hasAdditionalData: !!additionalData.bailleur_nom
+          hasAdditionalData: !!additionalData.bailleur_nom,
+          managersCount: managers.length,
+          managers: managers.map(m => ({ nom: m.nom, prenoms: m.prenoms, profession: m.profession }))
         });
         
         const previewRes = await previewDocumentsApi('', {
