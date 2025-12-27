@@ -299,17 +299,34 @@ const generateStatutsHTML = (company, associates, managers) => {
   const duree = company.duree_societe || 99;
   
   const gerant = managers && managers.length > 0 ? managers[0] : null;
+  
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [Statuts HTML] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      address: gerant.address,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance,
+      dateNaissance: gerant.dateNaissance
+    });
+  }
+  
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   const gerantProfession = gerant?.profession || '[PROFESSION]';
-  const gerantAdresse = gerant?.adresse || '[ADRESSE]';
-  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
-  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
-  const gerantLieuNaissance = gerant?.lieu_naissance || '[LIEU NAISSANCE]';
-  const gerantTypeId = gerant?.type_identite || 'CNI';
-  const gerantNumId = gerant?.numero_identite || '[NUMÉRO]';
-  const gerantDateDelivranceId = gerant?.date_delivrance_id ? formatDate(gerant.date_delivrance_id) : '[DATE DÉLIVRANCE]';
-  const gerantDateValiditeId = gerant?.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
-  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
+  const gerantAdresse = gerant?.adresse || gerant?.address || '[ADRESSE]';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
+  const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
+  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
+  const gerantTypeId = gerant?.type_identite || gerant?.typeIdentite || 'CNI';
+  const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '[NUMÉRO]';
+  const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
+  const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
+  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la république de Côte d\'Ivoire';
   
   const isUnipersonnelle = !associates || associates.length <= 1;
   const nombreParts = associates?.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) || Math.floor(capital / 5000);
@@ -971,17 +988,34 @@ const generateDSVHTML = (company, associates, managers) => {
   const capitalWords = numberToWords(Math.floor(capital));
   
   const gerant = managers && managers.length > 0 ? managers[0] : null;
+  
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [DSV HTML] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      address: gerant.address,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance,
+      dateNaissance: gerant.dateNaissance
+    });
+  }
+  
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   const gerantProfession = gerant?.profession || '[PROFESSION]';
-  const gerantAdresse = gerant?.adresse || '[ADRESSE]';
-  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
-  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
-  const gerantLieuNaissance = gerant?.lieu_naissance || '[LIEU NAISSANCE]';
-  const gerantTypeId = gerant?.type_identite || 'CNI';
-  const gerantNumId = gerant?.numero_identite || '[NUMÉRO]';
-  const gerantDateDelivranceId = gerant?.date_delivrance_id ? formatDate(gerant.date_delivrance_id) : '[DATE DÉLIVRANCE]';
-  const gerantDateValiditeId = gerant?.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
-  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
+  const gerantAdresse = gerant?.adresse || gerant?.address || '[ADRESSE]';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
+  const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
+  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
+  const gerantTypeId = gerant?.type_identite || gerant?.typeIdentite || 'CNI';
+  const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '[NUMÉRO]';
+  const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
+  const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
+  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la république de Côte d\'Ivoire';
   
   const totalParts = associates && associates.length > 0 
     ? associates.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0)
@@ -1170,10 +1204,33 @@ const generateDSVHTML = (company, associates, managers) => {
  */
 const generateFormulaireCEPICIHTML = (company, managers, associates, additionalData = {}) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
+  
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [CEPICI HTML] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      address: gerant.address,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance,
+      dateNaissance: gerant.dateNaissance
+    });
+  }
+  
   const capital = parseFloat(company.capital) || 0;
   const dureeSociete = company.duree_societe || 99;
   
   const dateActuelle = formatDate(new Date().toISOString());
+  
+  // Récupérer les champs du gérant avec toutes les variantes
+  const gerantAdresse = gerant?.adresse || gerant?.address || '';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '';
+  const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '';
+  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '';
 
   return `
     <!DOCTYPE html>
@@ -1341,22 +1398,22 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
           
           <div class="form-row">
             <span class="form-label">Adresse :</span>
-            <span class="form-value">${escapeHtml(gerant?.adresse || '')}</span>
+            <span class="form-value">${escapeHtml(gerantAdresse)}</span>
           </div>
           
           <div class="form-row">
             <span class="form-label">Nationalité :</span>
-            <span class="form-value">${escapeHtml(gerant?.nationalite || '')}</span>
+            <span class="form-value">${escapeHtml(gerantNationalite)}</span>
           </div>
           
           <div class="form-row">
             <span class="form-label">Date de naissance :</span>
-            <span class="form-value">${gerant?.date_naissance ? formatDate(gerant.date_naissance) : ''}</span>
+            <span class="form-value">${gerantDateNaissance}</span>
           </div>
           
           <div class="form-row">
             <span class="form-label">Lieu de naissance :</span>
-            <span class="form-value">${escapeHtml(gerant?.lieu_naissance || '')}</span>
+            <span class="form-value">${escapeHtml(gerantLieuNaissance)}</span>
           </div>
           
           <div class="form-row">

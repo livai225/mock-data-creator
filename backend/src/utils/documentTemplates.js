@@ -61,19 +61,36 @@ export const generateStatutsSARL = (company, associates, managers) => {
   const dureeWords = numberToWords(duree);
   
   const gerant = managers && managers.length > 0 ? managers[0] : null;
+  
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [DOCX Statuts] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      address: gerant.address,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance,
+      dateNaissance: gerant.dateNaissance
+    });
+  }
+  
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
-  const gerantDuree = gerant?.duree_mandat || 99;
+  const gerantDuree = gerant?.duree_mandat || gerant?.dureeMandat || 99;
   const gerantDureeWords = numberToWords(gerantDuree);
   const gerantProfession = gerant?.profession || '[PROFESSION]';
-  const gerantAdresse = gerant?.adresse || '[ADRESSE]';
-  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
-  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
-  const gerantLieuNaissance = gerant?.lieu_naissance || '[LIEU NAISSANCE]';
-  const gerantTypeId = gerant?.type_identite || 'CNI';
-  const gerantNumId = gerant?.numero_identite || '[NUMÉRO]';
-  const gerantDateDelivranceId = gerant?.date_delivrance_id ? formatDate(gerant.date_delivrance_id) : '[DATE DÉLIVRANCE]';
-  const gerantDateValiditeId = gerant?.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
-  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
+  const gerantAdresse = gerant?.adresse || gerant?.address || '[ADRESSE]';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
+  const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
+  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
+  const gerantTypeId = gerant?.type_identite || gerant?.typeIdentite || 'CNI';
+  const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '[NUMÉRO]';
+  const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
+  const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
+  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la république de Côte d\'Ivoire';
   
   const isUnipersonnelle = !associates || associates.length <= 1;
   const nombreParts = associates?.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) || Math.floor(capital / 5000);
@@ -706,17 +723,34 @@ export const generateDSV = (company, associates) => {
   const valeurPart = capital / totalParts;
   
   const gerant = company.managers && company.managers.length > 0 ? company.managers[0] : null;
+  
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [DOCX DSV] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      address: gerant.address,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance,
+      dateNaissance: gerant.dateNaissance
+    });
+  }
+  
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   const gerantProfession = gerant?.profession || '[PROFESSION]';
-  const gerantAdresse = gerant?.adresse || '[ADRESSE]';
-  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
-  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
-  const gerantLieuNaissance = gerant?.lieu_naissance || '[LIEU NAISSANCE]';
-  const gerantTypeId = gerant?.type_identite || 'CNI';
-  const gerantNumId = gerant?.numero_identite || '[NUMÉRO]';
-  const gerantDateDelivranceId = gerant?.date_delivrance_id ? formatDate(gerant.date_delivrance_id) : '[DATE DÉLIVRANCE]';
-  const gerantDateValiditeId = gerant?.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
-  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
+  const gerantAdresse = gerant?.adresse || gerant?.address || '[ADRESSE]';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
+  const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
+  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
+  const gerantTypeId = gerant?.type_identite || gerant?.typeIdentite || 'CNI';
+  const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '[NUMÉRO]';
+  const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
+  const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
+  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la république de Côte d\'Ivoire';
   
   // Construire l'objet social complet
   const objetSocial = company.activity || '[OBJET SOCIAL]';
@@ -1023,10 +1057,34 @@ Fait à ${company.city || 'Abidjan'}, le ${formatDate(new Date().toISOString())}
  */
 export const generateFormulaireCEPICI = (company, managers, associates) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
+  
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [DOCX CEPICI] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      address: gerant.address,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance,
+      dateNaissance: gerant.dateNaissance
+    });
+  }
+  
   const capital = parseFloat(company.capital) || 0;
   const capitalNumeraire = capital;
   const apportsNature = 0;
   const dureeSociete = company.duree_societe || 99;
+  
+  // Récupérer les champs du gérant avec toutes les variantes
+  const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : '[NOM]';
+  const gerantAdresse = gerant?.adresse || gerant?.address || '[ADRESSE]';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITE]';
+  const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE]';
+  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU]';
   
   return `
 RÉPUBLIQUE DE CÔTE D'IVOIRE
@@ -1088,10 +1146,10 @@ __________________________________________________________________________
 
 DIRIGEANT SOCIAL
 
-Nom et Prenoms : ${gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : '[NOM]'}
-Adresse : ${gerant?.adresse || '[ADRESSE]'}
-Nationalite : ${gerant?.nationalite || '[NATIONALITE]'}
-Date et lieu de naissance : ${gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE]'} a ${gerant?.lieu_naissance || '[LIEU]'}
+Nom et Prenoms : ${gerantNom}
+Adresse : ${gerantAdresse}
+Nationalite : ${gerantNationalite}
+Date et lieu de naissance : ${gerantDateNaissance} a ${gerantLieuNaissance}
 Regime matrimonial : [REGIME]
 Fonction : GERANT
 
