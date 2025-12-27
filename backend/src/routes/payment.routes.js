@@ -1,25 +1,31 @@
 import express from 'express';
-import { protect, adminOnly } from '../middleware/auth.js';
+import { body } from 'express-validator';
+import { validate } from '../middleware/validate.js';
+import { protect } from '../middleware/auth.js';
 import {
-  getMyPayments,
-  getPaymentStats,
-  createPayment,
-  updatePaymentStatus,
-  downloadReceipt,
-  getAllPayments
+  initiatePayment,
+  checkPaymentStatus,
+  checkCompanyPayment,
+  paymentWebhook,
+  getPaymentHistory
 } from '../controllers/payment.controller.js';
 
 const router = express.Router();
 
-// Routes protégées (utilisateur connecté)
-router.get('/my', protect, getMyPayments);
-router.get('/stats', protect, getPaymentStats);
-router.post('/', protect, createPayment);
-router.get('/:id/receipt', protect, downloadReceipt);
+// Validation pour initier un paiement
+const initiatePaymentValidation = [
+  body('company_id').isInt().withMessage('company_id doit être un entier'),
+  body('amount').isFloat({ min: 0 }).withMessage('amount doit être un nombre positif'),
+  body('payment_method').optional().isIn(['mobile_money', 'card', 'bank_transfer']).withMessage('Méthode de paiement invalide')
+];
 
-// Routes admin
-router.get('/', protect, adminOnly, getAllPayments);
-router.put('/:id/status', protect, updatePaymentStatus);
+// Routes protégées
+router.post('/initiate', protect, initiatePaymentValidation, validate, initiatePayment);
+router.get('/:id/status', protect, checkPaymentStatus);
+router.get('/company/:companyId/check', protect, checkCompanyPayment);
+router.get('/history', protect, getPaymentHistory);
+
+// Webhook public (avec vérification de signature à ajouter)
+router.post('/webhook', paymentWebhook);
 
 export default router;
-

@@ -211,6 +211,39 @@ export function viewDocumentUrl(id: number) {
   return `${API_URL}/api/documents/${id}/view`;
 }
 
+// ============================================
+// API Paiements
+// ============================================
+
+export async function initiatePaymentApi(token: string, data: { company_id: number; amount: number; payment_method?: string }) {
+  return await apiRequest('/api/payments/initiate', {
+    method: 'POST',
+    token,
+    body: data
+  });
+}
+
+export async function checkPaymentStatusApi(token: string, paymentId: number) {
+  return await apiRequest(`/api/payments/${paymentId}/status`, {
+    method: 'GET',
+    token
+  });
+}
+
+export async function checkCompanyPaymentApi(token: string, companyId: number) {
+  return await apiRequest(`/api/payments/company/${companyId}/check`, {
+    method: 'GET',
+    token
+  });
+}
+
+export async function getPaymentHistoryApi(token: string) {
+  return await apiRequest('/api/payments/history', {
+    method: 'GET',
+    token
+  });
+}
+
 export async function viewDocumentApi(token: string, id: number) {
   return apiRequestBlob(`/api/documents/${id}/view`, {
     method: "GET",

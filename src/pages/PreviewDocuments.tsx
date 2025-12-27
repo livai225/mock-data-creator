@@ -488,7 +488,7 @@ export default function PreviewDocuments() {
 
     setIsSubmitting(true);
     try {
-      // 1. Créer l'entreprise
+      // 1. Créer l'entreprise (sans paiement requis)
       const companyResult = await createCompanyApi(token!, payload);
       
       // 2. Récupérer l'ID de l'entreprise créée
@@ -501,6 +501,7 @@ export default function PreviewDocuments() {
       setCompanyId(newCompanyId);
 
       // 3. Générer les documents avec l'ID de l'entreprise (PDF et Word)
+      // Les documents sont générés mais le paiement sera requis pour télécharger
       await generateDocumentsApi(token!, { 
         companyId: newCompanyId,
         docs,
@@ -508,7 +509,7 @@ export default function PreviewDocuments() {
       });
       
       setDocumentsGenerated(true);
-      toast.success("Documents générés avec succès !");
+      toast.success("Documents générés avec succès ! Vous pourrez les télécharger après paiement sur le tableau de bord.");
       
       // Attendre un peu pour que les documents soient bien sauvegardés
       await new Promise(resolve => setTimeout(resolve, 1000));

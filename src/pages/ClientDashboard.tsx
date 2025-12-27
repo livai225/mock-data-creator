@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircle2, CheckCircle, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp, RefreshCw, User, CreditCard } from "lucide-react";
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { useAuth } from "@/auth/AuthContext";
-import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, deleteCompanyDocumentsApi, type UserDocument } from "@/lib/api";
+import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, deleteCompanyDocumentsApi, checkCompanyPaymentApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { toast } from "sonner";
+import { PaymentModal } from "@/components/payment/PaymentModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +41,9 @@ export default function ClientDashboard() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | "all">("all");
   const [expandedCompanies, setExpandedCompanies] = useState<Set<number>>(new Set());
   const [regeneratingCompanyId, setRegeneratingCompanyId] = useState<number | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedCompanyForPayment, setSelectedCompanyForPayment] = useState<{ id: number; amount: number } | null>(null);
+  const [companyPaymentStatus, setCompanyPaymentStatus] = useState<Record<number, boolean>>({});
 
   // Protection de la route
   useEffect(() => {
@@ -164,16 +168,45 @@ export default function ClientDashboard() {
     }
   };
 
+  const checkPaymentBeforeAction = async (companyId: number | null, action: () => void) => {
+    if (!token || !companyId) return;
+
+    // Vérifier le statut de paiement
+    try {
+      const response = await checkCompanyPaymentApi(token, companyId);
+      if (response.success && response.data) {
+        const canDownload = response.data.can_download;
+        
+        if (canDownload) {
+          // Paiement effectué, autoriser l'action
+          action();
+        } else {
+          // Pas de paiement, afficher le popup
+          const company = companies.find(c => c.id === companyId);
+          const amount = company?.payment_amount || 0;
+          setSelectedCompanyForPayment({ id: companyId, amount });
+          setShowPaymentModal(true);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur vérification paiement:", error);
+      toast.error("Erreur lors de la vérification du paiement");
+    }
+  };
+
   const handlePreview = async (doc: UserDocument) => {
     if (!token) return;
-    try {
-      const blob = await viewDocumentApi(token, doc.id);
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank", "noopener,noreferrer");
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch (error) {
-      toast.error("Impossible de prévisualiser le document");
-    }
+    
+    await checkPaymentBeforeAction(doc.company_id || null, async () => {
+      try {
+        const blob = await viewDocumentApi(token, doc.id);
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank", "noopener,noreferrer");
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      } catch (error) {
+        toast.error("Impossible de prévisualiser le document");
+      }
+    });
   };
 
   useEffect(() => {
@@ -182,22 +215,42 @@ export default function ClientDashboard() {
 
   const handleDownload = async (doc: UserDocument) => {
     if (!token) return;
-    setDownloadingId(doc.id);
-    try {
-      const blob = await downloadDocumentApi(token, doc.id);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = doc.file_name || `${doc.doc_name}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      toast.error("Erreur lors du téléchargement");
-    } finally {
-      setDownloadingId(null);
+    
+    await checkPaymentBeforeAction(doc.company_id || null, async () => {
+      setDownloadingId(doc.id);
+      try {
+        const blob = await downloadDocumentApi(token, doc.id);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = doc.file_name || `${doc.doc_name}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        toast.error("Erreur lors du téléchargement");
+      } finally {
+        setDownloadingId(null);
+      }
+    });
+  };
+
+  const handlePaymentSuccess = async () => {
+    if (selectedCompanyForPayment) {
+      // Marquer la société comme payée dans le state
+      setCompanyPaymentStatus(prev => ({
+        ...prev,
+        [selectedCompanyForPayment.id]: true
+      }));
+      
+      // Recharger les données pour mettre à jour les statuts
+      await loadData();
+      
+      toast.success("Paiement confirmé ! Vous pouvez maintenant télécharger vos documents");
     }
+    setShowPaymentModal(false);
+    setSelectedCompanyForPayment(null);
   };
 
   const handleDeleteClick = (companyId: number) => {
@@ -621,6 +674,20 @@ export default function ClientDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+        {/* Payment Modal */}
+        {selectedCompanyForPayment && (
+          <PaymentModal
+            open={showPaymentModal}
+            onClose={() => {
+              setShowPaymentModal(false);
+              setSelectedCompanyForPayment(null);
+            }}
+            companyId={selectedCompanyForPayment.id}
+            amount={selectedCompanyForPayment.amount}
+            onPaymentSuccess={handlePaymentSuccess}
+          />
+        )}
+      </div>
     </Layout>
   );
 }

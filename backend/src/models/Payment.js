@@ -1,128 +1,104 @@
 import { query } from '../config/database.js';
+import crypto from 'crypto';
 
 class Payment {
   // Créer un paiement
   static async create(paymentData) {
     const {
-      userId,
-      companyId,
+      user_id,
+      company_id = null,
       amount,
-      description,
-      paymentMethod = 'pending',
+      currency = 'FCFA',
+      payment_method = 'mobile_money',
       status = 'pending'
     } = paymentData;
-
+    
+    // Générer une référence unique
+    const payment_reference = `PAY-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+    
     const sql = `
-      INSERT INTO payments (user_id, company_id, amount, description, payment_method, status)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO payments (user_id, company_id, amount, currency, payment_method, payment_reference, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     
-    const result = await query(sql, [userId, companyId, amount, description, paymentMethod, status]);
+    const result = await query(sql, [
+      user_id,
+      company_id,
+      amount,
+      currency,
+      payment_method,
+      payment_reference,
+      status
+    ]);
+    
     return result.insertId;
   }
 
-  // Trouver par ID
+  // Trouver un paiement par ID
   static async findById(id) {
     const sql = 'SELECT * FROM payments WHERE id = ?';
-    const results = await query(sql, [id]);
-    return results[0] || null;
+    const rows = await query(sql, [id]);
+    return rows[0] || null;
   }
 
-  // Trouver par utilisateur
+  // Trouver un paiement par référence
+  static async findByReference(reference) {
+    const sql = 'SELECT * FROM payments WHERE payment_reference = ?';
+    const rows = await query(sql, [reference]);
+    return rows[0] || null;
+  }
+
+  // Trouver les paiements d'un utilisateur
   static async findByUserId(userId) {
-    const sql = `
-      SELECT p.*, c.company_name 
-      FROM payments p 
-      LEFT JOIN companies c ON p.company_id = c.id 
-      WHERE p.user_id = ? 
-      ORDER BY p.created_at DESC
-    `;
+    const sql = 'SELECT * FROM payments WHERE user_id = ? ORDER BY created_at DESC';
     return await query(sql, [userId]);
   }
 
-  // Trouver par entreprise
+  // Trouver les paiements d'une entreprise
   static async findByCompanyId(companyId) {
     const sql = 'SELECT * FROM payments WHERE company_id = ? ORDER BY created_at DESC';
     return await query(sql, [companyId]);
   }
 
-  // Mettre à jour le statut
-  static async updateStatus(id, status, paymentReference = null, paymentDate = null) {
-    let sql = 'UPDATE payments SET status = ?';
-    const params = [status];
-
-    if (paymentReference) {
-      sql += ', payment_reference = ?';
-      params.push(paymentReference);
-    }
-
-    if (paymentDate) {
-      sql += ', payment_date = ?';
-      params.push(paymentDate);
-    }
-
-    if (status === 'completed') {
-      sql += ', payment_date = COALESCE(payment_date, NOW())';
-    }
-
-    sql += ', updated_at = NOW() WHERE id = ?';
-    params.push(id);
-
-    const result = await query(sql, params);
-    return result.affectedRows > 0;
-  }
-
-  // Statistiques utilisateur
-  static async getUserStats(userId) {
+  // Mettre à jour le statut d'un paiement
+  static async updateStatus(id, status, transactionId = null, metadata = null) {
     const sql = `
-      SELECT 
-        COUNT(*) as total,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
-        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_amount
-      FROM payments 
-      WHERE user_id = ?
+      UPDATE payments 
+      SET status = ?, 
+          transaction_id = ?,
+          metadata = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
     `;
-    const results = await query(sql, [userId]);
-    return results[0] || { total: 0, pending: 0, completed: 0, total_amount: 0 };
+    
+    const metadataJson = metadata ? JSON.stringify(metadata) : null;
+    await query(sql, [status, transactionId, metadataJson, id]);
+    
+    return await this.findById(id);
   }
 
-  // Tous les paiements (admin)
-  static async findAll(filters = {}) {
-    let sql = `
-      SELECT p.*, c.company_name, u.email as user_email, u.first_name, u.last_name
-      FROM payments p 
-      LEFT JOIN companies c ON p.company_id = c.id 
-      LEFT JOIN users u ON p.user_id = u.id
-      WHERE 1=1
+  // Vérifier si une entreprise a un paiement validé
+  static async hasValidPayment(companyId) {
+    const sql = `
+      SELECT COUNT(*) as count 
+      FROM payments 
+      WHERE company_id = ? AND status = 'completed'
     `;
-    const params = [];
+    const rows = await query(sql, [companyId]);
+    return rows[0].count > 0;
+  }
 
-    if (filters.status) {
-      sql += ' AND p.status = ?';
-      params.push(filters.status);
-    }
-
-    if (filters.userId) {
-      sql += ' AND p.user_id = ?';
-      params.push(filters.userId);
-    }
-
-    sql += ' ORDER BY p.created_at DESC';
-
-    if (filters.limit) {
-      sql += ' LIMIT ?';
-      params.push(parseInt(filters.limit));
-    }
-
-    if (filters.offset) {
-      sql += ' OFFSET ?';
-      params.push(parseInt(filters.offset));
-    }
-
-    return await query(sql, params);
+  // Obtenir le dernier paiement validé d'une entreprise
+  static async getLastValidPayment(companyId) {
+    const sql = `
+      SELECT * FROM payments 
+      WHERE company_id = ? AND status = 'completed'
+      ORDER BY updated_at DESC
+      LIMIT 1
+    `;
+    const rows = await query(sql, [companyId]);
+    return rows[0] || null;
   }
 }
 
 export default Payment;
-

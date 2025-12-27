@@ -1,176 +1,192 @@
-import { AppError } from '../middleware/errorHandler.js';
 import Payment from '../models/Payment.js';
 import Company from '../models/Company.js';
+import { AppError } from '../utils/errorHandler.js';
 
-// @desc    Obtenir mes paiements
-// @route   GET /api/payments/my
+// @desc    Initier un paiement
+// @route   POST /api/payments/initiate
 // @access  Private
-export const getMyPayments = async (req, res, next) => {
+export const initiatePayment = async (req, res, next) => {
   try {
-    const payments = await Payment.findByUserId(req.user.id);
-    
-    res.status(200).json({
-      success: true,
-      data: payments
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+    const { company_id, amount, payment_method = 'mobile_money' } = req.body;
+    const userId = req.user.id;
 
-// @desc    Obtenir les statistiques de paiements
-// @route   GET /api/payments/stats
-// @access  Private
-export const getPaymentStats = async (req, res, next) => {
-  try {
-    const stats = await Payment.getUserStats(req.user.id);
-    
-    res.status(200).json({
-      success: true,
-      data: stats
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Créer un paiement pour une entreprise
-// @route   POST /api/payments
-// @access  Private
-export const createPayment = async (req, res, next) => {
-  try {
-    const { companyId, amount, description, paymentMethod } = req.body;
-
-    // Vérifier que l'entreprise existe et appartient à l'utilisateur
-    if (companyId) {
-      const company = await Company.findById(companyId);
-      if (!company) {
-        return next(new AppError('Entreprise non trouvée', 404));
-      }
-      if (company.user_id !== req.user.id && req.user.role !== 'admin') {
-        return next(new AppError('Accès non autorisé', 403));
-      }
+    if (!company_id || !amount) {
+      return next(new AppError('company_id et amount sont requis', 400));
     }
 
+    // Vérifier que l'entreprise appartient à l'utilisateur
+    const company = await Company.findById(company_id);
+    if (!company) {
+      return next(new AppError('Entreprise non trouvée', 404));
+    }
+
+    if (company.user_id !== userId) {
+      return next(new AppError('Accès non autorisé', 403));
+    }
+
+    // Vérifier si un paiement valide existe déjà
+    const hasValidPayment = await Payment.hasValidPayment(company_id);
+    if (hasValidPayment) {
+      return res.status(200).json({
+        success: true,
+        message: 'Paiement déjà effectué pour cette entreprise',
+        data: {
+          payment: await Payment.getLastValidPayment(company_id),
+          already_paid: true
+        }
+      });
+    }
+
+    // Créer un nouveau paiement
     const paymentId = await Payment.create({
-      userId: req.user.id,
-      companyId,
-      amount,
-      description: description || 'Frais de création d\'entreprise',
-      paymentMethod: paymentMethod || 'pending'
+      user_id: userId,
+      company_id,
+      amount: parseFloat(amount),
+      currency: 'FCFA',
+      payment_method
     });
 
     const payment = await Payment.findById(paymentId);
 
+    // TODO: Intégrer avec Flutterwave/Paystack ici
+    // Pour l'instant, on retourne les infos de paiement
+    // L'utilisateur devra confirmer manuellement ou via webhook
+
     res.status(201).json({
       success: true,
-      message: 'Paiement créé avec succès',
-      data: payment
+      message: 'Paiement initié avec succès',
+      data: {
+        payment,
+        payment_url: null, // Sera rempli avec l'URL de paiement Flutterwave/Paystack
+        instructions: {
+          method: payment_method,
+          amount: payment.amount,
+          currency: payment.currency,
+          reference: payment.payment_reference
+        }
+      }
     });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Mettre à jour le statut d'un paiement
-// @route   PUT /api/payments/:id/status
-// @access  Private (Admin only pour compléter)
-export const updatePaymentStatus = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { status, paymentReference } = req.body;
-
-    const payment = await Payment.findById(id);
-    if (!payment) {
-      return next(new AppError('Paiement non trouvé', 404));
-    }
-
-    // Seul l'admin peut marquer comme complété
-    if (status === 'completed' && req.user.role !== 'admin') {
-      return next(new AppError('Seul un administrateur peut valider un paiement', 403));
-    }
-
-    // Vérifier que l'utilisateur est propriétaire ou admin
-    if (payment.user_id !== req.user.id && req.user.role !== 'admin') {
-      return next(new AppError('Accès non autorisé', 403));
-    }
-
-    await Payment.updateStatus(id, status, paymentReference);
-
-    // Si le paiement est complété, mettre à jour le statut de paiement de l'entreprise
-    if (status === 'completed' && payment.company_id) {
-      await Company.updatePayment(payment.company_id, {
-        paymentStatus: 'paid',
-        paymentReference,
-        paymentDate: new Date()
-      });
-    }
-
-    const updatedPayment = await Payment.findById(id);
-
-    res.status(200).json({
-      success: true,
-      message: 'Statut de paiement mis à jour',
-      data: updatedPayment
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Télécharger le reçu de paiement
-// @route   GET /api/payments/:id/receipt
+// @desc    Vérifier le statut d'un paiement
+// @route   GET /api/payments/:id/status
 // @access  Private
-export const downloadReceipt = async (req, res, next) => {
+export const checkPaymentStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
 
     const payment = await Payment.findById(id);
     if (!payment) {
       return next(new AppError('Paiement non trouvé', 404));
     }
 
-    // Vérifier que l'utilisateur est propriétaire ou admin
-    if (payment.user_id !== req.user.id && req.user.role !== 'admin') {
+    if (payment.user_id !== userId) {
       return next(new AppError('Accès non autorisé', 403));
     }
 
-    if (payment.status !== 'completed') {
-      return next(new AppError('Le reçu n\'est disponible que pour les paiements complétés', 400));
-    }
-
-    // TODO: Générer un vrai PDF de reçu
-    // Pour l'instant, retourner un message
-    res.status(200).json({
+    res.json({
       success: true,
-      message: 'Fonctionnalité de téléchargement de reçu en cours de développement',
-      data: payment
+      data: {
+        payment,
+        is_paid: payment.status === 'completed'
+      }
     });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Obtenir tous les paiements (Admin)
-// @route   GET /api/payments
-// @access  Private/Admin
-export const getAllPayments = async (req, res, next) => {
+// @desc    Vérifier si une entreprise a un paiement validé
+// @route   GET /api/payments/company/:companyId/check
+// @access  Private
+export const checkCompanyPayment = async (req, res, next) => {
   try {
-    const { status, limit, offset } = req.query;
-    
-    const payments = await Payment.findAll({
-      status,
-      limit: limit || 50,
-      offset: offset || 0
-    });
+    const { companyId } = req.params;
+    const userId = req.user.id;
 
-    res.status(200).json({
+    // Vérifier que l'entreprise appartient à l'utilisateur
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return next(new AppError('Entreprise non trouvée', 404));
+    }
+
+    if (company.user_id !== userId) {
+      return next(new AppError('Accès non autorisé', 403));
+    }
+
+    const hasValidPayment = await Payment.hasValidPayment(companyId);
+    const lastPayment = hasValidPayment ? await Payment.getLastValidPayment(companyId) : null;
+
+    res.json({
       success: true,
-      count: payments.length,
+      data: {
+        has_payment: hasValidPayment,
+        payment: lastPayment,
+        can_download: hasValidPayment
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Webhook pour confirmer un paiement (appelé par Flutterwave/Paystack)
+// @route   POST /api/payments/webhook
+// @access  Public (avec vérification de signature)
+export const paymentWebhook = async (req, res, next) => {
+  try {
+    const { reference, transaction_id, status, amount, metadata } = req.body;
+
+    // TODO: Vérifier la signature du webhook (Flutterwave/Paystack)
+    // Pour l'instant, on fait confiance (à sécuriser en production)
+
+    const payment = await Payment.findByReference(reference);
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Paiement non trouvé' });
+    }
+
+    // Mettre à jour le statut du paiement
+    let paymentStatus = 'pending';
+    if (status === 'successful' || status === 'completed') {
+      paymentStatus = 'completed';
+    } else if (status === 'failed') {
+      paymentStatus = 'failed';
+    }
+
+    await Payment.updateStatus(payment.id, paymentStatus, transaction_id, metadata);
+
+    // Mettre à jour le statut de paiement de l'entreprise
+    if (paymentStatus === 'completed' && payment.company_id) {
+      await Company.updatePaymentStatus(payment.company_id, 'paid', payment.amount, payment.payment_reference);
+    }
+
+    res.json({
+      success: true,
+      message: 'Webhook traité avec succès'
+    });
+  } catch (error) {
+    console.error('Erreur webhook paiement:', error);
+    next(error);
+  }
+};
+
+// @desc    Obtenir l'historique des paiements d'un utilisateur
+// @route   GET /api/payments/history
+// @access  Private
+export const getPaymentHistory = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const payments = await Payment.findByUserId(userId);
+
+    res.json({
+      success: true,
       data: payments
     });
   } catch (error) {
     next(error);
   }
 };
-

@@ -310,6 +310,32 @@ class Company {
     const result = await query(sql, [id]);
     return result.affectedRows > 0;
   }
+
+  // Mettre à jour le statut de paiement
+  static async updatePaymentStatus(id, paymentStatus, paymentAmount = null, paymentReference = null) {
+    const fields = ['payment_status = ?'];
+    const values = [paymentStatus];
+
+    if (paymentAmount !== null) {
+      fields.push('payment_amount = ?');
+      values.push(paymentAmount);
+    }
+
+    if (paymentReference !== null) {
+      fields.push('payment_reference = ?');
+      values.push(paymentReference);
+    }
+
+    if (paymentStatus === 'paid') {
+      fields.push('payment_date = NOW()');
+    }
+
+    values.push(id);
+    const sql = `UPDATE companies SET ${fields.join(', ')} WHERE id = ?`;
+    
+    const result = await query(sql, values);
+    return result.affectedRows > 0;
+  }
 }
 
 export default Company;
