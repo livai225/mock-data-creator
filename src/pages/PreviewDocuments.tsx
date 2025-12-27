@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,8 +58,109 @@ export default function PreviewDocuments() {
   const [documentUrls, setDocumentUrls] = useState<Record<number, string>>({});
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({}); // URLs blob pour prévisualisation
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const { formData, companyType, payload, price, docs, companyTypeName } = location.state || {};
+
+  // Protections contre la copie et l'enregistrement
+  useEffect(() => {
+    // Désactiver le clic droit
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      toast.error("L'utilisation du clic droit est désactivée sur cette page");
+      return false;
+    };
+
+    // Désactiver les raccourcis clavier (Ctrl+C, Ctrl+S, Ctrl+A, Ctrl+P, F12, etc.)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+C, Ctrl+V, Ctrl+A, Ctrl+S, Ctrl+P
+      if (e.ctrlKey && ['c', 'v', 'a', 's', 'p', 'u'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+        toast.error("Cette action n'est pas autorisée");
+        return false;
+      }
+      // F12 (DevTools)
+      if (e.key === 'F12') {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (DevTools)
+      if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+U (View Source)
+      if (e.ctrlKey && e.key.toLowerCase() === 'u') {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    // Désactiver la sélection de texte
+    const handleSelectStart = (e: Event) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Désactiver le drag and drop
+    const handleDragStart = (e: DragEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Ajouter les event listeners
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('selectstart', handleSelectStart);
+    document.addEventListener('dragstart', handleDragStart);
+
+    // Nettoyer les event listeners au démontage
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('selectstart', handleSelectStart);
+      document.removeEventListener('dragstart', handleDragStart);
+    };
+  }, []);
+
+  // Ajouter des styles CSS pour désactiver la sélection
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      body {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+      }
+      iframe {
+        pointer-events: auto;
+      }
+      .preview-container {
+        position: relative;
+      }
+      .preview-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
+      .preview-container iframe {
+        position: relative;
+        z-index: 0;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   useEffect(() => {
     if (!formData || !companyType) {
@@ -333,7 +434,7 @@ export default function PreviewDocuments() {
   };
 
   const handlePrint = () => {
-    window.print();
+    toast.info("L'impression est désactivée. Les documents seront disponibles après validation et génération.");
   };
 
   const allDocsValidated = validatedDocs.length === documentTabs.length;
@@ -365,7 +466,13 @@ export default function PreviewDocuments() {
                   <Eye className="h-4 w-4 mr-1" />
                   {validatedDocs.length}/{documentTabs.length} vérifiés
                 </Badge>
-                <Button variant="outline" onClick={handlePrint} className="hidden md:flex">
+                <Button 
+                  variant="outline" 
+                  onClick={handlePrint} 
+                  className="hidden md:flex"
+                  disabled
+                  title="L'impression est désactivée sur cette page"
+                >
                   <Printer className="h-4 w-4 mr-2" />
                   Imprimer
                 </Button>
@@ -464,18 +571,28 @@ export default function PreviewDocuments() {
             {/* Main content - Preview */}
             <div className="space-y-4">
               {/* Warning banner */}
-              {!allDocsValidated && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-amber-800">Vérifiez attentivement vos informations</p>
-                    <p className="text-sm text-amber-700">
-                      Les données en <span className="bg-yellow-200 px-1">surbrillance jaune</span> sont les informations que vous avez saisies. 
-                      Assurez-vous qu'elles sont correctes avant de valider.
-                    </p>
+              <div className="space-y-3">
+                {!allDocsValidated && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-amber-800">Vérifiez attentivement vos informations</p>
+                      <p className="text-sm text-amber-700">
+                        Les données en <span className="bg-yellow-200 px-1">surbrillance jaune</span> sont les informations que vous avez saisies. 
+                        Assurez-vous qu'elles sont correctes avant de valider.
+                      </p>
+                    </div>
                   </div>
+                )}
+                {/* Protection notice */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-blue-700">
+                    <strong>Protection activée :</strong> La copie et l'enregistrement sont désactivés sur cette page. 
+                    Les documents seront disponibles après validation et génération.
+                  </p>
                 </div>
-              )}
+              </div>
 
               {/* Document Preview */}
               <Card className="overflow-hidden">
@@ -497,120 +614,136 @@ export default function PreviewDocuments() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <ScrollArea className="h-[70vh]">
-                    {isLoadingPreview ? (
-                      // Afficher un loader pendant la génération de la prévisualisation
-                      <div className="p-8 text-center">
-                        <p className="text-muted-foreground mb-2">
-                          Génération de la prévisualisation...
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Veuillez patienter, les documents sont en cours de génération avec les derniers templates.
-                        </p>
-                      </div>
-                    ) : documentsGenerated ? (
-                      // Afficher les documents PDF générés (après validation)
-                      <div className="h-full">
-                        {(() => {
-                          // Trouver le document PDF correspondant à l'onglet actif
-                          const generatedDoc = generatedDocuments.find((gDoc) => {
-                            const docName = gDoc.doc_name.toLowerCase();
-                            // Patterns de correspondance plus flexibles
-                            if (activeTab === 'statuts') {
-                              return docName.includes('statuts') || docName.includes('statut');
-                            }
-                            if (activeTab === 'bail') {
-                              return docName.includes('bail') || docName.includes('location') || docName.includes('contrat de bail');
-                            }
-                            if (activeTab === 'cepici') {
-                              return docName.includes('cepici') || docName.includes('formulaire unique') || docName.includes('formulaire cepici');
-                            }
-                            if (activeTab === 'gerants') {
-                              return docName.includes('gérant') || docName.includes('gerant') || docName.includes('dirigeant') || 
-                                     docName.includes('liste des') || docName.includes('liste de');
-                            }
-                            if (activeTab === 'declaration') {
-                              return (docName.includes('déclaration') || docName.includes('declaration')) && 
-                                     (docName.includes('honneur') || docName.includes('greffe'));
-                            }
-                            if (activeTab === 'dsv') {
-                              return docName.includes('dsv') || 
-                                     (docName.includes('souscription') && docName.includes('versement')) ||
-                                     docName.includes('déclaration de souscription');
-                            }
-                            return false;
-                          });
-                          
-                          console.log(`🔍 Recherche document pour onglet "${activeTab}":`, {
-                            documentsDisponibles: generatedDocuments.map(d => d.doc_name),
-                            documentTrouve: generatedDoc ? generatedDoc.doc_name : 'Aucun'
-                          });
+                    <div ref={previewContainerRef} className="preview-container h-full">
+                      {isLoadingPreview ? (
+                        // Afficher un loader pendant la génération de la prévisualisation
+                        <div className="p-8 text-center">
+                          <p className="text-muted-foreground mb-2">
+                            Génération de la prévisualisation...
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Veuillez patienter, les documents sont en cours de génération avec les derniers templates.
+                          </p>
+                        </div>
+                      ) : documentsGenerated ? (
+                        // Afficher les documents PDF générés (après validation)
+                        <div className="h-full">
+                          {(() => {
+                            // Trouver le document PDF correspondant à l'onglet actif
+                            const generatedDoc = generatedDocuments.find((gDoc) => {
+                              const docName = gDoc.doc_name.toLowerCase();
+                              // Patterns de correspondance plus flexibles
+                              if (activeTab === 'statuts') {
+                                return docName.includes('statuts') || docName.includes('statut');
+                              }
+                              if (activeTab === 'bail') {
+                                return docName.includes('bail') || docName.includes('location') || docName.includes('contrat de bail');
+                              }
+                              if (activeTab === 'cepici') {
+                                return docName.includes('cepici') || docName.includes('formulaire unique') || docName.includes('formulaire cepici');
+                              }
+                              if (activeTab === 'gerants') {
+                                return docName.includes('gérant') || docName.includes('gerant') || docName.includes('dirigeant') || 
+                                       docName.includes('liste des') || docName.includes('liste de');
+                              }
+                              if (activeTab === 'declaration') {
+                                return (docName.includes('déclaration') || docName.includes('declaration')) && 
+                                       (docName.includes('honneur') || docName.includes('greffe'));
+                              }
+                              if (activeTab === 'dsv') {
+                                return docName.includes('dsv') || 
+                                       (docName.includes('souscription') && docName.includes('versement')) ||
+                                       docName.includes('déclaration de souscription');
+                              }
+                              return false;
+                            });
+                            
+                            console.log(`🔍 Recherche document pour onglet "${activeTab}":`, {
+                              documentsDisponibles: generatedDocuments.map(d => d.doc_name),
+                              documentTrouve: generatedDoc ? generatedDoc.doc_name : 'Aucun'
+                            });
 
-                          if (generatedDoc && documentUrls[generatedDoc.id]) {
-                            // Afficher le PDF généré dans un iframe
-                            return (
-                              <div key={activeTab} className="h-full w-full">
-                                <iframe
-                                  src={documentUrls[generatedDoc.id]}
-                                  className="w-full h-[70vh] border-0"
-                                  title={documentTabs.find(t => t.id === activeTab)?.label}
-                                />
-                              </div>
-                            );
-                          } else if (generatedDocuments.length > 0) {
-                            // Documents chargés mais pas trouvé pour cet onglet - afficher un message
-                            return (
-                              <div className="p-8 text-center">
-                                <p className="text-muted-foreground mb-2">
-                                  Document en cours de chargement...
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  Documents trouvés: {generatedDocuments.length}
-                                  {generatedDoc ? ` (${generatedDoc.doc_name})` : ''}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-2">
-                                  Onglet actif: {activeTab}
-                                </p>
-                              </div>
-                            );
-                          } else {
-                            // Aucun document chargé - fallback sur composant React
-                            const DocComponent = documentTabs.find(t => t.id === activeTab)?.component;
-                            if (DocComponent) {
+                            if (generatedDoc && documentUrls[generatedDoc.id]) {
+                              // Afficher le PDF généré dans un iframe avec protections
                               return (
-                                <div className="p-6 bg-gray-100">
-                                  <DocComponent formData={formData} companyType={companyType} />
+                                <div key={activeTab} className="h-full w-full relative">
+                                  <iframe
+                                    src={documentUrls[generatedDoc.id]}
+                                    className="w-full h-[70vh] border-0 pointer-events-auto"
+                                    title={documentTabs.find(t => t.id === activeTab)?.label}
+                                    onContextMenu={(e) => e.preventDefault()}
+                                  />
+                                  {/* Overlay invisible pour empêcher l'interaction directe */}
+                                  <div 
+                                    className="absolute inset-0 z-10 pointer-events-none"
+                                    onContextMenu={(e) => e.preventDefault()}
+                                    onDragStart={(e) => e.preventDefault()}
+                                  />
                                 </div>
                               );
+                            } else if (generatedDocuments.length > 0) {
+                              // Documents chargés mais pas trouvé pour cet onglet - afficher un message
+                              return (
+                                <div className="p-8 text-center">
+                                  <p className="text-muted-foreground mb-2">
+                                    Document en cours de chargement...
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Documents trouvés: {generatedDocuments.length}
+                                    {generatedDoc ? ` (${generatedDoc.doc_name})` : ''}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground mt-2">
+                                    Onglet actif: {activeTab}
+                                  </p>
+                                </div>
+                              );
+                            } else {
+                              // Aucun document chargé - fallback sur composant React
+                              const DocComponent = documentTabs.find(t => t.id === activeTab)?.component;
+                              if (DocComponent) {
+                                return (
+                                  <div className="p-6 bg-gray-100">
+                                    <DocComponent formData={formData} companyType={companyType} />
+                                  </div>
+                                );
+                              }
+                              return null;
                             }
-                            return null;
-                          }
-                        })()}
-                      </div>
-                    ) : previewUrls[activeTab] ? (
-                      // Afficher la prévisualisation générée depuis le backend
-                      <div className="h-full w-full">
-                        <iframe
-                          src={previewUrls[activeTab]}
-                          className="w-full h-[70vh] border-0"
-                          title={documentTabs.find(t => t.id === activeTab)?.label}
-                        />
-                      </div>
-                    ) : (
-                      // Fallback: Afficher les composants React statiques (anciens)
-                      <div className="p-6 bg-gray-100">
-                        {documentTabs.map((doc) => {
-                          const DocComponent = doc.component;
-                          return (
-                            <div
-                              key={doc.id}
-                              className={activeTab === doc.id ? 'block' : 'hidden'}
-                            >
-                              <DocComponent formData={formData} companyType={companyType} />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                          })()}
+                        </div>
+                      ) : previewUrls[activeTab] ? (
+                        // Afficher la prévisualisation générée depuis le backend avec protections
+                        <div className="h-full w-full relative">
+                          <iframe
+                            src={previewUrls[activeTab]}
+                            className="w-full h-[70vh] border-0 pointer-events-auto"
+                            title={documentTabs.find(t => t.id === activeTab)?.label}
+                            onContextMenu={(e) => e.preventDefault()}
+                          />
+                          {/* Overlay invisible pour empêcher l'interaction directe */}
+                          <div 
+                            className="absolute inset-0 z-10 pointer-events-none"
+                            onContextMenu={(e) => e.preventDefault()}
+                            onDragStart={(e) => e.preventDefault()}
+                          />
+                        </div>
+                      ) : (
+                        // Fallback: Afficher les composants React statiques (anciens)
+                        <div className="p-6 bg-gray-100">
+                          {documentTabs.map((doc) => {
+                            const DocComponent = doc.component;
+                            return (
+                              <div
+                                key={doc.id}
+                                className={activeTab === doc.id ? 'block' : 'hidden'}
+                              >
+                                <DocComponent formData={formData} companyType={companyType} />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </ScrollArea>
                 </CardContent>
               </Card>
