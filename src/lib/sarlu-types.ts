@@ -18,6 +18,7 @@ export interface SARLUFormData {
   // Siège social
   adresseSiege: string;
   commune: string;
+  quartier: string;
   ville: string;
   lot: string;
   ilot: string;
@@ -83,6 +84,7 @@ export const defaultSARLUFormData: SARLUFormData = {
   
   adresseSiege: '',
   commune: '',
+  quartier: '',
   ville: 'Abidjan',
   lot: '',
   ilot: '',

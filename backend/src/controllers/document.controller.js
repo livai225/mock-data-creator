@@ -153,12 +153,30 @@ export const generateDocuments = async (req, res, next) => {
     }
     
     // Ajouter les détails de l'adresse si fournis
-    if (req.body.commune) additionalData.commune = req.body.commune;
-    if (req.body.quartier) additionalData.quartier = req.body.quartier;
-    if (req.body.lot) additionalData.lot = req.body.lot;
-    if (req.body.ilot) additionalData.ilot = req.body.ilot;
-    if (req.body.telephone) additionalData.telephone = req.body.telephone;
-    if (req.body.email) additionalData.email = req.body.email;
+    if (req.body.commune) {
+      additionalData.commune = req.body.commune;
+      company.commune = req.body.commune;
+    }
+    if (req.body.quartier) {
+      additionalData.quartier = req.body.quartier;
+      company.quartier = req.body.quartier;
+    }
+    if (req.body.lot) {
+      additionalData.lot = req.body.lot;
+      company.lot = req.body.lot;
+    }
+    if (req.body.ilot) {
+      additionalData.ilot = req.body.ilot;
+      company.ilot = req.body.ilot;
+    }
+    if (req.body.telephone) {
+      additionalData.telephone = req.body.telephone;
+      company.telephone = req.body.telephone;
+    }
+    if (req.body.email) {
+      additionalData.email = req.body.email;
+      company.email = req.body.email;
+    }
     
     console.log(`📋 Données additionnelles:`, JSON.stringify(additionalData, null, 2));
     

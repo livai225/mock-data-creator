@@ -752,6 +752,15 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
   // Récupérer lot et îlot
   const lotNumero = additionalData.lot || company.lot || '';
   const ilotNumero = additionalData.ilot || company.ilot || '';
+  
+  // Construire l'adresse complète avec lot et îlot si disponibles
+  let adresseComplete = company.address || '[ADRESSE]';
+  if (lotNumero || ilotNumero) {
+    const parts = [];
+    if (lotNumero) parts.push(`Lot ${lotNumero}`);
+    if (ilotNumero) parts.push(`Îlot ${ilotNumero}`);
+    adresseComplete = `${adresseComplete}${parts.length > 0 ? `, ${parts.join(', ')}` : ''}`;
+  }
 
   // Format selon le générateur : "Est nommé Gérant pour une durée de X ans (X ans)"
   const dureeText = dureeMandatAnnees ? `${dureeMandatAnnees} ans (${dureeMandatAnnees} ans)` : dureeMandatText;
@@ -771,7 +780,7 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
         <p class="article-content">« ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} »</p>
         
         <p class="article-content mt-10">
-          Au capital de ${(company.capital || 0).toLocaleString('fr-FR')} FCFA, située à ${escapeHtml(company.address || '[ADRESSE]')}
+          Au capital de ${(company.capital || 0).toLocaleString('fr-FR')} FCFA, située à ${escapeHtml(adresseComplete)}
         </p>
         
         <div class="separator"></div>
@@ -810,6 +819,7 @@ const generateDeclarationHonneurHTML = (company, managers) => {
   const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
   const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
   const gerantDomicile = gerant?.adresse || '[DOMICILE]';
+  const gerantProfession = gerant?.profession || '[PROFESSION]';
   const gerantFonction = 'Gérant'; // Fonction dans la société
   const societeNom = company.company_name || '[NOM SOCIÉTÉ]';
   const societeForme = company.company_type === 'SARLU' ? 'SARL U' : 'SARL';
@@ -851,6 +861,10 @@ const generateDeclarationHonneurHTML = (company, managers) => {
         
         <p class="article-content mt-10">
           Domicilié(e) à ${escapeHtml(gerantDomicile)}
+        </p>
+        
+        <p class="article-content mt-10">
+          De profession ${escapeHtml(gerantProfession)}
         </p>
         
         <p class="article-content mt-10">

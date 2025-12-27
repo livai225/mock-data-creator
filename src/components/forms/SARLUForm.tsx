@@ -69,20 +69,56 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
     const payload = {
       companyType: 'SARLU',
       companyName: formData.denominationSociale,
+      sigle: formData.sigle,
       activity: formData.objetSocial,
       capital: formData.nombreParts * formData.valeurPart,
+      capitalEnLettres: formData.capitalEnLettres,
+      duree_societe: formData.dureeAnnees,
       address: formData.adresseSiege,
+      commune: formData.commune,
+      quartier: formData.quartier || '',
+      lot: formData.lot,
+      ilot: formData.ilot,
       city: formData.ville,
+      telephone: formData.telephone || formData.mobile,
+      email: formData.email,
+      boitePostale: formData.boitePostale,
       gerant: `${formData.associeNom} ${formData.associePrenoms}`,
       paymentAmount: price,
+      chiffreAffairesPrev: formData.chiffreAffairesPrev,
+      // Informations du bailleur
+      bailleur: {
+        nom: formData.bailleurNom,
+        prenom: formData.bailleurPrenom,
+        adresse: formData.bailleurAdresse,
+        telephone: formData.bailleurContact,
+        loyerMensuel: formData.loyerMensuel,
+        cautionMois: formData.cautionMois,
+        avanceMois: formData.avanceMois,
+        dureeBailAnnees: formData.dureeBailAnnees,
+        dateDebutBail: formData.dateDebutBail
+      },
       associates: [{
         name: `${formData.associeNom} ${formData.associePrenoms}`,
-        parts: formData.nombreParts
+        parts: formData.nombreParts,
+        profession: formData.associeProfession,
+        nationalite: formData.associeNationalite,
+        dateNaissance: formData.associeDateNaissance,
+        lieuNaissance: formData.associeLieuNaissance,
+        adresse: formData.associeAdresseDomicile,
+        typeIdentite: formData.associeTypeIdentite,
+        numeroIdentite: formData.associeNumeroIdentite,
+        dateDelivranceId: formData.associeDateDelivranceId,
+        lieuDelivranceId: formData.associeLieuDelivranceId
       }],
       managers: [{
         nom: formData.associeNom,
         prenoms: formData.associePrenoms,
         dateNaissance: formData.associeDateNaissance,
+        lieuNaissance: formData.associeLieuNaissance,
+        nationalite: formData.associeNationalite,
+        profession: formData.associeProfession,
+        adresse: formData.associeAdresseDomicile,
         villeResidence: formData.associeVilleResidence,
         pereNom: formData.associePereNom,
         mereNom: formData.associeMereNom,
@@ -91,7 +127,8 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
         dateDelivranceId: formData.associeDateDelivranceId,
         dateValiditeId: formData.associeDateValiditeId,
         lieuDelivranceId: formData.associeLieuDelivranceId,
-        dureeMandat: formData.gerantDureeMandat
+        dureeMandat: formData.gerantDureeMandat,
+        dureeMandatAnnees: formData.gerantDureeMandat
       }],
       docs: docs,
       companyTypeName: companyTypeName
@@ -333,6 +370,16 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="quartier">Quartier</Label>
+              <Input
+                id="quartier"
+                placeholder="Ex: Angré Nouveau CHU"
+                value={formData.quartier || ''}
+                onChange={(e) => updateField('quartier' as any, e.target.value)}
+              />
+            </div>
+
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="lot">Lot</Label>
@@ -454,13 +501,54 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="associeVilleResidence">Ville de résidence *</Label>
+                <Label htmlFor="associeLieuNaissance">Lieu de naissance *</Label>
                 <Input
-                  id="associeVilleResidence"
-                  value={formData.associeVilleResidence}
-                  onChange={(e) => updateField('associeVilleResidence', e.target.value)}
+                  id="associeLieuNaissance"
+                  placeholder="Ex: Abidjan"
+                  value={formData.associeLieuNaissance}
+                  onChange={(e) => updateField('associeLieuNaissance', e.target.value)}
                 />
               </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="associeNationalite">Nationalité *</Label>
+                <Input
+                  id="associeNationalite"
+                  placeholder="Ex: Ivoirienne"
+                  value={formData.associeNationalite}
+                  onChange={(e) => updateField('associeNationalite', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="associeProfession">Profession *</Label>
+                <Input
+                  id="associeProfession"
+                  placeholder="Ex: Commerçant"
+                  value={formData.associeProfession}
+                  onChange={(e) => updateField('associeProfession', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="associeAdresseDomicile">Adresse de domicile *</Label>
+              <Input
+                id="associeAdresseDomicile"
+                placeholder="Ex: Cocody Angré, 7ème Tranche"
+                value={formData.associeAdresseDomicile}
+                onChange={(e) => updateField('associeAdresseDomicile', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="associeVilleResidence">Ville de résidence *</Label>
+              <Input
+                id="associeVilleResidence"
+                value={formData.associeVilleResidence}
+                onChange={(e) => updateField('associeVilleResidence', e.target.value)}
+              />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

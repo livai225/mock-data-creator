@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-12-21T11:20:54.291Z",
+  "timestamp": "2025-12-27T00:29:26.377Z",
   "summary": {
     "sarlUnipersonnelle": {
       "count": 6,
@@ -267,6 +267,57 @@
             "lineNumber": 28,
             "type": "legal_reference"
           }
+        ],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "Propriétaire, ci-après dénommé  « le bailleur »",
+            "line": 13,
+            "fullLine": "Propriétaire, ci-après dénommé  « le bailleur »"
+          },
+          {
+            "type": "keyword",
+            "value": "BAILLEUR",
+            "context": "taire, ci-après dénommé  « le bailleur »",
+            "line": 13,
+            "fullLine": "Propriétaire, ci-après dénommé  « le bailleur »"
+          },
+          {
+            "type": "keyword",
+            "value": "COMMUNE",
+            "context": "-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+            "line": 35,
+            "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation de la SOCIETE   «ATTA ADI ENTREPRISES, en Abrégée 2AE»"
+          },
+          {
+            "type": "keyword",
+            "value": "LOT",
+            "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exp",
+            "line": 35,
+            "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation de la SOCIETE   «ATTA ADI ENTREPRISES, en Abrégée 2AE»"
+          },
+          {
+            "type": "keyword",
+            "value": "ILOT",
+            "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation",
+            "line": 35,
+            "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation de la SOCIETE   «ATTA ADI ENTREPRISES, en Abrégée 2AE»"
+          },
+          {
+            "type": "keyword",
+            "value": "CAUTION",
+            "context": "FCFA) dont  deux (2) mois de caution et deux (2)  mois d’avance.",
+            "line": 91,
+            "fullLine": "La présente location est consentie et acceptée moyennant un loyer mensuel de  Quarante mille (40.000) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de CENT SOIXANTE MILLE (160 000 FCFA) dont  deux (2) mois de caution et deux (2)  mois d’avance."
+          },
+          {
+            "type": "keyword",
+            "value": "DOMICILE",
+            "context": "Article 9 : Election de domicile",
+            "line": 117,
+            "fullLine": "Article 9 : Election de domicile"
+          }
         ]
       },
       "fileName": "contrat de bai.docx",
@@ -455,6 +506,78 @@
             "text": "En Foi de quoi, ils ont dressé la présente, pour servir et valoir ce que de droit",
             "lineNumber": 50,
             "type": "legal_reference"
+          }
+        ],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "CAPITAL",
+            "context": "à la formes des statuts et au capital social de la société à respon",
+            "line": 15,
+            "fullLine": "( cf Art 314 de l’ Acte uniforme révisé du 30 janvier 2014, Art 6 de l’Ordonnance N° 2014- 161- du 02 avril 2014 relative à la formes des statuts et au capital social de la société à responsabilité limitée)"
+          },
+          {
+            "type": "keyword",
+            "value": "CAPITAL SOCIAL",
+            "context": "à la formes des statuts et au capital social de la société à responsabilit",
+            "line": 15,
+            "fullLine": "( cf Art 314 de l’ Acte uniforme révisé du 30 janvier 2014, Art 6 de l’Ordonnance N° 2014- 161- du 02 avril 2014 relative à la formes des statuts et au capital social de la société à responsabilité limitée)"
+          },
+          {
+            "type": "keyword",
+            "value": "CNI",
+            "context": "à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/",
+            "line": 37,
+            "fullLine": "M. ATTA VALENTIN,  Electrotechnicien, résident à Abidjan Port Bouet de nationalité ivoirienne née le 01/01/1989 à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/2021 et valable 21/09/2031 par la république de Côte d’Ivoire."
+          },
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "et du Groupement d’intérêt économique (GIE), ainsi que par tout",
+            "line": 59,
+            "fullLine": "La société constituée est une société à Responsabilité Limitée régie par les dispositions de l’Acte uniforme révisé de l’OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales et du Groupement d’intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires applicables et ses présents statuts."
+          },
+          {
+            "type": "keyword",
+            "value": "DENOMINATION",
+            "context": "2- DENOMINATION",
+            "line": 61,
+            "fullLine": "2- DENOMINATION"
+          },
+          {
+            "type": "keyword",
+            "value": "OBJET SOCIAL",
+            "context": "ectement ou indirectement à l’objet social ou pouvant en faciliter l’ext",
+            "line": 79,
+            "fullLine": "- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l’objet social ou pouvant en faciliter l’extension ou le développement."
+          },
+          {
+            "type": "keyword",
+            "value": "COMMUNE",
+            "context": "social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+            "line": 83,
+            "fullLine": "Le siège social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+          },
+          {
+            "type": "keyword",
+            "value": "LOT",
+            "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+            "line": 83,
+            "fullLine": "Le siège social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+          },
+          {
+            "type": "keyword",
+            "value": "ILOT",
+            "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123",
+            "line": 83,
+            "fullLine": "Le siège social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+          },
+          {
+            "type": "keyword",
+            "value": "DOMICILE",
+            "context": "entité des associés  et leur  domicile",
+            "line": 99,
+            "fullLine": "Identité des associés  et leur  domicile"
           }
         ]
       },
@@ -662,6 +785,113 @@
             "lineNumber": 20,
             "type": "legal_reference"
           }
+        ],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "Nombre d’Emplois",
+            "line": 23,
+            "fullLine": "Nombre d’Emplois"
+          },
+          {
+            "type": "keyword",
+            "value": "GERANT",
+            "context": "AGISSANT EN QUALITE DE : GERANT",
+            "line": 49,
+            "fullLine": "AGISSANT EN QUALITE DE : GERANT"
+          },
+          {
+            "type": "keyword",
+            "value": "ADRESSE",
+            "context": "ADRESSE PERSONNELLE………PORT BOUET JEAN",
+            "line": 53,
+            "fullLine": "ADRESSE PERSONNELLE………PORT BOUET JEAN FOLLY……………….…..………………….. ……………………………………………………………………………………………………………………"
+          },
+          {
+            "type": "keyword",
+            "value": "MOBILE",
+            "context": "FAX : ……………………..…………………………. MOBILE :…… 07 09 08 69 62 …….…………………",
+            "line": 55,
+            "fullLine": "TEL :…………………………………………………..  FAX : ……………………..…………………………. MOBILE :…… 07 09 08 69 62 …….…………………  E-MAIL : archexcellence18@gmail.com"
+          },
+          {
+            "type": "keyword",
+            "value": "SIGLE",
+            "context": "……………………………….                 Sigle : …………… 2AE   ……… …… ……………………",
+            "line": 71,
+            "fullLine": "Dénomination sociale : ………… ATTA ADI ENTREPRISES ……………………………………………….                  Nom commercial : …………………………………………………………………………………………………….                 Sigle : …………… 2AE   ……… …… ……………………………………………………………                                   Durée : ……………………99 ANS………………………………………………………………………………….."
+          },
+          {
+            "type": "keyword",
+            "value": "CAPITAL",
+            "context": "Montant du capital : …1.000.000 FCFA…….Dont : Mo",
+            "line": 75,
+            "fullLine": "Montant du capital : …1.000.000 FCFA…….Dont : Montant en numéraire………1.000.000 F CFA……………."
+          },
+          {
+            "type": "keyword",
+            "value": "ACTIVITE",
+            "context": "ACTIVITE (renseignements sur la person",
+            "line": 79,
+            "fullLine": "ACTIVITE (renseignements sur la personne morale)"
+          },
+          {
+            "type": "keyword",
+            "value": "VILLE",
+            "context": "Ville :…ABIDJAN…………… Commune : PORT",
+            "line": 91,
+            "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….………………….."
+          },
+          {
+            "type": "keyword",
+            "value": "COMMUNE",
+            "context": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JE",
+            "line": 91,
+            "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….………………….."
+          },
+          {
+            "type": "keyword",
+            "value": "QUARTIER",
+            "context": "………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………",
+            "line": 91,
+            "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….………………….."
+          },
+          {
+            "type": "keyword",
+            "value": "LOT",
+            "context": "Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….",
+            "line": 91,
+            "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….………………….."
+          },
+          {
+            "type": "keyword",
+            "value": "EMAIL",
+            "context": "Adresse postale : …………………………Email archexcellence@gmail.com.....",
+            "line": 97,
+            "fullLine": "Adresse postale : …………………………Email archexcellence@gmail.com.........."
+          },
+          {
+            "type": "keyword",
+            "value": "DIRIGEANT",
+            "context": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRE",
+            "line": 103,
+            "fullLine": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRES AUX COMPTES"
+          },
+          {
+            "type": "keyword",
+            "value": "LIEU DE NAISSANCE",
+            "context": "Date et lieu de naissance",
+            "line": 145,
+            "fullLine": "Date et lieu de naissance"
+          },
+          {
+            "type": "keyword",
+            "value": "DOMICILE",
+            "context": "Domicile",
+            "line": 169,
+            "fullLine": "Domicile"
+          }
         ]
       },
       "fileName": "formulaire-unique.docx",
@@ -735,6 +965,57 @@
             "lineNumber": 11,
             "type": "legal_reference"
           }
+        ],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "NOM : ATTA",
+            "line": 11,
+            "fullLine": "NOM : ATTA"
+          },
+          {
+            "type": "keyword",
+            "value": "PRENOM",
+            "context": "PRENOMS : VALENTIN",
+            "line": 15,
+            "fullLine": "PRENOMS : VALENTIN"
+          },
+          {
+            "type": "keyword",
+            "value": "DATE DE NAISSANCE",
+            "context": "DATE DE NAISSANCE :   01/01/1989",
+            "line": 27,
+            "fullLine": "DATE DE NAISSANCE :   01/01/1989"
+          },
+          {
+            "type": "keyword",
+            "value": "NATIONALITE",
+            "context": "NATIONALITE : IVOIRIENNE",
+            "line": 31,
+            "fullLine": "NATIONALITE : IVOIRIENNE"
+          },
+          {
+            "type": "keyword",
+            "value": "DOMICILE",
+            "context": "DOMICILE : PORT BOUET",
+            "line": 35,
+            "fullLine": "DOMICILE : PORT BOUET"
+          },
+          {
+            "type": "keyword",
+            "value": "GERANT",
+            "context": "QUALITE : GERANT",
+            "line": 39,
+            "fullLine": "QUALITE : GERANT"
+          },
+          {
+            "type": "keyword",
+            "value": "PROFESSION",
+            "context": "nation pénale, ni de sanction professionnelle ou administrative de nat",
+            "line": 49,
+            "fullLine": "N’avoir fait l’objet d’aucune condamnation pénale, ni de sanction professionnelle ou administrative de nature à m’interdire de gérer, administrer ou diriger une société ou l’exercice d’une activité commerciale."
+          }
         ]
       },
       "fileName": "greffe-declaration-sur-l’honneur.docx",
@@ -761,7 +1042,51 @@
             "lineNumber": 5
           }
         ],
-        "legalTexts": []
+        "legalTexts": [],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "COMMUNE",
+            "context": "NT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+            "line": 5,
+            "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »                                                                     ----------------------------------------------------------------------------------"
+          },
+          {
+            "type": "keyword",
+            "value": "LOT",
+            "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »",
+            "line": 5,
+            "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »                                                                     ----------------------------------------------------------------------------------"
+          },
+          {
+            "type": "keyword",
+            "value": "ILOT",
+            "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123 »",
+            "line": 5,
+            "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »                                                                     ----------------------------------------------------------------------------------"
+          },
+          {
+            "type": "keyword",
+            "value": "DIRIGEANT",
+            "context": "LISTE DE DIRIGEANT",
+            "line": 13,
+            "fullLine": "LISTE DE DIRIGEANT"
+          },
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "Est nommé gérant de la société pour u",
+            "line": 19,
+            "fullLine": "Est nommé gérant de la société pour une durée de quatre-vingt-dix-neuf ans (99ans),"
+          },
+          {
+            "type": "keyword",
+            "value": "CNI",
+            "context": "à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/",
+            "line": 21,
+            "fullLine": "M. ATTA VALENTIN,  Electrotechnicien, résident à Abidjan             Port Bouet de nationalité ivoirienne née le 01/01/1989 à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/2021 et valable 21/09/2031 par la république de Côte d’Ivoire."
+          }
+        ]
       },
       "fileName": "Liste de gerant.docx",
       "filePath": "C:\\Users\\Dell\\Documents\\GitHub\\hexcellence\\mock-data-creator\\models_ecriture\\SARL UNIPERSONNELLE\\Liste de gerant.docx"
@@ -1425,6 +1750,106 @@
             "lineNumber": 100,
             "type": "legal_reference"
           }
+        ],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "et du Groupement d’Intérêt Economique",
+            "line": 19,
+            "fullLine": "Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l’Acte uniforme révisé de l’OHADA du  30  janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d’Intérêt Economique"
+          },
+          {
+            "type": "keyword",
+            "value": "COMMUNE",
+            "context": "NT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+            "line": 67,
+            "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+          },
+          {
+            "type": "keyword",
+            "value": "LOT",
+            "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+            "line": 67,
+            "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+          },
+          {
+            "type": "keyword",
+            "value": "ILOT",
+            "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123",
+            "line": 67,
+            "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+          },
+          {
+            "type": "keyword",
+            "value": "CNI",
+            "context": "à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/",
+            "line": 83,
+            "fullLine": "M. ATTA VALENTIN, Electrotechnicien, résident à Abidjan Port Bouet de nationalité ivoirienne née le 01/01/1989 à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/2021 et valable 21/09/2031 par la république de Côte d’Ivoire."
+          },
+          {
+            "type": "keyword",
+            "value": "DENOMINATION",
+            "context": "ARTICLE 2- DENOMINATION",
+            "line": 111,
+            "fullLine": "ARTICLE 2- DENOMINATION"
+          },
+          {
+            "type": "keyword",
+            "value": "ADRESSE",
+            "context": "t de son capital social, de l’adresse de son siège social et de la",
+            "line": 115,
+            "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier."
+          },
+          {
+            "type": "keyword",
+            "value": "CAPITAL",
+            "context": "ée ou SARL, du montant de son capital social, de l’adresse de son s",
+            "line": 115,
+            "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier."
+          },
+          {
+            "type": "keyword",
+            "value": "CAPITAL SOCIAL",
+            "context": "ée ou SARL, du montant de son capital social, de l’adresse de son siège so",
+            "line": 115,
+            "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier."
+          },
+          {
+            "type": "keyword",
+            "value": "OBJET SOCIAL",
+            "context": "ectement ou indirectement à l’objet social ou pouvant en faciliter l’ext",
+            "line": 131,
+            "fullLine": "- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l’objet social ou pouvant en faciliter l’extension ou le développement."
+          },
+          {
+            "type": "keyword",
+            "value": "ASSOCIE",
+            "context": "IDENTITE DES ASSOCIES",
+            "line": 185,
+            "fullLine": "IDENTITE DES ASSOCIES"
+          },
+          {
+            "type": "keyword",
+            "value": "MANDAT",
+            "context": "rant peut démissionner de son mandat, mais seulement en prévenant",
+            "line": 269,
+            "fullLine": "Le gérant peut démissionner de son mandat, mais seulement en prévenant l'associé unique au moins 3 mois à l'avance, par lettre recommandé avec demande d'avis de réception ou lettre au porteur contre récépissé."
+          },
+          {
+            "type": "keyword",
+            "value": "GERANT",
+            "context": "ARTICLE 14 : POUVOIRS DU GERANT",
+            "line": 279,
+            "fullLine": "ARTICLE 14 : POUVOIRS DU GERANT"
+          },
+          {
+            "type": "keyword",
+            "value": "DOMICILE",
+            "context": "ARTICLE 24 : ELECTION DE DOMICILE",
+            "line": 413,
+            "fullLine": "ARTICLE 24 : ELECTION DE DOMICILE"
+          }
         ]
       },
       "fileName": "Staut de l'entreprise.docx",
@@ -1670,6 +2095,57 @@
             "lineNumber": 26,
             "type": "legal_reference"
           }
+        ],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "2999 Propriétaire, ci-après dénommé",
+            "line": 11,
+            "fullLine": "TRAORE BAKARY, Téléphone : 0151252999 Propriétaire, ci-après dénommé                                     « le bailleur »"
+          },
+          {
+            "type": "keyword",
+            "value": "BAILLEUR",
+            "context": "« le bailleur »",
+            "line": 11,
+            "fullLine": "TRAORE BAKARY, Téléphone : 0151252999 Propriétaire, ci-après dénommé                                     « le bailleur »"
+          },
+          {
+            "type": "keyword",
+            "value": "COMMUNE",
+            "context": "-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU,",
+            "line": 33,
+            "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation de la «NEW VOLTA FORAGE»."
+          },
+          {
+            "type": "keyword",
+            "value": "LOT",
+            "context": "E, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’ex",
+            "line": 33,
+            "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation de la «NEW VOLTA FORAGE»."
+          },
+          {
+            "type": "keyword",
+            "value": "ILOT",
+            "context": "RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation",
+            "line": 33,
+            "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation de la «NEW VOLTA FORAGE»."
+          },
+          {
+            "type": "keyword",
+            "value": "CAUTION",
+            "context": "0 FCFA) dont deux (2) mois de caution et deux (2) mois d’avance.",
+            "line": 95,
+            "fullLine": "La présente location est consentie et acceptée moyennant un loyer mensuel de Quatre-vingt mille (80.000) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de TROIS CENT VINGT MILLE (320 000 FCFA) dont deux (2) mois de caution et deux (2) mois d’avance."
+          },
+          {
+            "type": "keyword",
+            "value": "DOMICILE",
+            "context": "Article 9 : Election de domicile",
+            "line": 121,
+            "fullLine": "Article 9 : Election de domicile"
+          }
         ]
       },
       "fileName": "contrat de bail HYDRA FORAGE.docx",
@@ -1868,6 +2344,113 @@
             "lineNumber": 20,
             "type": "legal_reference"
           }
+        ],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "Nombre d’Emplois",
+            "line": 23,
+            "fullLine": "Nombre d’Emplois"
+          },
+          {
+            "type": "keyword",
+            "value": "ADRESSE",
+            "context": "ADRESSE PERSONNELLE : COCODY RIVIERA",
+            "line": 53,
+            "fullLine": "ADRESSE PERSONNELLE : COCODY RIVIERA (ABIDJAN) ……………………………………………………………………………………………………………………"
+          },
+          {
+            "type": "keyword",
+            "value": "MOBILE",
+            "context": "… .……………………………..  FAX : …………. MOBILE : ‎+225 01 51 25 29 99………..",
+            "line": 55,
+            "fullLine": "TEL :………… .……………………………..  FAX : …………. MOBILE : ‎+225 01 51 25 29 99……….."
+          },
+          {
+            "type": "keyword",
+            "value": "SIGLE",
+            "context": "……………………………….                 Sigle : ……………… …… ……………………………………………",
+            "line": 73,
+            "fullLine": "Dénomination sociale : ………… NEW VOLTA FORAGE SARL ………………………….                                                             Nom commercial : …………………………………………………………………………………………………….                 Sigle : ……………… …… ……………………………………………………"
+          },
+          {
+            "type": "keyword",
+            "value": "CAPITAL",
+            "context": "Montant du capital : …………1 000 000 FCFA….Dont :",
+            "line": 79,
+            "fullLine": "Montant du capital : …………1 000 000 FCFA….Dont : Montant en numéraire…………1 000 000 ……………."
+          },
+          {
+            "type": "keyword",
+            "value": "ACTIVITE",
+            "context": "ACTIVITE (renseignements sur la person",
+            "line": 83,
+            "fullLine": "ACTIVITE (renseignements sur la personne morale)"
+          },
+          {
+            "type": "keyword",
+            "value": "VILLE",
+            "context": "Ville :…ABIDJAN…… Commune : …COCODY",
+            "line": 103,
+            "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………"
+          },
+          {
+            "type": "keyword",
+            "value": "COMMUNE",
+            "context": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGR",
+            "line": 103,
+            "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………"
+          },
+          {
+            "type": "keyword",
+            "value": "QUARTIER",
+            "context": "ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….",
+            "line": 103,
+            "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………"
+          },
+          {
+            "type": "keyword",
+            "value": "LOT",
+            "context": "Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………",
+            "line": 103,
+            "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………"
+          },
+          {
+            "type": "keyword",
+            "value": "EMAIL",
+            "context": "Adresse postale : …… …………………Email……….. newvoltaforage@gmail.com",
+            "line": 109,
+            "fullLine": "Adresse postale : …… …………………Email……….. newvoltaforage@gmail.com …………..................."
+          },
+          {
+            "type": "keyword",
+            "value": "DIRIGEANT",
+            "context": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRE",
+            "line": 117,
+            "fullLine": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRES AUX COMPTES"
+          },
+          {
+            "type": "keyword",
+            "value": "LIEU DE NAISSANCE",
+            "context": "Date et lieu de naissance",
+            "line": 159,
+            "fullLine": "Date et lieu de naissance"
+          },
+          {
+            "type": "keyword",
+            "value": "DOMICILE",
+            "context": "Domicile",
+            "line": 183,
+            "fullLine": "Domicile"
+          },
+          {
+            "type": "keyword",
+            "value": "GERANT",
+            "context": "GERANT",
+            "line": 229,
+            "fullLine": "GERANT"
+          }
         ]
       },
       "fileName": "formulaire-unique HYDRA FOR.docx",
@@ -1942,6 +2525,57 @@
             "lineNumber": 11,
             "type": "legal_reference"
           }
+        ],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "NOM : KARIAKALIAMMAN RAVI",
+            "line": 9,
+            "fullLine": "NOM : KARIAKALIAMMAN RAVI"
+          },
+          {
+            "type": "keyword",
+            "value": "PRENOM",
+            "context": "PRENOMS : RANJITH",
+            "line": 13,
+            "fullLine": "PRENOMS : RANJITH"
+          },
+          {
+            "type": "keyword",
+            "value": "DATE DE NAISSANCE",
+            "context": "DATE DE NAISSANCE :   05/01/1994",
+            "line": 25,
+            "fullLine": "DATE DE NAISSANCE :   05/01/1994"
+          },
+          {
+            "type": "keyword",
+            "value": "NATIONALITE",
+            "context": "NATIONALITE : INDIENNE",
+            "line": 29,
+            "fullLine": "NATIONALITE : INDIENNE"
+          },
+          {
+            "type": "keyword",
+            "value": "DOMICILE",
+            "context": "DOMICILE : MARCORY ZONE 4",
+            "line": 33,
+            "fullLine": "DOMICILE : MARCORY ZONE 4"
+          },
+          {
+            "type": "keyword",
+            "value": "GERANT",
+            "context": "QUALITE : GERANT",
+            "line": 37,
+            "fullLine": "QUALITE : GERANT"
+          },
+          {
+            "type": "keyword",
+            "value": "PROFESSION",
+            "context": "nation pénale, ni de sanction professionnelle ou administrative de nat",
+            "line": 45,
+            "fullLine": "N’avoir fait l’objet d’aucune condamnation pénale, ni de sanction professionnelle ou administrative de nature à m’interdire de gérer, administrer ou diriger une société ou l’exercice d’une activité commerciale."
+          }
         ]
       },
       "fileName": "greffe-declaration-sur-l’honneur hydra forage.docx",
@@ -1974,7 +2608,58 @@
             "lineNumber": 6
           }
         ],
-        "legalTexts": []
+        "legalTexts": [],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "COMMUNE",
+            "context": "00 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU,",
+            "line": 5,
+            "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+          },
+          {
+            "type": "keyword",
+            "value": "LOT",
+            "context": "E, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+            "line": 5,
+            "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+          },
+          {
+            "type": "keyword",
+            "value": "ILOT",
+            "context": "RESTAURANT ADINKRA LOT 3838, ILOT 342",
+            "line": 5,
+            "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+          },
+          {
+            "type": "keyword",
+            "value": "CAPITAL",
+            "context": "Au capital de 1 000 000 FCFA, située à A",
+            "line": 5,
+            "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+          },
+          {
+            "type": "keyword",
+            "value": "DIRIGEANT",
+            "context": "LISTE DE DIRIGEANT",
+            "line": 13,
+            "fullLine": "LISTE DE DIRIGEANT"
+          },
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "Est nommé Gérant pour une durée de qu",
+            "line": 17,
+            "fullLine": "Est nommé Gérant pour une durée de quatre ans (4 ans)"
+          },
+          {
+            "type": "keyword",
+            "value": "PASSEPORT",
+            "context": "L NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/",
+            "line": 19,
+            "fullLine": "M. KARIAKALIAMMAN RAVI RANJITH, Technicien hydraulique résidant à ABIDJAN-MARCORY de nationalité Indienne, né le 05/01/1994 à ERODE, TAMIL NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/2025 et valable jusqu’au 15/10/2035 par la République de l’Inde"
+          }
+        ]
       },
       "fileName": "Liste de gerant hydra forage.docx",
       "filePath": "C:\\Users\\Dell\\Documents\\GitHub\\hexcellence\\mock-data-creator\\models_ecriture\\SARL PLURIPERSONEL\\Liste de gerant hydra forage.docx"
@@ -3092,6 +3777,120 @@
             "lineNumber": 210,
             "type": "legal_reference"
           }
+        ],
+        "placeholders": [
+          {
+            "type": "keyword",
+            "value": "CAPITAL",
+            "context": "AU CAPITAL DE 1.000.000 FCFA",
+            "line": 13,
+            "fullLine": "AU CAPITAL DE 1.000.000 FCFA"
+          },
+          {
+            "type": "keyword",
+            "value": "NOM",
+            "context": "et du Groupement d’Intérêt Economique",
+            "line": 25,
+            "fullLine": "Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l’Acte uniforme révisé de l’OHADA du  30  janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d’Intérêt Economique"
+          },
+          {
+            "type": "keyword",
+            "value": "COMMUNE",
+            "context": "00 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU,",
+            "line": 77,
+            "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+          },
+          {
+            "type": "keyword",
+            "value": "LOT",
+            "context": "E, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+            "line": 77,
+            "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+          },
+          {
+            "type": "keyword",
+            "value": "ILOT",
+            "context": "RESTAURANT ADINKRA LOT 3838, ILOT 342",
+            "line": 77,
+            "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+          },
+          {
+            "type": "keyword",
+            "value": "PASSEPORT",
+            "context": "L NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/",
+            "line": 89,
+            "fullLine": "M. KARIAKALIAMMAN RAVI RANJITH, Technicien hydraulique résidant à ABIDJAN-MARCORY de nationalité Indienne, né le 05/01/1994 à ERODE, TAMIL NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/2025 et valable jusqu’au 15/10/2035 par la République de l’Inde."
+          },
+          {
+            "type": "keyword",
+            "value": "DENOMINATION",
+            "context": "ARTICLE 2- DENOMINATION",
+            "line": 125,
+            "fullLine": "ARTICLE 2- DENOMINATION"
+          },
+          {
+            "type": "keyword",
+            "value": "ADRESSE",
+            "context": "t de son capital social, de l’adresse de son siège social et de la",
+            "line": 129,
+            "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier."
+          },
+          {
+            "type": "keyword",
+            "value": "CAPITAL SOCIAL",
+            "context": "ée ou SARL, du montant de son capital social, de l’adresse de son siège so",
+            "line": 129,
+            "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier."
+          },
+          {
+            "type": "keyword",
+            "value": "PROFESSION",
+            "context": "La formation professionnelle liée aux techniques de f",
+            "line": 147,
+            "fullLine": "La formation professionnelle liée aux techniques de forage et à l’hydraulique"
+          },
+          {
+            "type": "keyword",
+            "value": "OBJET SOCIAL",
+            "context": "ectement ou indirectement à l’objet social ou à   tous   objets   simila",
+            "line": 151,
+            "fullLine": "et généralement, toutes   opérations   industrielles, commerciales, financières, civiles, mobilières ou immobilières pouvant Se rattacher directement ou indirectement à l’objet social ou à   tous   objets   similaires   ou   connexes   ou   susceptibles   d’en   faciliter   l’extension   ou   le développement."
+          },
+          {
+            "type": "keyword",
+            "value": "ASSOCIE",
+            "context": "IDENTITE DES ASSOCIES",
+            "line": 239,
+            "fullLine": "IDENTITE DES ASSOCIES"
+          },
+          {
+            "type": "keyword",
+            "value": "MANDAT",
+            "context": "roit et conjoint désignent un mandataire chargé de les représenter",
+            "line": 333,
+            "fullLine": "La gérance peut requérir de tout Notaire, la délivrance d’expéditions ou d’extraits de tous actes établissant lesdites qualités ; lesdits héritiers, ayants droit et conjoint désignent un mandataire chargé de les représenter auprès de la société pendant la durée de l’indivision."
+          },
+          {
+            "type": "keyword",
+            "value": "GERANT",
+            "context": "ARTICLE 16- POUVOIRS DU GERANT",
+            "line": 371,
+            "fullLine": "ARTICLE 16- POUVOIRS DU GERANT"
+          },
+          {
+            "type": "keyword",
+            "value": "CONTACT",
+            "context": "Si du fait des pertes contactées dans les états financiers",
+            "line": 493,
+            "fullLine": "Si du fait des pertes contactées dans les états financiers de synthèse, les capitaux propres de la société deviennent inférieurs à la moitié du capital social, le gérant ou, le cas échéant, le commissaire aux comptes doit dans les quatre (4) mois   qui suivent l’approbation des comptes ayant fait apparaître cette perte, consulter les associés sur l’opportunité de prononcer la dissolution anticipée de la société."
+          },
+          {
+            "type": "keyword",
+            "value": "DOMICILE",
+            "context": "ARTICLE 30 : ELECTION DE DOMICILE",
+            "line": 555,
+            "fullLine": "ARTICLE 30 : ELECTION DE DOMICILE"
+          }
         ]
       },
       "fileName": "STATUT Friends forage Cote D’ivoire.docx",
@@ -3297,5 +4096,1698 @@
       }
     ],
     "byDocument": {}
+  },
+  "placeholders": {
+    "all": [
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "Propriétaire, ci-après dénommé  « le bailleur »",
+        "line": 13,
+        "fullLine": "Propriétaire, ci-après dénommé  « le bailleur »",
+        "document": "contrat de bai.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "BAILLEUR",
+        "context": "taire, ci-après dénommé  « le bailleur »",
+        "line": 13,
+        "fullLine": "Propriétaire, ci-après dénommé  « le bailleur »",
+        "document": "contrat de bai.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "COMMUNE",
+        "context": "-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+        "line": 35,
+        "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation de la SOCIETE   «ATTA ADI ENTREPRISES, en Abrégée 2AE»",
+        "document": "contrat de bai.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LOT",
+        "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exp",
+        "line": 35,
+        "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation de la SOCIETE   «ATTA ADI ENTREPRISES, en Abrégée 2AE»",
+        "document": "contrat de bai.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ILOT",
+        "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation",
+        "line": 35,
+        "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation de la SOCIETE   «ATTA ADI ENTREPRISES, en Abrégée 2AE»",
+        "document": "contrat de bai.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAUTION",
+        "context": "FCFA) dont  deux (2) mois de caution et deux (2)  mois d’avance.",
+        "line": 91,
+        "fullLine": "La présente location est consentie et acceptée moyennant un loyer mensuel de  Quarante mille (40.000) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de CENT SOIXANTE MILLE (160 000 FCFA) dont  deux (2) mois de caution et deux (2)  mois d’avance.",
+        "document": "contrat de bai.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DOMICILE",
+        "context": "Article 9 : Election de domicile",
+        "line": 117,
+        "fullLine": "Article 9 : Election de domicile",
+        "document": "contrat de bai.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAPITAL",
+        "context": "à la formes des statuts et au capital social de la société à respon",
+        "line": 15,
+        "fullLine": "( cf Art 314 de l’ Acte uniforme révisé du 30 janvier 2014, Art 6 de l’Ordonnance N° 2014- 161- du 02 avril 2014 relative à la formes des statuts et au capital social de la société à responsabilité limitée)",
+        "document": "DSV.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAPITAL SOCIAL",
+        "context": "à la formes des statuts et au capital social de la société à responsabilit",
+        "line": 15,
+        "fullLine": "( cf Art 314 de l’ Acte uniforme révisé du 30 janvier 2014, Art 6 de l’Ordonnance N° 2014- 161- du 02 avril 2014 relative à la formes des statuts et au capital social de la société à responsabilité limitée)",
+        "document": "DSV.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CNI",
+        "context": "à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/",
+        "line": 37,
+        "fullLine": "M. ATTA VALENTIN,  Electrotechnicien, résident à Abidjan Port Bouet de nationalité ivoirienne née le 01/01/1989 à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/2021 et valable 21/09/2031 par la république de Côte d’Ivoire.",
+        "document": "DSV.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "et du Groupement d’intérêt économique (GIE), ainsi que par tout",
+        "line": 59,
+        "fullLine": "La société constituée est une société à Responsabilité Limitée régie par les dispositions de l’Acte uniforme révisé de l’OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales et du Groupement d’intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires applicables et ses présents statuts.",
+        "document": "DSV.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DENOMINATION",
+        "context": "2- DENOMINATION",
+        "line": 61,
+        "fullLine": "2- DENOMINATION",
+        "document": "DSV.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "OBJET SOCIAL",
+        "context": "ectement ou indirectement à l’objet social ou pouvant en faciliter l’ext",
+        "line": 79,
+        "fullLine": "- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l’objet social ou pouvant en faciliter l’extension ou le développement.",
+        "document": "DSV.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "COMMUNE",
+        "context": "social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+        "line": 83,
+        "fullLine": "Le siège social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+        "document": "DSV.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LOT",
+        "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+        "line": 83,
+        "fullLine": "Le siège social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+        "document": "DSV.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ILOT",
+        "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123",
+        "line": 83,
+        "fullLine": "Le siège social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+        "document": "DSV.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DOMICILE",
+        "context": "entité des associés  et leur  domicile",
+        "line": 99,
+        "fullLine": "Identité des associés  et leur  domicile",
+        "document": "DSV.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "Nombre d’Emplois",
+        "line": 23,
+        "fullLine": "Nombre d’Emplois",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "GERANT",
+        "context": "AGISSANT EN QUALITE DE : GERANT",
+        "line": 49,
+        "fullLine": "AGISSANT EN QUALITE DE : GERANT",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ADRESSE",
+        "context": "ADRESSE PERSONNELLE………PORT BOUET JEAN",
+        "line": 53,
+        "fullLine": "ADRESSE PERSONNELLE………PORT BOUET JEAN FOLLY……………….…..………………….. ……………………………………………………………………………………………………………………",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "MOBILE",
+        "context": "FAX : ……………………..…………………………. MOBILE :…… 07 09 08 69 62 …….…………………",
+        "line": 55,
+        "fullLine": "TEL :…………………………………………………..  FAX : ……………………..…………………………. MOBILE :…… 07 09 08 69 62 …….…………………  E-MAIL : archexcellence18@gmail.com",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "SIGLE",
+        "context": "……………………………….                 Sigle : …………… 2AE   ……… …… ……………………",
+        "line": 71,
+        "fullLine": "Dénomination sociale : ………… ATTA ADI ENTREPRISES ……………………………………………….                  Nom commercial : …………………………………………………………………………………………………….                 Sigle : …………… 2AE   ……… …… ……………………………………………………………                                   Durée : ……………………99 ANS…………………………………………………………………………………..",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAPITAL",
+        "context": "Montant du capital : …1.000.000 FCFA…….Dont : Mo",
+        "line": 75,
+        "fullLine": "Montant du capital : …1.000.000 FCFA…….Dont : Montant en numéraire………1.000.000 F CFA…………….",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ACTIVITE",
+        "context": "ACTIVITE (renseignements sur la person",
+        "line": 79,
+        "fullLine": "ACTIVITE (renseignements sur la personne morale)",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "VILLE",
+        "context": "Ville :…ABIDJAN…………… Commune : PORT",
+        "line": 91,
+        "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….…………………..",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "COMMUNE",
+        "context": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JE",
+        "line": 91,
+        "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….…………………..",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "QUARTIER",
+        "context": "………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………",
+        "line": 91,
+        "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….…………………..",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LOT",
+        "context": "Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….",
+        "line": 91,
+        "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….…………………..",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "EMAIL",
+        "context": "Adresse postale : …………………………Email archexcellence@gmail.com.....",
+        "line": 97,
+        "fullLine": "Adresse postale : …………………………Email archexcellence@gmail.com..........",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DIRIGEANT",
+        "context": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRE",
+        "line": 103,
+        "fullLine": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRES AUX COMPTES",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LIEU DE NAISSANCE",
+        "context": "Date et lieu de naissance",
+        "line": 145,
+        "fullLine": "Date et lieu de naissance",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DOMICILE",
+        "context": "Domicile",
+        "line": 169,
+        "fullLine": "Domicile",
+        "document": "formulaire-unique.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "NOM : ATTA",
+        "line": 11,
+        "fullLine": "NOM : ATTA",
+        "document": "greffe-declaration-sur-l’honneur.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "PRENOM",
+        "context": "PRENOMS : VALENTIN",
+        "line": 15,
+        "fullLine": "PRENOMS : VALENTIN",
+        "document": "greffe-declaration-sur-l’honneur.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DATE DE NAISSANCE",
+        "context": "DATE DE NAISSANCE :   01/01/1989",
+        "line": 27,
+        "fullLine": "DATE DE NAISSANCE :   01/01/1989",
+        "document": "greffe-declaration-sur-l’honneur.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NATIONALITE",
+        "context": "NATIONALITE : IVOIRIENNE",
+        "line": 31,
+        "fullLine": "NATIONALITE : IVOIRIENNE",
+        "document": "greffe-declaration-sur-l’honneur.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DOMICILE",
+        "context": "DOMICILE : PORT BOUET",
+        "line": 35,
+        "fullLine": "DOMICILE : PORT BOUET",
+        "document": "greffe-declaration-sur-l’honneur.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "GERANT",
+        "context": "QUALITE : GERANT",
+        "line": 39,
+        "fullLine": "QUALITE : GERANT",
+        "document": "greffe-declaration-sur-l’honneur.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "PROFESSION",
+        "context": "nation pénale, ni de sanction professionnelle ou administrative de nat",
+        "line": 49,
+        "fullLine": "N’avoir fait l’objet d’aucune condamnation pénale, ni de sanction professionnelle ou administrative de nature à m’interdire de gérer, administrer ou diriger une société ou l’exercice d’une activité commerciale.",
+        "document": "greffe-declaration-sur-l’honneur.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "COMMUNE",
+        "context": "NT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+        "line": 5,
+        "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »                                                                     ----------------------------------------------------------------------------------",
+        "document": "Liste de gerant.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LOT",
+        "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »",
+        "line": 5,
+        "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »                                                                     ----------------------------------------------------------------------------------",
+        "document": "Liste de gerant.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ILOT",
+        "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123 »",
+        "line": 5,
+        "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »                                                                     ----------------------------------------------------------------------------------",
+        "document": "Liste de gerant.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DIRIGEANT",
+        "context": "LISTE DE DIRIGEANT",
+        "line": 13,
+        "fullLine": "LISTE DE DIRIGEANT",
+        "document": "Liste de gerant.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "Est nommé gérant de la société pour u",
+        "line": 19,
+        "fullLine": "Est nommé gérant de la société pour une durée de quatre-vingt-dix-neuf ans (99ans),",
+        "document": "Liste de gerant.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CNI",
+        "context": "à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/",
+        "line": 21,
+        "fullLine": "M. ATTA VALENTIN,  Electrotechnicien, résident à Abidjan             Port Bouet de nationalité ivoirienne née le 01/01/1989 à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/2021 et valable 21/09/2031 par la république de Côte d’Ivoire.",
+        "document": "Liste de gerant.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "et du Groupement d’Intérêt Economique",
+        "line": 19,
+        "fullLine": "Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l’Acte uniforme révisé de l’OHADA du  30  janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d’Intérêt Economique",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "COMMUNE",
+        "context": "NT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+        "line": 67,
+        "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LOT",
+        "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+        "line": 67,
+        "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ILOT",
+        "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123",
+        "line": 67,
+        "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CNI",
+        "context": "à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/",
+        "line": 83,
+        "fullLine": "M. ATTA VALENTIN, Electrotechnicien, résident à Abidjan Port Bouet de nationalité ivoirienne née le 01/01/1989 à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/2021 et valable 21/09/2031 par la république de Côte d’Ivoire.",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DENOMINATION",
+        "context": "ARTICLE 2- DENOMINATION",
+        "line": 111,
+        "fullLine": "ARTICLE 2- DENOMINATION",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ADRESSE",
+        "context": "t de son capital social, de l’adresse de son siège social et de la",
+        "line": 115,
+        "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier.",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAPITAL",
+        "context": "ée ou SARL, du montant de son capital social, de l’adresse de son s",
+        "line": 115,
+        "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier.",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAPITAL SOCIAL",
+        "context": "ée ou SARL, du montant de son capital social, de l’adresse de son siège so",
+        "line": 115,
+        "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier.",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "OBJET SOCIAL",
+        "context": "ectement ou indirectement à l’objet social ou pouvant en faciliter l’ext",
+        "line": 131,
+        "fullLine": "- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l’objet social ou pouvant en faciliter l’extension ou le développement.",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ASSOCIE",
+        "context": "IDENTITE DES ASSOCIES",
+        "line": 185,
+        "fullLine": "IDENTITE DES ASSOCIES",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "MANDAT",
+        "context": "rant peut démissionner de son mandat, mais seulement en prévenant",
+        "line": 269,
+        "fullLine": "Le gérant peut démissionner de son mandat, mais seulement en prévenant l'associé unique au moins 3 mois à l'avance, par lettre recommandé avec demande d'avis de réception ou lettre au porteur contre récépissé.",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "GERANT",
+        "context": "ARTICLE 14 : POUVOIRS DU GERANT",
+        "line": 279,
+        "fullLine": "ARTICLE 14 : POUVOIRS DU GERANT",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DOMICILE",
+        "context": "ARTICLE 24 : ELECTION DE DOMICILE",
+        "line": 413,
+        "fullLine": "ARTICLE 24 : ELECTION DE DOMICILE",
+        "document": "Staut de l'entreprise.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "2999 Propriétaire, ci-après dénommé",
+        "line": 11,
+        "fullLine": "TRAORE BAKARY, Téléphone : 0151252999 Propriétaire, ci-après dénommé                                     « le bailleur »",
+        "document": "contrat de bail HYDRA FORAGE.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "BAILLEUR",
+        "context": "« le bailleur »",
+        "line": 11,
+        "fullLine": "TRAORE BAKARY, Téléphone : 0151252999 Propriétaire, ci-après dénommé                                     « le bailleur »",
+        "document": "contrat de bail HYDRA FORAGE.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "COMMUNE",
+        "context": "-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU,",
+        "line": 33,
+        "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation de la «NEW VOLTA FORAGE».",
+        "document": "contrat de bail HYDRA FORAGE.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LOT",
+        "context": "E, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’ex",
+        "line": 33,
+        "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation de la «NEW VOLTA FORAGE».",
+        "document": "contrat de bail HYDRA FORAGE.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ILOT",
+        "context": "RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation",
+        "line": 33,
+        "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation de la «NEW VOLTA FORAGE».",
+        "document": "contrat de bail HYDRA FORAGE.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAUTION",
+        "context": "0 FCFA) dont deux (2) mois de caution et deux (2) mois d’avance.",
+        "line": 95,
+        "fullLine": "La présente location est consentie et acceptée moyennant un loyer mensuel de Quatre-vingt mille (80.000) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de TROIS CENT VINGT MILLE (320 000 FCFA) dont deux (2) mois de caution et deux (2) mois d’avance.",
+        "document": "contrat de bail HYDRA FORAGE.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DOMICILE",
+        "context": "Article 9 : Election de domicile",
+        "line": 121,
+        "fullLine": "Article 9 : Election de domicile",
+        "document": "contrat de bail HYDRA FORAGE.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "Nombre d’Emplois",
+        "line": 23,
+        "fullLine": "Nombre d’Emplois",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ADRESSE",
+        "context": "ADRESSE PERSONNELLE : COCODY RIVIERA",
+        "line": 53,
+        "fullLine": "ADRESSE PERSONNELLE : COCODY RIVIERA (ABIDJAN) ……………………………………………………………………………………………………………………",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "MOBILE",
+        "context": "… .……………………………..  FAX : …………. MOBILE : ‎+225 01 51 25 29 99………..",
+        "line": 55,
+        "fullLine": "TEL :………… .……………………………..  FAX : …………. MOBILE : ‎+225 01 51 25 29 99………..",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "SIGLE",
+        "context": "……………………………….                 Sigle : ……………… …… ……………………………………………",
+        "line": 73,
+        "fullLine": "Dénomination sociale : ………… NEW VOLTA FORAGE SARL ………………………….                                                             Nom commercial : …………………………………………………………………………………………………….                 Sigle : ……………… …… ……………………………………………………",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAPITAL",
+        "context": "Montant du capital : …………1 000 000 FCFA….Dont :",
+        "line": 79,
+        "fullLine": "Montant du capital : …………1 000 000 FCFA….Dont : Montant en numéraire…………1 000 000 …………….",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ACTIVITE",
+        "context": "ACTIVITE (renseignements sur la person",
+        "line": 83,
+        "fullLine": "ACTIVITE (renseignements sur la personne morale)",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "VILLE",
+        "context": "Ville :…ABIDJAN…… Commune : …COCODY",
+        "line": 103,
+        "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "COMMUNE",
+        "context": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGR",
+        "line": 103,
+        "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "QUARTIER",
+        "context": "ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….",
+        "line": 103,
+        "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LOT",
+        "context": "Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………",
+        "line": 103,
+        "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "EMAIL",
+        "context": "Adresse postale : …… …………………Email……….. newvoltaforage@gmail.com",
+        "line": 109,
+        "fullLine": "Adresse postale : …… …………………Email……….. newvoltaforage@gmail.com …………...................",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DIRIGEANT",
+        "context": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRE",
+        "line": 117,
+        "fullLine": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRES AUX COMPTES",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LIEU DE NAISSANCE",
+        "context": "Date et lieu de naissance",
+        "line": 159,
+        "fullLine": "Date et lieu de naissance",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DOMICILE",
+        "context": "Domicile",
+        "line": 183,
+        "fullLine": "Domicile",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "GERANT",
+        "context": "GERANT",
+        "line": 229,
+        "fullLine": "GERANT",
+        "document": "formulaire-unique HYDRA FOR.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "NOM : KARIAKALIAMMAN RAVI",
+        "line": 9,
+        "fullLine": "NOM : KARIAKALIAMMAN RAVI",
+        "document": "greffe-declaration-sur-l’honneur hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "PRENOM",
+        "context": "PRENOMS : RANJITH",
+        "line": 13,
+        "fullLine": "PRENOMS : RANJITH",
+        "document": "greffe-declaration-sur-l’honneur hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DATE DE NAISSANCE",
+        "context": "DATE DE NAISSANCE :   05/01/1994",
+        "line": 25,
+        "fullLine": "DATE DE NAISSANCE :   05/01/1994",
+        "document": "greffe-declaration-sur-l’honneur hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NATIONALITE",
+        "context": "NATIONALITE : INDIENNE",
+        "line": 29,
+        "fullLine": "NATIONALITE : INDIENNE",
+        "document": "greffe-declaration-sur-l’honneur hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DOMICILE",
+        "context": "DOMICILE : MARCORY ZONE 4",
+        "line": 33,
+        "fullLine": "DOMICILE : MARCORY ZONE 4",
+        "document": "greffe-declaration-sur-l’honneur hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "GERANT",
+        "context": "QUALITE : GERANT",
+        "line": 37,
+        "fullLine": "QUALITE : GERANT",
+        "document": "greffe-declaration-sur-l’honneur hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "PROFESSION",
+        "context": "nation pénale, ni de sanction professionnelle ou administrative de nat",
+        "line": 45,
+        "fullLine": "N’avoir fait l’objet d’aucune condamnation pénale, ni de sanction professionnelle ou administrative de nature à m’interdire de gérer, administrer ou diriger une société ou l’exercice d’une activité commerciale.",
+        "document": "greffe-declaration-sur-l’honneur hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "COMMUNE",
+        "context": "00 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU,",
+        "line": 5,
+        "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "document": "Liste de gerant hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LOT",
+        "context": "E, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "line": 5,
+        "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "document": "Liste de gerant hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ILOT",
+        "context": "RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "line": 5,
+        "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "document": "Liste de gerant hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAPITAL",
+        "context": "Au capital de 1 000 000 FCFA, située à A",
+        "line": 5,
+        "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "document": "Liste de gerant hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DIRIGEANT",
+        "context": "LISTE DE DIRIGEANT",
+        "line": 13,
+        "fullLine": "LISTE DE DIRIGEANT",
+        "document": "Liste de gerant hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "Est nommé Gérant pour une durée de qu",
+        "line": 17,
+        "fullLine": "Est nommé Gérant pour une durée de quatre ans (4 ans)",
+        "document": "Liste de gerant hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "PASSEPORT",
+        "context": "L NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/",
+        "line": 19,
+        "fullLine": "M. KARIAKALIAMMAN RAVI RANJITH, Technicien hydraulique résidant à ABIDJAN-MARCORY de nationalité Indienne, né le 05/01/1994 à ERODE, TAMIL NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/2025 et valable jusqu’au 15/10/2035 par la République de l’Inde",
+        "document": "Liste de gerant hydra forage.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAPITAL",
+        "context": "AU CAPITAL DE 1.000.000 FCFA",
+        "line": 13,
+        "fullLine": "AU CAPITAL DE 1.000.000 FCFA",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "NOM",
+        "context": "et du Groupement d’Intérêt Economique",
+        "line": 25,
+        "fullLine": "Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l’Acte uniforme révisé de l’OHADA du  30  janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d’Intérêt Economique",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "COMMUNE",
+        "context": "00 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU,",
+        "line": 77,
+        "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "LOT",
+        "context": "E, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "line": 77,
+        "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ILOT",
+        "context": "RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "line": 77,
+        "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "PASSEPORT",
+        "context": "L NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/",
+        "line": 89,
+        "fullLine": "M. KARIAKALIAMMAN RAVI RANJITH, Technicien hydraulique résidant à ABIDJAN-MARCORY de nationalité Indienne, né le 05/01/1994 à ERODE, TAMIL NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/2025 et valable jusqu’au 15/10/2035 par la République de l’Inde.",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DENOMINATION",
+        "context": "ARTICLE 2- DENOMINATION",
+        "line": 125,
+        "fullLine": "ARTICLE 2- DENOMINATION",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ADRESSE",
+        "context": "t de son capital social, de l’adresse de son siège social et de la",
+        "line": 129,
+        "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier.",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CAPITAL SOCIAL",
+        "context": "ée ou SARL, du montant de son capital social, de l’adresse de son siège so",
+        "line": 129,
+        "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier.",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "PROFESSION",
+        "context": "La formation professionnelle liée aux techniques de f",
+        "line": 147,
+        "fullLine": "La formation professionnelle liée aux techniques de forage et à l’hydraulique",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "OBJET SOCIAL",
+        "context": "ectement ou indirectement à l’objet social ou à   tous   objets   simila",
+        "line": 151,
+        "fullLine": "et généralement, toutes   opérations   industrielles, commerciales, financières, civiles, mobilières ou immobilières pouvant Se rattacher directement ou indirectement à l’objet social ou à   tous   objets   similaires   ou   connexes   ou   susceptibles   d’en   faciliter   l’extension   ou   le développement.",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "ASSOCIE",
+        "context": "IDENTITE DES ASSOCIES",
+        "line": 239,
+        "fullLine": "IDENTITE DES ASSOCIES",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "MANDAT",
+        "context": "roit et conjoint désignent un mandataire chargé de les représenter",
+        "line": 333,
+        "fullLine": "La gérance peut requérir de tout Notaire, la délivrance d’expéditions ou d’extraits de tous actes établissant lesdites qualités ; lesdits héritiers, ayants droit et conjoint désignent un mandataire chargé de les représenter auprès de la société pendant la durée de l’indivision.",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "GERANT",
+        "context": "ARTICLE 16- POUVOIRS DU GERANT",
+        "line": 371,
+        "fullLine": "ARTICLE 16- POUVOIRS DU GERANT",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "CONTACT",
+        "context": "Si du fait des pertes contactées dans les états financiers",
+        "line": 493,
+        "fullLine": "Si du fait des pertes contactées dans les états financiers de synthèse, les capitaux propres de la société deviennent inférieurs à la moitié du capital social, le gérant ou, le cas échéant, le commissaire aux comptes doit dans les quatre (4) mois   qui suivent l’approbation des comptes ayant fait apparaître cette perte, consulter les associés sur l’opportunité de prononcer la dissolution anticipée de la société.",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      },
+      {
+        "type": "keyword",
+        "value": "DOMICILE",
+        "context": "ARTICLE 30 : ELECTION DE DOMICILE",
+        "line": 555,
+        "fullLine": "ARTICLE 30 : ELECTION DE DOMICILE",
+        "document": "STATUT Friends forage Cote D’ivoire.docx"
+      }
+    ],
+    "byDocument": {
+      "contrat de bai.docx": [
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "Propriétaire, ci-après dénommé  « le bailleur »",
+          "line": 13,
+          "fullLine": "Propriétaire, ci-après dénommé  « le bailleur »"
+        },
+        {
+          "type": "keyword",
+          "value": "BAILLEUR",
+          "context": "taire, ci-après dénommé  « le bailleur »",
+          "line": 13,
+          "fullLine": "Propriétaire, ci-après dénommé  « le bailleur »"
+        },
+        {
+          "type": "keyword",
+          "value": "COMMUNE",
+          "context": "-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+          "line": 35,
+          "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation de la SOCIETE   «ATTA ADI ENTREPRISES, en Abrégée 2AE»"
+        },
+        {
+          "type": "keyword",
+          "value": "LOT",
+          "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exp",
+          "line": 35,
+          "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation de la SOCIETE   «ATTA ADI ENTREPRISES, en Abrégée 2AE»"
+        },
+        {
+          "type": "keyword",
+          "value": "ILOT",
+          "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation",
+          "line": 35,
+          "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 en vue de l’exploitation de la SOCIETE   «ATTA ADI ENTREPRISES, en Abrégée 2AE»"
+        },
+        {
+          "type": "keyword",
+          "value": "CAUTION",
+          "context": "FCFA) dont  deux (2) mois de caution et deux (2)  mois d’avance.",
+          "line": 91,
+          "fullLine": "La présente location est consentie et acceptée moyennant un loyer mensuel de  Quarante mille (40.000) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de CENT SOIXANTE MILLE (160 000 FCFA) dont  deux (2) mois de caution et deux (2)  mois d’avance."
+        },
+        {
+          "type": "keyword",
+          "value": "DOMICILE",
+          "context": "Article 9 : Election de domicile",
+          "line": 117,
+          "fullLine": "Article 9 : Election de domicile"
+        }
+      ],
+      "DSV.docx": [
+        {
+          "type": "keyword",
+          "value": "CAPITAL",
+          "context": "à la formes des statuts et au capital social de la société à respon",
+          "line": 15,
+          "fullLine": "( cf Art 314 de l’ Acte uniforme révisé du 30 janvier 2014, Art 6 de l’Ordonnance N° 2014- 161- du 02 avril 2014 relative à la formes des statuts et au capital social de la société à responsabilité limitée)"
+        },
+        {
+          "type": "keyword",
+          "value": "CAPITAL SOCIAL",
+          "context": "à la formes des statuts et au capital social de la société à responsabilit",
+          "line": 15,
+          "fullLine": "( cf Art 314 de l’ Acte uniforme révisé du 30 janvier 2014, Art 6 de l’Ordonnance N° 2014- 161- du 02 avril 2014 relative à la formes des statuts et au capital social de la société à responsabilité limitée)"
+        },
+        {
+          "type": "keyword",
+          "value": "CNI",
+          "context": "à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/",
+          "line": 37,
+          "fullLine": "M. ATTA VALENTIN,  Electrotechnicien, résident à Abidjan Port Bouet de nationalité ivoirienne née le 01/01/1989 à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/2021 et valable 21/09/2031 par la république de Côte d’Ivoire."
+        },
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "et du Groupement d’intérêt économique (GIE), ainsi que par tout",
+          "line": 59,
+          "fullLine": "La société constituée est une société à Responsabilité Limitée régie par les dispositions de l’Acte uniforme révisé de l’OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales et du Groupement d’intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires applicables et ses présents statuts."
+        },
+        {
+          "type": "keyword",
+          "value": "DENOMINATION",
+          "context": "2- DENOMINATION",
+          "line": 61,
+          "fullLine": "2- DENOMINATION"
+        },
+        {
+          "type": "keyword",
+          "value": "OBJET SOCIAL",
+          "context": "ectement ou indirectement à l’objet social ou pouvant en faciliter l’ext",
+          "line": 79,
+          "fullLine": "- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l’objet social ou pouvant en faciliter l’extension ou le développement."
+        },
+        {
+          "type": "keyword",
+          "value": "COMMUNE",
+          "context": "social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+          "line": 83,
+          "fullLine": "Le siège social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+        },
+        {
+          "type": "keyword",
+          "value": "LOT",
+          "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+          "line": 83,
+          "fullLine": "Le siège social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+        },
+        {
+          "type": "keyword",
+          "value": "ILOT",
+          "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123",
+          "line": 83,
+          "fullLine": "Le siège social est fixé à : A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+        },
+        {
+          "type": "keyword",
+          "value": "DOMICILE",
+          "context": "entité des associés  et leur  domicile",
+          "line": 99,
+          "fullLine": "Identité des associés  et leur  domicile"
+        }
+      ],
+      "formulaire-unique.docx": [
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "Nombre d’Emplois",
+          "line": 23,
+          "fullLine": "Nombre d’Emplois"
+        },
+        {
+          "type": "keyword",
+          "value": "GERANT",
+          "context": "AGISSANT EN QUALITE DE : GERANT",
+          "line": 49,
+          "fullLine": "AGISSANT EN QUALITE DE : GERANT"
+        },
+        {
+          "type": "keyword",
+          "value": "ADRESSE",
+          "context": "ADRESSE PERSONNELLE………PORT BOUET JEAN",
+          "line": 53,
+          "fullLine": "ADRESSE PERSONNELLE………PORT BOUET JEAN FOLLY……………….…..………………….. ……………………………………………………………………………………………………………………"
+        },
+        {
+          "type": "keyword",
+          "value": "MOBILE",
+          "context": "FAX : ……………………..…………………………. MOBILE :…… 07 09 08 69 62 …….…………………",
+          "line": 55,
+          "fullLine": "TEL :…………………………………………………..  FAX : ……………………..…………………………. MOBILE :…… 07 09 08 69 62 …….…………………  E-MAIL : archexcellence18@gmail.com"
+        },
+        {
+          "type": "keyword",
+          "value": "SIGLE",
+          "context": "……………………………….                 Sigle : …………… 2AE   ……… …… ……………………",
+          "line": 71,
+          "fullLine": "Dénomination sociale : ………… ATTA ADI ENTREPRISES ……………………………………………….                  Nom commercial : …………………………………………………………………………………………………….                 Sigle : …………… 2AE   ……… …… ……………………………………………………………                                   Durée : ……………………99 ANS………………………………………………………………………………….."
+        },
+        {
+          "type": "keyword",
+          "value": "CAPITAL",
+          "context": "Montant du capital : …1.000.000 FCFA…….Dont : Mo",
+          "line": 75,
+          "fullLine": "Montant du capital : …1.000.000 FCFA…….Dont : Montant en numéraire………1.000.000 F CFA……………."
+        },
+        {
+          "type": "keyword",
+          "value": "ACTIVITE",
+          "context": "ACTIVITE (renseignements sur la person",
+          "line": 79,
+          "fullLine": "ACTIVITE (renseignements sur la personne morale)"
+        },
+        {
+          "type": "keyword",
+          "value": "VILLE",
+          "context": "Ville :…ABIDJAN…………… Commune : PORT",
+          "line": 91,
+          "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….………………….."
+        },
+        {
+          "type": "keyword",
+          "value": "COMMUNE",
+          "context": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JE",
+          "line": 91,
+          "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….………………….."
+        },
+        {
+          "type": "keyword",
+          "value": "QUARTIER",
+          "context": "………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………",
+          "line": 91,
+          "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….………………….."
+        },
+        {
+          "type": "keyword",
+          "value": "LOT",
+          "context": "Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….",
+          "line": 91,
+          "fullLine": "Ville :…ABIDJAN…………… Commune : PORT BOUET………… Quartier. JEAN FOLLY………….………            Rue : ……… RUE MOBIBOIS … Lot n°……461…...  I lot… 123…………….………………….."
+        },
+        {
+          "type": "keyword",
+          "value": "EMAIL",
+          "context": "Adresse postale : …………………………Email archexcellence@gmail.com.....",
+          "line": 97,
+          "fullLine": "Adresse postale : …………………………Email archexcellence@gmail.com.........."
+        },
+        {
+          "type": "keyword",
+          "value": "DIRIGEANT",
+          "context": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRE",
+          "line": 103,
+          "fullLine": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRES AUX COMPTES"
+        },
+        {
+          "type": "keyword",
+          "value": "LIEU DE NAISSANCE",
+          "context": "Date et lieu de naissance",
+          "line": 145,
+          "fullLine": "Date et lieu de naissance"
+        },
+        {
+          "type": "keyword",
+          "value": "DOMICILE",
+          "context": "Domicile",
+          "line": 169,
+          "fullLine": "Domicile"
+        }
+      ],
+      "greffe-declaration-sur-l’honneur.docx": [
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "NOM : ATTA",
+          "line": 11,
+          "fullLine": "NOM : ATTA"
+        },
+        {
+          "type": "keyword",
+          "value": "PRENOM",
+          "context": "PRENOMS : VALENTIN",
+          "line": 15,
+          "fullLine": "PRENOMS : VALENTIN"
+        },
+        {
+          "type": "keyword",
+          "value": "DATE DE NAISSANCE",
+          "context": "DATE DE NAISSANCE :   01/01/1989",
+          "line": 27,
+          "fullLine": "DATE DE NAISSANCE :   01/01/1989"
+        },
+        {
+          "type": "keyword",
+          "value": "NATIONALITE",
+          "context": "NATIONALITE : IVOIRIENNE",
+          "line": 31,
+          "fullLine": "NATIONALITE : IVOIRIENNE"
+        },
+        {
+          "type": "keyword",
+          "value": "DOMICILE",
+          "context": "DOMICILE : PORT BOUET",
+          "line": 35,
+          "fullLine": "DOMICILE : PORT BOUET"
+        },
+        {
+          "type": "keyword",
+          "value": "GERANT",
+          "context": "QUALITE : GERANT",
+          "line": 39,
+          "fullLine": "QUALITE : GERANT"
+        },
+        {
+          "type": "keyword",
+          "value": "PROFESSION",
+          "context": "nation pénale, ni de sanction professionnelle ou administrative de nat",
+          "line": 49,
+          "fullLine": "N’avoir fait l’objet d’aucune condamnation pénale, ni de sanction professionnelle ou administrative de nature à m’interdire de gérer, administrer ou diriger une société ou l’exercice d’une activité commerciale."
+        }
+      ],
+      "Liste de gerant.docx": [
+        {
+          "type": "keyword",
+          "value": "COMMUNE",
+          "context": "NT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+          "line": 5,
+          "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »                                                                     ----------------------------------------------------------------------------------"
+        },
+        {
+          "type": "keyword",
+          "value": "LOT",
+          "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »",
+          "line": 5,
+          "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »                                                                     ----------------------------------------------------------------------------------"
+        },
+        {
+          "type": "keyword",
+          "value": "ILOT",
+          "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123 »",
+          "line": 5,
+          "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123 »                                                                     ----------------------------------------------------------------------------------"
+        },
+        {
+          "type": "keyword",
+          "value": "DIRIGEANT",
+          "context": "LISTE DE DIRIGEANT",
+          "line": 13,
+          "fullLine": "LISTE DE DIRIGEANT"
+        },
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "Est nommé gérant de la société pour u",
+          "line": 19,
+          "fullLine": "Est nommé gérant de la société pour une durée de quatre-vingt-dix-neuf ans (99ans),"
+        },
+        {
+          "type": "keyword",
+          "value": "CNI",
+          "context": "à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/",
+          "line": 21,
+          "fullLine": "M. ATTA VALENTIN,  Electrotechnicien, résident à Abidjan             Port Bouet de nationalité ivoirienne née le 01/01/1989 à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/2021 et valable 21/09/2031 par la république de Côte d’Ivoire."
+        }
+      ],
+      "Staut de l'entreprise.docx": [
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "et du Groupement d’Intérêt Economique",
+          "line": 19,
+          "fullLine": "Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l’Acte uniforme révisé de l’OHADA du  30  janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d’Intérêt Economique"
+        },
+        {
+          "type": "keyword",
+          "value": "COMMUNE",
+          "context": "NT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE",
+          "line": 67,
+          "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+        },
+        {
+          "type": "keyword",
+          "value": "LOT",
+          "context": "RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123",
+          "line": 67,
+          "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+        },
+        {
+          "type": "keyword",
+          "value": "ILOT",
+          "context": "OIS, FACE DU POT 90, LOT 461, ILOT 123",
+          "line": 67,
+          "fullLine": "AYANT SON SIEGE SOCIAL A ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123"
+        },
+        {
+          "type": "keyword",
+          "value": "CNI",
+          "context": "à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/",
+          "line": 83,
+          "fullLine": "M. ATTA VALENTIN, Electrotechnicien, résident à Abidjan Port Bouet de nationalité ivoirienne née le 01/01/1989 à KETESSO et titulaire de la CNI CI002317170 délivré le 21/09/2021 et valable 21/09/2031 par la république de Côte d’Ivoire."
+        },
+        {
+          "type": "keyword",
+          "value": "DENOMINATION",
+          "context": "ARTICLE 2- DENOMINATION",
+          "line": 111,
+          "fullLine": "ARTICLE 2- DENOMINATION"
+        },
+        {
+          "type": "keyword",
+          "value": "ADRESSE",
+          "context": "t de son capital social, de l’adresse de son siège social et de la",
+          "line": 115,
+          "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier."
+        },
+        {
+          "type": "keyword",
+          "value": "CAPITAL",
+          "context": "ée ou SARL, du montant de son capital social, de l’adresse de son s",
+          "line": 115,
+          "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier."
+        },
+        {
+          "type": "keyword",
+          "value": "CAPITAL SOCIAL",
+          "context": "ée ou SARL, du montant de son capital social, de l’adresse de son siège so",
+          "line": 115,
+          "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier."
+        },
+        {
+          "type": "keyword",
+          "value": "OBJET SOCIAL",
+          "context": "ectement ou indirectement à l’objet social ou pouvant en faciliter l’ext",
+          "line": 131,
+          "fullLine": "- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l’objet social ou pouvant en faciliter l’extension ou le développement."
+        },
+        {
+          "type": "keyword",
+          "value": "ASSOCIE",
+          "context": "IDENTITE DES ASSOCIES",
+          "line": 185,
+          "fullLine": "IDENTITE DES ASSOCIES"
+        },
+        {
+          "type": "keyword",
+          "value": "MANDAT",
+          "context": "rant peut démissionner de son mandat, mais seulement en prévenant",
+          "line": 269,
+          "fullLine": "Le gérant peut démissionner de son mandat, mais seulement en prévenant l'associé unique au moins 3 mois à l'avance, par lettre recommandé avec demande d'avis de réception ou lettre au porteur contre récépissé."
+        },
+        {
+          "type": "keyword",
+          "value": "GERANT",
+          "context": "ARTICLE 14 : POUVOIRS DU GERANT",
+          "line": 279,
+          "fullLine": "ARTICLE 14 : POUVOIRS DU GERANT"
+        },
+        {
+          "type": "keyword",
+          "value": "DOMICILE",
+          "context": "ARTICLE 24 : ELECTION DE DOMICILE",
+          "line": 413,
+          "fullLine": "ARTICLE 24 : ELECTION DE DOMICILE"
+        }
+      ],
+      "contrat de bail HYDRA FORAGE.docx": [
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "2999 Propriétaire, ci-après dénommé",
+          "line": 11,
+          "fullLine": "TRAORE BAKARY, Téléphone : 0151252999 Propriétaire, ci-après dénommé                                     « le bailleur »"
+        },
+        {
+          "type": "keyword",
+          "value": "BAILLEUR",
+          "context": "« le bailleur »",
+          "line": 11,
+          "fullLine": "TRAORE BAKARY, Téléphone : 0151252999 Propriétaire, ci-après dénommé                                     « le bailleur »"
+        },
+        {
+          "type": "keyword",
+          "value": "COMMUNE",
+          "context": "-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU,",
+          "line": 33,
+          "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation de la «NEW VOLTA FORAGE»."
+        },
+        {
+          "type": "keyword",
+          "value": "LOT",
+          "context": "E, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’ex",
+          "line": 33,
+          "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation de la «NEW VOLTA FORAGE»."
+        },
+        {
+          "type": "keyword",
+          "value": "ILOT",
+          "context": "RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation",
+          "line": 33,
+          "fullLine": "Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342 en vue de l’exploitation de la «NEW VOLTA FORAGE»."
+        },
+        {
+          "type": "keyword",
+          "value": "CAUTION",
+          "context": "0 FCFA) dont deux (2) mois de caution et deux (2) mois d’avance.",
+          "line": 95,
+          "fullLine": "La présente location est consentie et acceptée moyennant un loyer mensuel de Quatre-vingt mille (80.000) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de TROIS CENT VINGT MILLE (320 000 FCFA) dont deux (2) mois de caution et deux (2) mois d’avance."
+        },
+        {
+          "type": "keyword",
+          "value": "DOMICILE",
+          "context": "Article 9 : Election de domicile",
+          "line": 121,
+          "fullLine": "Article 9 : Election de domicile"
+        }
+      ],
+      "formulaire-unique HYDRA FOR.docx": [
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "Nombre d’Emplois",
+          "line": 23,
+          "fullLine": "Nombre d’Emplois"
+        },
+        {
+          "type": "keyword",
+          "value": "ADRESSE",
+          "context": "ADRESSE PERSONNELLE : COCODY RIVIERA",
+          "line": 53,
+          "fullLine": "ADRESSE PERSONNELLE : COCODY RIVIERA (ABIDJAN) ……………………………………………………………………………………………………………………"
+        },
+        {
+          "type": "keyword",
+          "value": "MOBILE",
+          "context": "… .……………………………..  FAX : …………. MOBILE : ‎+225 01 51 25 29 99………..",
+          "line": 55,
+          "fullLine": "TEL :………… .……………………………..  FAX : …………. MOBILE : ‎+225 01 51 25 29 99……….."
+        },
+        {
+          "type": "keyword",
+          "value": "SIGLE",
+          "context": "……………………………….                 Sigle : ……………… …… ……………………………………………",
+          "line": 73,
+          "fullLine": "Dénomination sociale : ………… NEW VOLTA FORAGE SARL ………………………….                                                             Nom commercial : …………………………………………………………………………………………………….                 Sigle : ……………… …… ……………………………………………………"
+        },
+        {
+          "type": "keyword",
+          "value": "CAPITAL",
+          "context": "Montant du capital : …………1 000 000 FCFA….Dont :",
+          "line": 79,
+          "fullLine": "Montant du capital : …………1 000 000 FCFA….Dont : Montant en numéraire…………1 000 000 ……………."
+        },
+        {
+          "type": "keyword",
+          "value": "ACTIVITE",
+          "context": "ACTIVITE (renseignements sur la person",
+          "line": 83,
+          "fullLine": "ACTIVITE (renseignements sur la personne morale)"
+        },
+        {
+          "type": "keyword",
+          "value": "VILLE",
+          "context": "Ville :…ABIDJAN…… Commune : …COCODY",
+          "line": 103,
+          "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………"
+        },
+        {
+          "type": "keyword",
+          "value": "COMMUNE",
+          "context": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGR",
+          "line": 103,
+          "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………"
+        },
+        {
+          "type": "keyword",
+          "value": "QUARTIER",
+          "context": "ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….",
+          "line": 103,
+          "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………"
+        },
+        {
+          "type": "keyword",
+          "value": "LOT",
+          "context": "Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………",
+          "line": 103,
+          "fullLine": "Ville :…ABIDJAN…… Commune : …COCODY…… Quartier. …… ANGRE NOUVEAU CHU …………….                                                           Rue: ……BASE CIE… Lot n°… … 3838………...  I lot n°………342…….…………"
+        },
+        {
+          "type": "keyword",
+          "value": "EMAIL",
+          "context": "Adresse postale : …… …………………Email……….. newvoltaforage@gmail.com",
+          "line": 109,
+          "fullLine": "Adresse postale : …… …………………Email……….. newvoltaforage@gmail.com …………..................."
+        },
+        {
+          "type": "keyword",
+          "value": "DIRIGEANT",
+          "context": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRE",
+          "line": 117,
+          "fullLine": "INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRES AUX COMPTES"
+        },
+        {
+          "type": "keyword",
+          "value": "LIEU DE NAISSANCE",
+          "context": "Date et lieu de naissance",
+          "line": 159,
+          "fullLine": "Date et lieu de naissance"
+        },
+        {
+          "type": "keyword",
+          "value": "DOMICILE",
+          "context": "Domicile",
+          "line": 183,
+          "fullLine": "Domicile"
+        },
+        {
+          "type": "keyword",
+          "value": "GERANT",
+          "context": "GERANT",
+          "line": 229,
+          "fullLine": "GERANT"
+        }
+      ],
+      "greffe-declaration-sur-l’honneur hydra forage.docx": [
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "NOM : KARIAKALIAMMAN RAVI",
+          "line": 9,
+          "fullLine": "NOM : KARIAKALIAMMAN RAVI"
+        },
+        {
+          "type": "keyword",
+          "value": "PRENOM",
+          "context": "PRENOMS : RANJITH",
+          "line": 13,
+          "fullLine": "PRENOMS : RANJITH"
+        },
+        {
+          "type": "keyword",
+          "value": "DATE DE NAISSANCE",
+          "context": "DATE DE NAISSANCE :   05/01/1994",
+          "line": 25,
+          "fullLine": "DATE DE NAISSANCE :   05/01/1994"
+        },
+        {
+          "type": "keyword",
+          "value": "NATIONALITE",
+          "context": "NATIONALITE : INDIENNE",
+          "line": 29,
+          "fullLine": "NATIONALITE : INDIENNE"
+        },
+        {
+          "type": "keyword",
+          "value": "DOMICILE",
+          "context": "DOMICILE : MARCORY ZONE 4",
+          "line": 33,
+          "fullLine": "DOMICILE : MARCORY ZONE 4"
+        },
+        {
+          "type": "keyword",
+          "value": "GERANT",
+          "context": "QUALITE : GERANT",
+          "line": 37,
+          "fullLine": "QUALITE : GERANT"
+        },
+        {
+          "type": "keyword",
+          "value": "PROFESSION",
+          "context": "nation pénale, ni de sanction professionnelle ou administrative de nat",
+          "line": 45,
+          "fullLine": "N’avoir fait l’objet d’aucune condamnation pénale, ni de sanction professionnelle ou administrative de nature à m’interdire de gérer, administrer ou diriger une société ou l’exercice d’une activité commerciale."
+        }
+      ],
+      "Liste de gerant hydra forage.docx": [
+        {
+          "type": "keyword",
+          "value": "COMMUNE",
+          "context": "00 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU,",
+          "line": 5,
+          "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+        },
+        {
+          "type": "keyword",
+          "value": "LOT",
+          "context": "E, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+          "line": 5,
+          "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+        },
+        {
+          "type": "keyword",
+          "value": "ILOT",
+          "context": "RESTAURANT ADINKRA LOT 3838, ILOT 342",
+          "line": 5,
+          "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+        },
+        {
+          "type": "keyword",
+          "value": "CAPITAL",
+          "context": "Au capital de 1 000 000 FCFA, située à A",
+          "line": 5,
+          "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+        },
+        {
+          "type": "keyword",
+          "value": "DIRIGEANT",
+          "context": "LISTE DE DIRIGEANT",
+          "line": 13,
+          "fullLine": "LISTE DE DIRIGEANT"
+        },
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "Est nommé Gérant pour une durée de qu",
+          "line": 17,
+          "fullLine": "Est nommé Gérant pour une durée de quatre ans (4 ans)"
+        },
+        {
+          "type": "keyword",
+          "value": "PASSEPORT",
+          "context": "L NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/",
+          "line": 19,
+          "fullLine": "M. KARIAKALIAMMAN RAVI RANJITH, Technicien hydraulique résidant à ABIDJAN-MARCORY de nationalité Indienne, né le 05/01/1994 à ERODE, TAMIL NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/2025 et valable jusqu’au 15/10/2035 par la République de l’Inde"
+        }
+      ],
+      "STATUT Friends forage Cote D’ivoire.docx": [
+        {
+          "type": "keyword",
+          "value": "CAPITAL",
+          "context": "AU CAPITAL DE 1.000.000 FCFA",
+          "line": 13,
+          "fullLine": "AU CAPITAL DE 1.000.000 FCFA"
+        },
+        {
+          "type": "keyword",
+          "value": "NOM",
+          "context": "et du Groupement d’Intérêt Economique",
+          "line": 25,
+          "fullLine": "Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l’Acte uniforme révisé de l’OHADA du  30  janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d’Intérêt Economique"
+        },
+        {
+          "type": "keyword",
+          "value": "COMMUNE",
+          "context": "00 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU,",
+          "line": 77,
+          "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+        },
+        {
+          "type": "keyword",
+          "value": "LOT",
+          "context": "E, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342",
+          "line": 77,
+          "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+        },
+        {
+          "type": "keyword",
+          "value": "ILOT",
+          "context": "RESTAURANT ADINKRA LOT 3838, ILOT 342",
+          "line": 77,
+          "fullLine": "Au capital de 1 000 000 FCFA, située à ABIDJAN COMMUNE DE COCODY ANGRE NOUVEAU CHU, DJOROGOBITE 1, BASE CIE, PRES DU RESTAURANT ADINKRA LOT 3838, ILOT 342"
+        },
+        {
+          "type": "keyword",
+          "value": "PASSEPORT",
+          "context": "L NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/",
+          "line": 89,
+          "fullLine": "M. KARIAKALIAMMAN RAVI RANJITH, Technicien hydraulique résidant à ABIDJAN-MARCORY de nationalité Indienne, né le 05/01/1994 à ERODE, TAMIL NADU (INDE) et titulaire du passeport N°ZA342860 délivrée le 16/10/2025 et valable jusqu’au 15/10/2035 par la République de l’Inde."
+        },
+        {
+          "type": "keyword",
+          "value": "DENOMINATION",
+          "context": "ARTICLE 2- DENOMINATION",
+          "line": 125,
+          "fullLine": "ARTICLE 2- DENOMINATION"
+        },
+        {
+          "type": "keyword",
+          "value": "ADRESSE",
+          "context": "t de son capital social, de l’adresse de son siège social et de la",
+          "line": 129,
+          "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier."
+        },
+        {
+          "type": "keyword",
+          "value": "CAPITAL SOCIAL",
+          "context": "ée ou SARL, du montant de son capital social, de l’adresse de son siège so",
+          "line": 129,
+          "fullLine": "La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l’indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l’adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier."
+        },
+        {
+          "type": "keyword",
+          "value": "PROFESSION",
+          "context": "La formation professionnelle liée aux techniques de f",
+          "line": 147,
+          "fullLine": "La formation professionnelle liée aux techniques de forage et à l’hydraulique"
+        },
+        {
+          "type": "keyword",
+          "value": "OBJET SOCIAL",
+          "context": "ectement ou indirectement à l’objet social ou à   tous   objets   simila",
+          "line": 151,
+          "fullLine": "et généralement, toutes   opérations   industrielles, commerciales, financières, civiles, mobilières ou immobilières pouvant Se rattacher directement ou indirectement à l’objet social ou à   tous   objets   similaires   ou   connexes   ou   susceptibles   d’en   faciliter   l’extension   ou   le développement."
+        },
+        {
+          "type": "keyword",
+          "value": "ASSOCIE",
+          "context": "IDENTITE DES ASSOCIES",
+          "line": 239,
+          "fullLine": "IDENTITE DES ASSOCIES"
+        },
+        {
+          "type": "keyword",
+          "value": "MANDAT",
+          "context": "roit et conjoint désignent un mandataire chargé de les représenter",
+          "line": 333,
+          "fullLine": "La gérance peut requérir de tout Notaire, la délivrance d’expéditions ou d’extraits de tous actes établissant lesdites qualités ; lesdits héritiers, ayants droit et conjoint désignent un mandataire chargé de les représenter auprès de la société pendant la durée de l’indivision."
+        },
+        {
+          "type": "keyword",
+          "value": "GERANT",
+          "context": "ARTICLE 16- POUVOIRS DU GERANT",
+          "line": 371,
+          "fullLine": "ARTICLE 16- POUVOIRS DU GERANT"
+        },
+        {
+          "type": "keyword",
+          "value": "CONTACT",
+          "context": "Si du fait des pertes contactées dans les états financiers",
+          "line": 493,
+          "fullLine": "Si du fait des pertes contactées dans les états financiers de synthèse, les capitaux propres de la société deviennent inférieurs à la moitié du capital social, le gérant ou, le cas échéant, le commissaire aux comptes doit dans les quatre (4) mois   qui suivent l’approbation des comptes ayant fait apparaître cette perte, consulter les associés sur l’opportunité de prononcer la dissolution anticipée de la société."
+        },
+        {
+          "type": "keyword",
+          "value": "DOMICILE",
+          "context": "ARTICLE 30 : ELECTION DE DOMICILE",
+          "line": 555,
+          "fullLine": "ARTICLE 30 : ELECTION DE DOMICILE"
+        }
+      ]
+    }
   }
 }

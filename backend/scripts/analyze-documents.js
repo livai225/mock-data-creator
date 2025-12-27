@@ -53,6 +53,93 @@ async function analyzePdf(filePath) {
 }
 
 /**
+ * Détecter les placeholders/variables dans le contenu
+ */
+function detectPlaceholders(content) {
+  const placeholders = [];
+  
+  // Patterns pour détecter les variables (entre crochets, en majuscules, etc.)
+  const patterns = [
+    // Format [VARIABLE] ou [VARIABLE_NAME]
+    /\[([A-Z_ÀÂÄÉÈÊËÎÏÔÖÛÜÇ\s]+)\]/g,
+    // Format {{VARIABLE}} ou {{variable}}
+    /\{\{([A-Za-z_ÀÂÄÉÈÊËÎÏÔÖÛÜÇ\s]+)\}\}/g,
+    // Format <VARIABLE> ou <variable>
+    /<([A-Za-z_ÀÂÄÉÈÊËÎÏÔÖÛÜÇ\s]+)>/g,
+    // Format __VARIABLE__ ou __variable__
+    /__([A-Za-z_ÀÂÄÉÈÊËÎÏÔÖÛÜÇ\s]+)__/g
+  ];
+  
+  // Mots-clés qui indiquent des champs à remplir
+  const keywords = [
+    'NOM', 'PRENOM', 'NOM ET PRENOM', 'DENOMINATION', 'SIGLE',
+    'ADRESSE', 'VILLE', 'COMMUNE', 'QUARTIER', 'LOT', 'ILOT',
+    'CAPITAL', 'CAPITAL SOCIAL', 'CAPITAL EN LETTRES',
+    'TELEPHONE', 'EMAIL', 'CONTACT', 'MOBILE',
+    'DATE DE NAISSANCE', 'LIEU DE NAISSANCE', 'NATIONALITE',
+    'CNI', 'PASSEPORT', 'NUMERO IDENTITE', 'DATE DELIVRANCE', 'DATE VALIDITE',
+    'PROFESSION', 'ACTIVITE', 'OBJET SOCIAL',
+    'BAILLEUR', 'LOYEUR', 'CAUTION', 'DUREE BAIL',
+    'ASSOCIE', 'GERANT', 'DIRIGEANT',
+    'DATE CONSTITUTION', 'DUREE SOCIETE', 'MANDAT',
+    'PERE', 'MERE', 'DOMICILE', 'RESIDENCE'
+  ];
+  
+  // Détecter avec les patterns regex
+  patterns.forEach(pattern => {
+    let match;
+    while ((match = pattern.exec(content)) !== null) {
+      const placeholder = match[1].trim();
+      if (placeholder.length > 2 && placeholder.length < 50) {
+        placeholders.push({
+          type: 'pattern',
+          value: placeholder,
+          original: match[0],
+          line: content.substring(0, match.index).split('\n').length
+        });
+      }
+    }
+  });
+  
+  // Détecter les mots-clés même sans délimiteurs (dans le contexte)
+  const lines = content.split('\n');
+  lines.forEach((line, lineIndex) => {
+    keywords.forEach(keyword => {
+      const upperLine = line.toUpperCase();
+      if (upperLine.includes(keyword)) {
+        // Extraire le contexte autour du mot-clé
+        const keywordIndex = upperLine.indexOf(keyword);
+        const context = line.substring(
+          Math.max(0, keywordIndex - 30),
+          Math.min(line.length, keywordIndex + keyword.length + 30)
+        );
+        
+        placeholders.push({
+          type: 'keyword',
+          value: keyword,
+          context: context.trim(),
+          line: lineIndex + 1,
+          fullLine: line.trim()
+        });
+      }
+    });
+  });
+  
+  // Dédupliquer et trier
+  const unique = [];
+  const seen = new Set();
+  placeholders.forEach(p => {
+    const key = p.value.toUpperCase().replace(/\s+/g, '_');
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(p);
+    }
+  });
+  
+  return unique.sort((a, b) => a.line - b.line);
+}
+
+/**
  * Extraire la structure et les textes juridiques d'un document
  */
 function extractLegalTexts(content) {
@@ -65,7 +152,8 @@ function extractLegalTexts(content) {
     articles: [],
     clauses: [],
     signatures: [],
-    legalTexts: []
+    legalTexts: [],
+    placeholders: detectPlaceholders(content)
   };
 
   let currentSection = null;
@@ -194,6 +282,11 @@ async function analyzeDirectory(dirPath, category) {
         const contentFile = path.join(OUTPUT_DIR, `${category}_${file.name.replace(/[^a-z0-9]/gi, '_')}.txt`);
         fs.writeFileSync(contentFile, analysis.content, 'utf-8');
         
+        // Afficher les placeholders détectés
+        if (analysis.structure.placeholders && analysis.structure.placeholders.length > 0) {
+          console.log(`    📋 ${analysis.structure.placeholders.length} placeholders détectés`);
+        }
+        
         results[file.name] = analysis;
         console.log(`    ✅ Analysé (${analysis.content.length} caractères)`);
       }
@@ -248,13 +341,32 @@ async function analyzeAllModels() {
 
   // Extraire les textes juridiques communs
   const allLegalTexts = [];
+  const allPlaceholders = [];
+  
   [...Object.values(output.sarlUnipersonnelle), ...Object.values(output.sarlPluripersonnelle)].forEach(doc => {
     if (doc.structure && doc.structure.legalTexts) {
       allLegalTexts.push(...doc.structure.legalTexts);
     }
+    if (doc.structure && doc.structure.placeholders) {
+      allPlaceholders.push(...doc.structure.placeholders.map(p => ({
+        ...p,
+        document: doc.fileName
+      })));
+    }
   });
 
   output.legalTexts.common = allLegalTexts;
+  output.placeholders = {
+    all: allPlaceholders,
+    byDocument: {}
+  };
+  
+  // Grouper les placeholders par document
+  [...Object.values(output.sarlUnipersonnelle), ...Object.values(output.sarlPluripersonnelle)].forEach(doc => {
+    if (doc.structure && doc.structure.placeholders) {
+      output.placeholders.byDocument[doc.fileName] = doc.structure.placeholders;
+    }
+  });
 
   // Sauvegarder les résultats
   const outputPath = path.join(OUTPUT_DIR, 'analysis-results.json');
@@ -265,6 +377,20 @@ async function analyzeAllModels() {
   console.log(`   - SARL Unipersonnelle: ${output.summary.sarlUnipersonnelle.count} fichiers`);
   console.log(`   - SARL Pluripersonnelle: ${output.summary.sarlPluripersonnelle.count} fichiers`);
   console.log(`   - Textes juridiques trouvés: ${allLegalTexts.length}`);
+  console.log(`   - Placeholders détectés: ${allPlaceholders.length}`);
+  
+  // Afficher un résumé des placeholders par document
+  console.log(`\n📋 Placeholders détectés par document:`);
+  Object.entries(output.placeholders.byDocument).forEach(([fileName, placeholders]) => {
+    console.log(`   📄 ${fileName}: ${placeholders.length} placeholders`);
+    placeholders.slice(0, 5).forEach(p => {
+      console.log(`      - ${p.value} (ligne ${p.line})`);
+    });
+    if (placeholders.length > 5) {
+      console.log(`      ... et ${placeholders.length - 5} autres`);
+    }
+  });
+  
   console.log(`\n💾 Résultats sauvegardés dans: ${outputPath}`);
   console.log(`📁 Contenus bruts dans: ${OUTPUT_DIR}`);
   

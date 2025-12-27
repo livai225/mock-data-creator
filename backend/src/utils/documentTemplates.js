@@ -879,10 +879,21 @@ export const generateListeGerants = (company, managers) => {
   const dateValiditeId = gerant.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
   const lieuDelivranceId = gerant.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
   
+  // Construire l'adresse avec lot et îlot si disponibles
+  let adresseSiege = company.address || '[ADRESSE]';
+  const lot = company.lot || '';
+  const ilot = company.ilot || '';
+  if (lot || ilot) {
+    const parts = [];
+    if (lot) parts.push(`Lot ${lot}`);
+    if (ilot) parts.push(`Îlot ${ilot}`);
+    adresseSiege = `${adresseSiege}${parts.length > 0 ? `, ${parts.join(', ')}` : ''}`;
+  }
+  
   return `
 « ${company.company_name || '[NOM SOCIÉTÉ]'} »
 
-AYANT SON SIÈGE SOCIAL À ${company.address?.toUpperCase() || '[ADRESSE]'}, ${company.city?.toUpperCase() || 'ABIDJAN'}
+AYANT SON SIÈGE SOCIAL À ${adresseSiege.toUpperCase()}, ${company.city?.toUpperCase() || 'ABIDJAN'}
 
 __________________________________________________________________________
 
