@@ -717,6 +717,22 @@ const generateContratBailHTML = (company, additionalData = {}) => {
 const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
   
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [Liste Gérants] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      address: gerant.address,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance,
+      dateNaissance: gerant.dateNaissance
+    });
+  }
+  
   // Gérer la durée du mandat correctement
   let dureeMandatText = 'Durée indéterminée';
   let dureeMandatAnnees = null;
@@ -731,6 +747,14 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
     } else if (gerant.duree_mandat === 'indeterminee') {
       dureeMandatText = 'Durée indéterminée';
     }
+  } else if (gerant?.dureeMandat) {
+    if (typeof gerant.dureeMandat === 'number') {
+      dureeMandatAnnees = gerant.dureeMandat;
+      dureeMandatText = `${numberToWords(gerant.dureeMandat)} (${gerant.dureeMandat}) ans`;
+    } else if (gerant.dureeMandat === 'determinee' && gerant.dureeMandatAnnees) {
+      dureeMandatAnnees = gerant.dureeMandatAnnees;
+      dureeMandatText = `${numberToWords(gerant.dureeMandatAnnees)} (${gerant.dureeMandatAnnees}) ans`;
+    }
   } else {
     // Par défaut, 4 ans
     dureeMandatAnnees = 4;
@@ -739,9 +763,9 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
   
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   const gerantProfession = gerant?.profession || '[PROFESSION]';
-  const gerantAdresse = gerant?.adresse || '[ADRESSE]';
-  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
-  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
+  const gerantAdresse = gerant?.adresse || gerant?.address || '[ADRESSE]';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
+  const gerantDateNaissance = gerant?.date_naissance || gerant?.dateNaissance ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
   const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
   const gerantTypeId = gerant?.type_identite || gerant?.typeIdentite || 'CNI';
   const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '[NUMÉRO]';

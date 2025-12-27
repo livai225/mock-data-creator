@@ -868,16 +868,31 @@ export const generateListeGerants = (company, managers) => {
   }
   
   const gerant = managers[0];
+  
+  // Debug: Afficher les données du gérant
+  console.log('🔍 [DOCX Liste Gérants] Données gérant:', {
+    nom: gerant.nom,
+    prenoms: gerant.prenoms,
+    nationalite: gerant.nationalite,
+    lieu_naissance: gerant.lieu_naissance,
+    lieuNaissance: gerant.lieuNaissance,
+    adresse: gerant.adresse,
+    address: gerant.address,
+    profession: gerant.profession,
+    date_naissance: gerant.date_naissance,
+    dateNaissance: gerant.dateNaissance
+  });
+  
   const capital = parseFloat(company.capital) || 0;
-  const dureeMandat = gerant.duree_mandat || 99;
+  const dureeMandat = gerant.duree_mandat || gerant.dureeMandat || 99;
   const dureeMandatWords = numberToWords(dureeMandat);
   
   // Extraire le numéro de pièce d'identité
-  const numeroIdentite = gerant.numero_identite || '[NUMÉRO]';
-  const typeIdentite = gerant.type_identite || 'CNI';
-  const dateDelivranceId = gerant.date_delivrance_id ? formatDate(gerant.date_delivrance_id) : '[DATE DÉLIVRANCE]';
-  const dateValiditeId = gerant.date_validite_id ? formatDate(gerant.date_validite_id) : '[DATE VALIDITÉ]';
-  const lieuDelivranceId = gerant.lieu_delivrance_id || 'la république de Côte d\'Ivoire';
+  const numeroIdentite = gerant.numero_identite || gerant.numeroIdentite || '[NUMÉRO]';
+  const typeIdentite = gerant.type_identite || gerant.typeIdentite || 'CNI';
+  const dateDelivranceId = (gerant.date_delivrance_id || gerant.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
+  const dateValiditeId = (gerant.date_validite_id || gerant.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
+  const lieuDelivranceId = gerant.lieu_delivrance_id || gerant.lieuDelivranceId || 'la république de Côte d\'Ivoire';
   
   // Construire l'adresse avec lot et îlot si disponibles
   let adresseSiege = company.address || '[ADRESSE]';
@@ -890,6 +905,13 @@ export const generateListeGerants = (company, managers) => {
     adresseSiege = `${adresseSiege}${parts.length > 0 ? `, ${parts.join(', ')}` : ''}`;
   }
   
+  // Récupérer les champs du gérant avec toutes les variantes
+  const gerantProfession = gerant.profession || '[PROFESSION]';
+  const gerantAdresse = gerant.adresse || gerant.address || '[ADRESSE]';
+  const gerantNationalite = gerant.nationalite || gerant.nationality || '[NATIONALITÉ]';
+  const gerantDateNaissance = (gerant.date_naissance || gerant.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
+  const gerantLieuNaissance = gerant.lieu_naissance || gerant.lieuNaissance || '[LIEU NAISSANCE]';
+  
   return `
 « ${company.company_name || '[NOM SOCIÉTÉ]'} »
 
@@ -901,7 +923,7 @@ LISTE DE DIRIGEANT
 
 Est nommé gérant de la société pour une durée de ${dureeMandatWords} ans (${dureeMandat} ans),
 
-M. ${gerant.nom || ''} ${gerant.prenoms || ''}, ${gerant.profession || '[PROFESSION]'}, résident à ${gerant.adresse || '[ADRESSE]'} de nationalité ${gerant.nationalite || '[NATIONALITÉ]'} né(e) le ${formatDate(gerant.date_naissance || gerant.dateNaissance)} à ${gerant.lieu_naissance || gerant.lieuNaissance || '[LIEU NAISSANCE]'} et titulaire de la ${typeIdentite} ${numeroIdentite} délivré(e) le ${dateDelivranceId} et valable ${dateValiditeId} par ${lieuDelivranceId}.
+M. ${gerant.nom || ''} ${gerant.prenoms || ''}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${typeIdentite} ${numeroIdentite} délivré(e) le ${dateDelivranceId} et valable ${dateValiditeId} par ${lieuDelivranceId}.
 `;
 };
 
