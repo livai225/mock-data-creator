@@ -120,8 +120,13 @@ export default function PreviewDocuments() {
       }
     };
 
-    // Désactiver la sélection de texte
+    // Désactiver la sélection de texte (mais permettre dans les iframes)
     const handleSelectStart = (e: Event) => {
+      // Permettre la sélection dans les iframes
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'IFRAME' || target.closest('iframe')) {
+        return true;
+      }
       e.preventDefault();
       e.stopPropagation();
       return false;
@@ -222,19 +227,12 @@ export default function PreviewDocuments() {
     };
   }, []);
 
-  // Ajouter des styles CSS renforcés pour désactiver la sélection et l'impression
+  // Ajouter des styles CSS pour désactiver la sélection (mais permettre l'affichage des iframes)
   useEffect(() => {
     const style = document.createElement('style');
     style.id = 'preview-protection-styles';
     style.textContent = `
-      * {
-        -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        -ms-user-select: none !important;
-        user-select: none !important;
-        -webkit-touch-callout: none !important;
-        -webkit-tap-highlight-color: transparent !important;
-      }
+      /* Désactiver la sélection sur la page principale, mais pas dans les iframes */
       body {
         -webkit-user-select: none !important;
         -moz-user-select: none !important;
@@ -242,39 +240,29 @@ export default function PreviewDocuments() {
         user-select: none !important;
         -webkit-touch-callout: none !important;
       }
+      /* Permettre l'interaction avec les iframes pour l'affichage */
       iframe {
-        pointer-events: auto;
-        -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        user-select: none !important;
+        pointer-events: auto !important;
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        user-select: text;
       }
       .preview-container {
         position: relative;
       }
-      .preview-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 1;
-        pointer-events: none;
-      }
-      .preview-container iframe {
-        position: relative;
-        z-index: 0;
-      }
       /* Désactiver l'impression via CSS */
       @media print {
-        * {
-          display: none !important;
-          visibility: hidden !important;
-        }
         body::before {
           content: "L'impression de cette page est désactivée pour protéger le contenu.";
           display: block !important;
           visibility: visible !important;
+          padding: 20px;
+          font-size: 16px;
+          text-align: center;
+        }
+        .preview-container,
+        iframe {
+          display: none !important;
         }
       }
     `;
@@ -790,28 +778,24 @@ export default function PreviewDocuments() {
                             });
 
                             if (generatedDoc && documentUrls[generatedDoc.id]) {
-                              // Afficher le PDF généré dans un iframe avec protections renforcées
+                              // Afficher le PDF généré dans un iframe avec protections modérées
                               return (
                                 <div key={activeTab} className="h-full w-full relative">
                                   <iframe
                                     src={documentUrls[generatedDoc.id]}
-                                    className="w-full h-[70vh] border-0 pointer-events-auto"
+                                    className="w-full h-[70vh] border-0"
                                     title={documentTabs.find(t => t.id === activeTab)?.label}
                                     onContextMenu={(e) => {
                                       e.preventDefault();
-                                      e.stopPropagation();
+                                      toast.error("Le clic droit est désactivé");
                                       return false;
                                     }}
                                     onLoad={(e) => {
-                                      // Désactiver le menu contextuel dans l'iframe
+                                      // Essayer de désactiver le menu contextuel dans l'iframe si possible
                                       try {
                                         const iframe = e.target as HTMLIFrameElement;
                                         if (iframe.contentDocument) {
                                           iframe.contentDocument.addEventListener('contextmenu', (ev) => {
-                                            ev.preventDefault();
-                                            return false;
-                                          }, true);
-                                          iframe.contentDocument.addEventListener('selectstart', (ev) => {
                                             ev.preventDefault();
                                             return false;
                                           }, true);
@@ -821,29 +805,9 @@ export default function PreviewDocuments() {
                                           }, true);
                                         }
                                       } catch (err) {
-                                        // Ignorer les erreurs CORS
-                                        console.warn('Impossible d\'accéder au contenu de l\'iframe (CORS)');
+                                        // Ignorer les erreurs CORS (normal pour les PDF blob)
+                                        console.log('Iframe PDF chargé (protections CORS normales)');
                                       }
-                                    }}
-                                    sandbox="allow-same-origin allow-scripts"
-                                  />
-                                  {/* Overlay invisible pour empêcher l'interaction directe */}
-                                  <div 
-                                    className="absolute inset-0 z-10 pointer-events-none"
-                                    onContextMenu={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      return false;
-                                    }}
-                                    onDragStart={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      return false;
-                                    }}
-                                    onSelectStart={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      return false;
                                     }}
                                   />
                                 </div>
@@ -879,19 +843,19 @@ export default function PreviewDocuments() {
                           })()}
                         </div>
                       ) : previewUrls[activeTab] ? (
-                        // Afficher la prévisualisation générée depuis le backend avec protections renforcées
+                        // Afficher la prévisualisation générée depuis le backend avec protections modérées
                         <div className="h-full w-full relative">
                           <iframe
                             src={previewUrls[activeTab]}
-                            className="w-full h-[70vh] border-0 pointer-events-auto"
+                            className="w-full h-[70vh] border-0"
                             title={documentTabs.find(t => t.id === activeTab)?.label}
                             onContextMenu={(e) => {
                               e.preventDefault();
-                              e.stopPropagation();
+                              toast.error("Le clic droit est désactivé");
                               return false;
                             }}
                             onLoad={(e) => {
-                              // Désactiver le menu contextuel dans l'iframe
+                              // Essayer de désactiver le menu contextuel dans l'iframe si possible
                               try {
                                 const iframe = e.target as HTMLIFrameElement;
                                 if (iframe.contentDocument) {
@@ -899,15 +863,11 @@ export default function PreviewDocuments() {
                                     ev.preventDefault();
                                     return false;
                                   }, true);
-                                  iframe.contentDocument.addEventListener('selectstart', (ev) => {
-                                    ev.preventDefault();
-                                    return false;
-                                  }, true);
                                   iframe.contentDocument.addEventListener('copy', (ev) => {
                                     ev.preventDefault();
                                     return false;
                                   }, true);
-                                  // Désactiver window.print dans l'iframe
+                                  // Désactiver window.print dans l'iframe si possible
                                   if (iframe.contentWindow) {
                                     const originalPrint = iframe.contentWindow.print;
                                     iframe.contentWindow.print = () => {
@@ -917,29 +877,9 @@ export default function PreviewDocuments() {
                                   }
                                 }
                               } catch (err) {
-                                // Ignorer les erreurs CORS
-                                console.warn('Impossible d\'accéder au contenu de l\'iframe (CORS)');
+                                // Ignorer les erreurs CORS (normal pour les PDF blob)
+                                console.log('Iframe PDF chargé (protections CORS normales)');
                               }
-                            }}
-                            sandbox="allow-same-origin allow-scripts"
-                          />
-                          {/* Overlay invisible pour empêcher l'interaction directe */}
-                          <div 
-                            className="absolute inset-0 z-10 pointer-events-none"
-                            onContextMenu={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              return false;
-                            }}
-                            onDragStart={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              return false;
-                            }}
-                            onSelectStart={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              return false;
                             }}
                           />
                         </div>
