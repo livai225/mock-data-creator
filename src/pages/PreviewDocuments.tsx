@@ -62,36 +62,60 @@ export default function PreviewDocuments() {
 
   const { formData, companyType, payload, price, docs, companyTypeName } = location.state || {};
 
-  // Protections contre la copie et l'enregistrement
+  // Protections renforcées contre la copie et l'enregistrement
   useEffect(() => {
     // Désactiver le clic droit
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       toast.error("L'utilisation du clic droit est désactivée sur cette page");
       return false;
     };
 
     // Désactiver les raccourcis clavier (Ctrl+C, Ctrl+S, Ctrl+A, Ctrl+P, F12, etc.)
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+C, Ctrl+V, Ctrl+A, Ctrl+S, Ctrl+P
-      if (e.ctrlKey && ['c', 'v', 'a', 's', 'p', 'u'].includes(e.key.toLowerCase())) {
+      // Ctrl+C, Ctrl+V, Ctrl+A, Ctrl+S, Ctrl+P, Ctrl+PrintScreen
+      if (e.ctrlKey && ['c', 'v', 'a', 's', 'p', 'u', 'printscreen'].includes(e.key.toLowerCase())) {
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         toast.error("Cette action n'est pas autorisée");
         return false;
       }
       // F12 (DevTools)
-      if (e.key === 'F12') {
+      if (e.key === 'F12' || e.keyCode === 123) {
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         return false;
       }
       // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (DevTools)
-      if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(e.key.toLowerCase())) {
+      if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c', 'k'].includes(e.key.toLowerCase())) {
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         return false;
       }
       // Ctrl+U (View Source)
       if (e.ctrlKey && e.key.toLowerCase() === 'u') {
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+      // Print Screen
+      if (e.key === 'PrintScreen' || e.keyCode === 44) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+      // Ctrl+Shift+P (Print dialog)
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        toast.error("L'impression est désactivée sur cette page");
         return false;
       }
     };
@@ -99,34 +123,118 @@ export default function PreviewDocuments() {
     // Désactiver la sélection de texte
     const handleSelectStart = (e: Event) => {
       e.preventDefault();
+      e.stopPropagation();
       return false;
     };
 
     // Désactiver le drag and drop
     const handleDragStart = (e: DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       return false;
     };
 
-    // Ajouter les event listeners
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('selectstart', handleSelectStart);
-    document.addEventListener('dragstart', handleDragStart);
+    // Désactiver la copie via l'événement copy
+    const handleCopy = (e: ClipboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.clipboardData?.setData('text/plain', '');
+      toast.error("La copie est désactivée sur cette page");
+      return false;
+    };
+
+    // Désactiver le couper
+    const handleCut = (e: ClipboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.clipboardData?.setData('text/plain', '');
+      return false;
+    };
+
+    // Désactiver le coller
+    const handlePaste = (e: ClipboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
+    // Empêcher l'impression
+    const handleBeforePrint = (e: BeforePrintEvent) => {
+      e.preventDefault();
+      toast.error("L'impression est désactivée sur cette page");
+      return false;
+    };
+
+    // Empêcher l'impression après
+    const handleAfterPrint = () => {
+      toast.error("L'impression est désactivée sur cette page");
+    };
+
+    // Désactiver window.print
+    const originalPrint = window.print;
+    window.print = () => {
+      toast.error("L'impression est désactivée sur cette page");
+      return;
+    };
+
+    // Empêcher l'accès aux DevTools via plusieurs méthodes
+    let devtools = { open: false };
+    const detectDevTools = () => {
+      const widthThreshold = window.outerWidth - window.innerWidth > 160;
+      const heightThreshold = window.outerHeight - window.innerHeight > 160;
+      if (widthThreshold || heightThreshold) {
+        if (!devtools.open) {
+          devtools.open = true;
+          toast.error("Les outils de développement sont désactivés");
+          // Optionnel: rediriger ou fermer la page
+          // window.location.href = '/';
+        }
+      } else {
+        devtools.open = false;
+      }
+    };
+    const devToolsInterval = setInterval(detectDevTools, 500);
+
+    // Ajouter les event listeners avec capture pour intercepter tôt
+    document.addEventListener('contextmenu', handleContextMenu, true);
+    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('selectstart', handleSelectStart, true);
+    document.addEventListener('dragstart', handleDragStart, true);
+    document.addEventListener('copy', handleCopy, true);
+    document.addEventListener('cut', handleCut, true);
+    document.addEventListener('paste', handlePaste, true);
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
 
     // Nettoyer les event listeners au démontage
     return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('selectstart', handleSelectStart);
-      document.removeEventListener('dragstart', handleDragStart);
+      document.removeEventListener('contextmenu', handleContextMenu, true);
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('selectstart', handleSelectStart, true);
+      document.removeEventListener('dragstart', handleDragStart, true);
+      document.removeEventListener('copy', handleCopy, true);
+      document.removeEventListener('cut', handleCut, true);
+      document.removeEventListener('paste', handlePaste, true);
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+      clearInterval(devToolsInterval);
+      window.print = originalPrint;
     };
   }, []);
 
-  // Ajouter des styles CSS pour désactiver la sélection
+  // Ajouter des styles CSS renforcés pour désactiver la sélection et l'impression
   useEffect(() => {
     const style = document.createElement('style');
+    style.id = 'preview-protection-styles';
     style.textContent = `
+      * {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+      }
       body {
         -webkit-user-select: none !important;
         -moz-user-select: none !important;
@@ -136,6 +244,9 @@ export default function PreviewDocuments() {
       }
       iframe {
         pointer-events: auto;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        user-select: none !important;
       }
       .preview-container {
         position: relative;
@@ -154,11 +265,26 @@ export default function PreviewDocuments() {
         position: relative;
         z-index: 0;
       }
+      /* Désactiver l'impression via CSS */
+      @media print {
+        * {
+          display: none !important;
+          visibility: hidden !important;
+        }
+        body::before {
+          content: "L'impression de cette page est désactivée pour protéger le contenu.";
+          display: block !important;
+          visibility: visible !important;
+        }
+      }
     `;
     document.head.appendChild(style);
 
     return () => {
-      document.head.removeChild(style);
+      const existingStyle = document.getElementById('preview-protection-styles');
+      if (existingStyle) {
+        document.head.removeChild(existingStyle);
+      }
     };
   }, []);
 
@@ -664,20 +790,61 @@ export default function PreviewDocuments() {
                             });
 
                             if (generatedDoc && documentUrls[generatedDoc.id]) {
-                              // Afficher le PDF généré dans un iframe avec protections
+                              // Afficher le PDF généré dans un iframe avec protections renforcées
                               return (
                                 <div key={activeTab} className="h-full w-full relative">
                                   <iframe
                                     src={documentUrls[generatedDoc.id]}
                                     className="w-full h-[70vh] border-0 pointer-events-auto"
                                     title={documentTabs.find(t => t.id === activeTab)?.label}
-                                    onContextMenu={(e) => e.preventDefault()}
+                                    onContextMenu={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      return false;
+                                    }}
+                                    onLoad={(e) => {
+                                      // Désactiver le menu contextuel dans l'iframe
+                                      try {
+                                        const iframe = e.target as HTMLIFrameElement;
+                                        if (iframe.contentDocument) {
+                                          iframe.contentDocument.addEventListener('contextmenu', (ev) => {
+                                            ev.preventDefault();
+                                            return false;
+                                          }, true);
+                                          iframe.contentDocument.addEventListener('selectstart', (ev) => {
+                                            ev.preventDefault();
+                                            return false;
+                                          }, true);
+                                          iframe.contentDocument.addEventListener('copy', (ev) => {
+                                            ev.preventDefault();
+                                            return false;
+                                          }, true);
+                                        }
+                                      } catch (err) {
+                                        // Ignorer les erreurs CORS
+                                        console.warn('Impossible d\'accéder au contenu de l\'iframe (CORS)');
+                                      }
+                                    }}
+                                    sandbox="allow-same-origin allow-scripts"
                                   />
                                   {/* Overlay invisible pour empêcher l'interaction directe */}
                                   <div 
                                     className="absolute inset-0 z-10 pointer-events-none"
-                                    onContextMenu={(e) => e.preventDefault()}
-                                    onDragStart={(e) => e.preventDefault()}
+                                    onContextMenu={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      return false;
+                                    }}
+                                    onDragStart={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      return false;
+                                    }}
+                                    onSelectStart={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      return false;
+                                    }}
                                   />
                                 </div>
                               );
@@ -712,19 +879,68 @@ export default function PreviewDocuments() {
                           })()}
                         </div>
                       ) : previewUrls[activeTab] ? (
-                        // Afficher la prévisualisation générée depuis le backend avec protections
+                        // Afficher la prévisualisation générée depuis le backend avec protections renforcées
                         <div className="h-full w-full relative">
                           <iframe
                             src={previewUrls[activeTab]}
                             className="w-full h-[70vh] border-0 pointer-events-auto"
                             title={documentTabs.find(t => t.id === activeTab)?.label}
-                            onContextMenu={(e) => e.preventDefault()}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              return false;
+                            }}
+                            onLoad={(e) => {
+                              // Désactiver le menu contextuel dans l'iframe
+                              try {
+                                const iframe = e.target as HTMLIFrameElement;
+                                if (iframe.contentDocument) {
+                                  iframe.contentDocument.addEventListener('contextmenu', (ev) => {
+                                    ev.preventDefault();
+                                    return false;
+                                  }, true);
+                                  iframe.contentDocument.addEventListener('selectstart', (ev) => {
+                                    ev.preventDefault();
+                                    return false;
+                                  }, true);
+                                  iframe.contentDocument.addEventListener('copy', (ev) => {
+                                    ev.preventDefault();
+                                    return false;
+                                  }, true);
+                                  // Désactiver window.print dans l'iframe
+                                  if (iframe.contentWindow) {
+                                    const originalPrint = iframe.contentWindow.print;
+                                    iframe.contentWindow.print = () => {
+                                      toast.error("L'impression est désactivée");
+                                      return;
+                                    };
+                                  }
+                                }
+                              } catch (err) {
+                                // Ignorer les erreurs CORS
+                                console.warn('Impossible d\'accéder au contenu de l\'iframe (CORS)');
+                              }
+                            }}
+                            sandbox="allow-same-origin allow-scripts"
                           />
                           {/* Overlay invisible pour empêcher l'interaction directe */}
                           <div 
                             className="absolute inset-0 z-10 pointer-events-none"
-                            onContextMenu={(e) => e.preventDefault()}
-                            onDragStart={(e) => e.preventDefault()}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              return false;
+                            }}
+                            onDragStart={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              return false;
+                            }}
+                            onSelectStart={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              return false;
+                            }}
                           />
                         </div>
                       ) : (
