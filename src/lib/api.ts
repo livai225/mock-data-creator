@@ -244,6 +244,13 @@ export async function getPaymentHistoryApi(token: string) {
   });
 }
 
+export async function simulatePaymentApi(token: string, paymentId: number) {
+  return await apiRequest(`/api/payments/${paymentId}/simulate`, {
+    method: 'POST',
+    token
+  });
+}
+
 export async function viewDocumentApi(token: string, id: number) {
   return apiRequestBlob(`/api/documents/${id}/view`, {
     method: "GET",

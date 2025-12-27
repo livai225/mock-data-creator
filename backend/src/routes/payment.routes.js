@@ -7,7 +7,8 @@ import {
   checkPaymentStatus,
   checkCompanyPayment,
   paymentWebhook,
-  getPaymentHistory
+  getPaymentHistory,
+  simulatePayment
 } from '../controllers/payment.controller.js';
 
 const router = express.Router();
@@ -21,6 +22,7 @@ const initiatePaymentValidation = [
 
 // Routes protégées
 router.post('/initiate', protect, initiatePaymentValidation, validate, initiatePayment);
+router.post('/:id/simulate', protect, simulatePayment); // Mode TEST uniquement
 router.get('/:id/status', protect, checkPaymentStatus);
 router.get('/company/:companyId/check', protect, checkCompanyPayment);
 router.get('/history', protect, getPaymentHistory);

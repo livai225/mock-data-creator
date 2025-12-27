@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { CreditCard, Smartphone, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { initiatePaymentApi, checkPaymentStatusApi } from "@/lib/api";
+import { initiatePaymentApi, checkPaymentStatusApi, simulatePaymentApi } from "@/lib/api";
 import { useAuth } from "@/auth/AuthContext";
 
 interface PaymentModalProps {
@@ -42,6 +42,8 @@ export function PaymentModal({
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentReference, setPaymentReference] = useState<string>("");
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "completed" | "failed">("pending");
+  const [paymentId, setPaymentId] = useState<number | null>(null);
+  const [isTestMode, setIsTestMode] = useState<boolean>(false);
 
   useEffect(() => {
     if (!open) {
@@ -75,6 +77,8 @@ export function PaymentModal({
       if (response.success && response.data) {
         const payment = response.data.payment;
         setPaymentReference(payment.payment_reference);
+        setPaymentId(payment.id);
+        setIsTestMode(response.data.test_mode || false);
 
         if (response.data.already_paid) {
           setPaymentStatus("completed");
@@ -83,17 +87,42 @@ export function PaymentModal({
             onPaymentSuccess();
             onClose();
           }, 1500);
-        } else {
-          // Simuler le processus de paiement
-          // En production, cela sera géré par Flutterwave/Paystack
+        } else if (response.data.test_mode) {
+          // Mode TEST : Le paiement sera confirmé automatiquement
           toast.info(
-            `Paiement initié. Référence: ${payment.payment_reference}`
+            `Mode TEST : Paiement initié. Référence: ${payment.payment_reference}. Confirmation automatique dans 3 secondes...`
           );
 
-          // Simuler la vérification du paiement (à remplacer par webhook réel)
+          // Vérifier le statut après 4 secondes (donne le temps au backend de simuler)
           setTimeout(async () => {
-            await checkPaymentStatus(payment.id);
+            if (payment.id) {
+              await checkPaymentStatus(payment.id);
+            }
+          }, 4000);
+        } else {
+          // Mode production : Attendre le webhook ou la confirmation manuelle
+          toast.info(
+            `Paiement initié. Référence: ${payment.payment_reference}. En attente de confirmation...`
+          );
+
+          // Vérifier périodiquement le statut
+          const checkInterval = setInterval(async () => {
+            if (payment.id) {
+              const statusResponse = await checkPaymentStatusApi(token, payment.id);
+              if (statusResponse.success && statusResponse.data?.is_paid) {
+                clearInterval(checkInterval);
+                setPaymentStatus("completed");
+                toast.success("Paiement confirmé avec succès !");
+                setTimeout(() => {
+                  onPaymentSuccess();
+                  onClose();
+                }, 1500);
+              }
+            }
           }, 3000);
+
+          // Arrêter après 5 minutes
+          setTimeout(() => clearInterval(checkInterval), 300000);
         }
       } else {
         toast.error(response.message || "Erreur lors de l'initiation du paiement");
@@ -235,7 +264,7 @@ export function PaymentModal({
             >
               Annuler
             </Button>
-            {paymentStatus === "pending" && (
+            {paymentStatus === "pending" && !paymentId && (
               <Button
                 onClick={handleInitiatePayment}
                 disabled={isProcessing || (paymentMethod === "mobile_money" && !phoneNumber)}
@@ -248,6 +277,40 @@ export function PaymentModal({
                   </>
                 ) : (
                   "Payer maintenant"
+                )}
+              </Button>
+            )}
+            {paymentStatus === "pending" && paymentId && isTestMode && (
+              <Button
+                onClick={async () => {
+                  if (!token || !paymentId) return;
+                  setIsProcessing(true);
+                  try {
+                    const response = await simulatePaymentApi(token, paymentId);
+                    if (response.success) {
+                      setPaymentStatus("completed");
+                      toast.success("Paiement simulé avec succès !");
+                      setTimeout(() => {
+                        onPaymentSuccess();
+                        onClose();
+                      }, 1500);
+                    }
+                  } catch (error) {
+                    toast.error("Erreur lors de la simulation du paiement");
+                  } finally {
+                    setIsProcessing(false);
+                  }
+                }}
+                disabled={isProcessing}
+                className="flex-1 bg-orange-500 hover:bg-orange-600"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Simulation...
+                  </>
+                ) : (
+                  "Simuler le paiement (TEST)"
                 )}
               </Button>
             )}

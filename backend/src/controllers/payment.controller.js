@@ -48,21 +48,46 @@ export const initiatePayment = async (req, res, next) => {
 
     const payment = await Payment.findById(paymentId);
 
-    // TODO: Intégrer avec Flutterwave/Paystack ici
-    // Pour l'instant, on retourne les infos de paiement
-    // L'utilisateur devra confirmer manuellement ou via webhook
+    // Mode TEST : Simuler un paiement réussi après 3 secondes
+    // En production, cela sera remplacé par l'intégration Flutterwave/Paystack
+    const isTestMode = process.env.NODE_ENV !== 'production' || process.env.ENABLE_TEST_PAYMENT === 'true';
+    
+    if (isTestMode) {
+      // Simuler le paiement après 3 secondes
+      setTimeout(async () => {
+        try {
+          await Payment.updateStatus(payment.id, 'completed', `TEST-${payment.payment_reference}`, {
+            test_mode: true,
+            simulated_at: new Date().toISOString()
+          });
+          
+          // Mettre à jour le statut de paiement de l'entreprise
+          await Company.updatePaymentStatus(company_id, 'paid', payment.amount, payment.payment_reference);
+          
+          console.log(`✅ [TEST] Paiement simulé réussi pour ${payment.payment_reference}`);
+        } catch (error) {
+          console.error('❌ [TEST] Erreur simulation paiement:', error);
+        }
+      }, 3000);
+    }
 
     res.status(201).json({
       success: true,
-      message: 'Paiement initié avec succès',
+      message: isTestMode 
+        ? 'Paiement initié en mode TEST (sera confirmé automatiquement dans 3 secondes)'
+        : 'Paiement initié avec succès',
       data: {
         payment,
         payment_url: null, // Sera rempli avec l'URL de paiement Flutterwave/Paystack
+        test_mode: isTestMode,
         instructions: {
           method: payment_method,
           amount: payment.amount,
           currency: payment.currency,
-          reference: payment.payment_reference
+          reference: payment.payment_reference,
+          ...(isTestMode && {
+            test_note: 'Mode TEST activé - Le paiement sera confirmé automatiquement'
+          })
         }
       }
     });
@@ -127,6 +152,64 @@ export const checkCompanyPayment = async (req, res, next) => {
         has_payment: hasValidPayment,
         payment: lastPayment,
         can_download: hasValidPayment
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Simuler un paiement réussi (MODE TEST uniquement)
+// @route   POST /api/payments/:id/simulate
+// @access  Private
+export const simulatePayment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Vérifier que le mode test est activé
+    const isTestMode = process.env.NODE_ENV !== 'production' || process.env.ENABLE_TEST_PAYMENT === 'true';
+    if (!isTestMode) {
+      return next(new AppError('Mode test désactivé en production', 403));
+    }
+
+    const payment = await Payment.findById(id);
+    if (!payment) {
+      return next(new AppError('Paiement non trouvé', 404));
+    }
+
+    if (payment.user_id !== userId) {
+      return next(new AppError('Accès non autorisé', 403));
+    }
+
+    if (payment.status === 'completed') {
+      return res.json({
+        success: true,
+        message: 'Paiement déjà confirmé',
+        data: { payment }
+      });
+    }
+
+    // Simuler le paiement réussi
+    await Payment.updateStatus(payment.id, 'completed', `TEST-SIM-${payment.payment_reference}`, {
+      test_mode: true,
+      simulated_at: new Date().toISOString(),
+      simulated_by: userId
+    });
+
+    // Mettre à jour le statut de paiement de l'entreprise
+    if (payment.company_id) {
+      await Company.updatePaymentStatus(payment.company_id, 'paid', payment.amount, payment.payment_reference);
+    }
+
+    const updatedPayment = await Payment.findById(payment.id);
+
+    res.json({
+      success: true,
+      message: 'Paiement simulé avec succès (MODE TEST)',
+      data: {
+        payment: updatedPayment,
+        is_paid: true
       }
     });
   } catch (error) {
