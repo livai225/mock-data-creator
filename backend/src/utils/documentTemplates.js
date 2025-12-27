@@ -935,13 +935,28 @@ _____________________
  */
 export const generateDeclarationHonneur = (company, managers) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
+  
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [DOCX Déclaration Honneur] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance
+    });
+  }
+  
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM]';
-  const gerantPrenoms = gerant?.prenoms || '[PRÉNOMS]';
+  const gerantPrenoms = gerant?.prenoms || gerant?.prenoms || '[PRÉNOMS]';
   const gerantPereNom = gerant?.pere_nom || gerant?.pereNom || '[NOM ET PRÉNOMS DU PÈRE]';
   const gerantMereNom = gerant?.mere_nom || gerant?.mereNom || '[NOM ET PRÉNOMS DE LA MÈRE]';
-  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
-  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
-  const gerantDomicile = gerant?.adresse || '[DOMICILE]';
+  const gerantDateNaissance = gerant?.date_naissance || gerant?.dateNaissance ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
+  const gerantDomicile = gerant?.adresse || gerant?.address || '[DOMICILE]';
   const gerantProfession = gerant?.profession || '[PROFESSION]';
   
   return `

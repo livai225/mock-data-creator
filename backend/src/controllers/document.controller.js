@@ -94,23 +94,44 @@ export const generateDocuments = async (req, res, next) => {
       company = req.body.company || {};
       associates = req.body.associates || [];
       // Normaliser les managers : mapper camelCase vers snake_case
-      managers = (req.body.managers || []).map(m => ({
-        nom: m.nom || m.name,
-        prenoms: m.prenoms || m.firstName || '',
-        date_naissance: m.date_naissance || m.dateNaissance || m.date_naissance,
-        lieu_naissance: m.lieu_naissance || m.lieuNaissance || m.lieu_naissance,
-        nationalite: m.nationalite || m.nationalite || m.nationality,
-        adresse: m.adresse || m.adresse || m.address,
-        profession: m.profession || m.profession || m.profession,
-        type_identite: m.type_identite || m.typeIdentite || m.type_identite,
-        numero_identite: m.numero_identite || m.numeroIdentite || m.numero_identite,
-        date_delivrance_id: m.date_delivrance_id || m.dateDelivranceId || m.date_delivrance_id,
-        date_validite_id: m.date_validite_id || m.dateValiditeId || m.date_validite_id,
-        lieu_delivrance_id: m.lieu_delivrance_id || m.lieuDelivranceId || m.lieu_delivrance_id,
-        pere_nom: m.pere_nom || m.pereNom || m.pere_nom || null,
-        mere_nom: m.mere_nom || m.mereNom || m.mere_nom || null,
-        duree_mandat: m.duree_mandat || m.dureeMandat || m.duree_mandat
-      }));
+      managers = (req.body.managers || []).map(m => {
+        const normalized = {
+          nom: m.nom || m.name || '',
+          prenoms: m.prenoms || m.firstName || '',
+          date_naissance: m.date_naissance || m.dateNaissance || null,
+          lieu_naissance: m.lieu_naissance || m.lieuNaissance || '',
+          nationalite: m.nationalite || m.nationality || '',
+          adresse: m.adresse || m.address || '',
+          profession: m.profession || '',
+          type_identite: m.type_identite || m.typeIdentite || 'CNI',
+          numero_identite: m.numero_identite || m.numeroIdentite || '',
+          date_delivrance_id: m.date_delivrance_id || m.dateDelivranceId || null,
+          date_validite_id: m.date_validite_id || m.dateValiditeId || null,
+          lieu_delivrance_id: m.lieu_delivrance_id || m.lieuDelivranceId || '',
+          pere_nom: m.pere_nom || m.pereNom || null,
+          mere_nom: m.mere_nom || m.mereNom || null,
+          duree_mandat: m.duree_mandat || m.dureeMandat || null,
+          duree_mandat_annees: m.duree_mandat_annees || m.dureeMandatAnnees || null
+        };
+        
+        // Log pour debug si champs manquants
+        const missingFields = [];
+        if (!normalized.profession) missingFields.push('profession');
+        if (!normalized.nationalite) missingFields.push('nationalite');
+        if (!normalized.lieu_naissance) missingFields.push('lieu_naissance');
+        if (!normalized.adresse) missingFields.push('adresse');
+        
+        if (missingFields.length > 0 && m) {
+          console.warn(`⚠️ Champs manquants pour manager dans generateDocuments:`, {
+            nom: normalized.nom,
+            prenoms: normalized.prenoms,
+            champsManquants: missingFields,
+            rawManager: m
+          });
+        }
+        
+        return normalized;
+      });
       console.log(`📊 Managers normalisés: ${managers.length} gérants`);
     }
 
@@ -586,7 +607,7 @@ export const previewDocuments = async (req, res, next) => {
     const managers = (rawManagers || []).map(m => {
       const normalized = {
         nom: m.nom || m.name || '',
-        prenoms: m.prenoms || m.firstName || '',
+        prenoms: m.prenoms || m.firstName || m.prenoms || '',
         date_naissance: m.date_naissance || m.dateNaissance || null,
         lieu_naissance: m.lieu_naissance || m.lieuNaissance || '',
         nationalite: m.nationalite || m.nationality || '',
@@ -603,11 +624,18 @@ export const previewDocuments = async (req, res, next) => {
         duree_mandat_annees: m.duree_mandat_annees || m.dureeMandatAnnees || null
       };
       
-      // Log pour debug si profession manquante
-      if (!normalized.profession && m) {
-        console.warn(`⚠️ Profession manquante pour manager:`, {
+      // Log pour debug si champs manquants
+      const missingFields = [];
+      if (!normalized.profession) missingFields.push('profession');
+      if (!normalized.nationalite) missingFields.push('nationalite');
+      if (!normalized.lieu_naissance) missingFields.push('lieu_naissance');
+      if (!normalized.adresse) missingFields.push('adresse');
+      
+      if (missingFields.length > 0 && m) {
+        console.warn(`⚠️ Champs manquants pour manager:`, {
           nom: normalized.nom,
           prenoms: normalized.prenoms,
+          champsManquants: missingFields,
           rawManager: m
         });
       }

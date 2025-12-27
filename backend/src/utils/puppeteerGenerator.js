@@ -814,11 +814,26 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
  */
 const generateDeclarationHonneurHTML = (company, managers) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
+  
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [Déclaration Honneur] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance
+    });
+  }
+  
   const gerantNomComplet = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM]';
-  const gerantNationalite = gerant?.nationalite || '[NATIONALITÉ]';
-  const gerantDateNaissance = gerant?.date_naissance ? formatDate(gerant.date_naissance) : '[DATE NAISSANCE]';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
+  const gerantDateNaissance = gerant?.date_naissance || gerant?.dateNaissance ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
   const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
-  const gerantDomicile = gerant?.adresse || '[DOMICILE]';
+  const gerantDomicile = gerant?.adresse || gerant?.address || '[DOMICILE]';
   const gerantProfession = gerant?.profession || '[PROFESSION]';
   const gerantFonction = 'Gérant'; // Fonction dans la société
   const societeNom = company.company_name || '[NOM SOCIÉTÉ]';
