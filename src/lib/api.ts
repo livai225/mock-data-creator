@@ -407,3 +407,39 @@ export async function getPendingPaymentsApi(token: string, limit?: number) {
     token,
   });
 }
+
+// ===== Admin Statistics =====
+export async function getOverviewStatsApi(token: string) {
+  return apiRequest<ApiResult<any>>("/api/admin/stats/overview", {
+    method: "GET",
+    token,
+  });
+}
+
+export async function getRevenueStatsApi(token: string, period: string = '30d') {
+  return apiRequest<ApiResult<any>>(`/api/admin/stats/revenue?period=${period}`, {
+    method: "GET",
+    token,
+  });
+}
+
+export async function getCompaniesStatsApi(token: string, period: string = '30d') {
+  return apiRequest<ApiResult<any>>(`/api/admin/stats/companies?period=${period}`, {
+    method: "GET",
+    token,
+  });
+}
+
+export async function getUsersStatsApi(token: string, period: string = '30d') {
+  return apiRequest<ApiResult<any>>(`/api/admin/stats/users?period=${period}`, {
+    method: "GET",
+    token,
+  });
+}
+
+export async function getRecentActivitiesApi(token: string, limit: number = 20) {
+  return apiRequest<ApiResult<any[]>>(`/api/admin/stats/activities?limit=${limit}`, {
+    method: "GET",
+    token,
+  });
+}

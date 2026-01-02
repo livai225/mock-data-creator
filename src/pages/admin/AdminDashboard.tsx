@@ -1,216 +1,239 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/auth/AuthContext";
-import { adminDashboardApi } from "@/lib/api";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { StatsCard } from "@/components/admin/StatsCard";
-import { StatusBadge } from "@/components/admin/StatusBadge";
-import { Users, Building2, FileText, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-
-const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#10b981", "#f59e0b", "#6366f1"];
+import {
+  getOverviewStatsApi,
+  getRevenueStatsApi,
+  getCompaniesStatsApi,
+  getUsersStatsApi,
+  getRecentActivitiesApi,
+} from "@/lib/api";
+import { StatCard } from "@/components/admin/StatCard";
+import { RevenueChart } from "@/components/admin/RevenueChart";
+import { QuickAlerts } from "@/components/admin/QuickAlerts";
+import { RecentActivity } from "@/components/admin/RecentActivity";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Users,
+  Building2,
+  FileText,
+  DollarSign,
+  TrendingUp,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
   const { token } = useAuth();
-  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [overviewStats, setOverviewStats] = useState<any>(null);
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [revenuePeriod, setRevenuePeriod] = useState('30d');
+
+  const loadData = async () => {
+    if (!token) return;
+
+    setLoading(true);
+    try {
+      // Charger toutes les stats en parallèle
+      const [overview, revenue, activitiesRes] = await Promise.all([
+        getOverviewStatsApi(token),
+        getRevenueStatsApi(token, '30d'),
+        getRecentActivitiesApi(token, 20),
+      ]);
+
+      if (overview.success) {
+        setOverviewStats(overview.data);
+      }
+
+      if (revenue.success) {
+        setRevenueData(revenue.data.byDay || []);
+      }
+
+      if (activitiesRes.success) {
+        setActivities(activitiesRes.data || []);
+      }
+    } catch (error: any) {
+      console.error("Erreur chargement dashboard:", error);
+      toast.error("Erreur lors du chargement des statistiques");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!token) return;
-    adminDashboardApi(token).then(setData).catch(() => setData(null));
+    loadData();
   }, [token]);
 
-  const dashboard = data?.data;
+  const handleRevenuePeriodChange = async (period: string) => {
+    setRevenuePeriod(period);
+    if (!token) return;
 
-  // Mock data for charts - would come from API
-  const weeklyData = [
-    { name: "Lun", créations: 4 },
-    { name: "Mar", créations: 6 },
-    { name: "Mer", créations: 3 },
-    { name: "Jeu", créations: 8 },
-    { name: "Ven", créations: 5 },
-    { name: "Sam", créations: 2 },
-    { name: "Dim", créations: 1 },
-  ];
-
-  const typeDistribution = [
-    { name: "SARLU", value: 45 },
-    { name: "SARL Pluri", value: 30 },
-    { name: "EI", value: 15 },
-    { name: "Autres", value: 10 },
-  ];
-
-  const statusStats = {
-    pending: dashboard?.companies?.pending ?? 0,
-    processing: dashboard?.companies?.processing ?? 0,
-    completed: dashboard?.companies?.completed ?? 0,
+    try {
+      const revenue = await getRevenueStatsApi(token, period);
+      if (revenue.success) {
+        setRevenueData(revenue.data.byDay || []);
+      }
+    } catch (error) {
+      console.error("Erreur changement période:", error);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
+          <p className="text-muted-foreground">Chargement des statistiques...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const stats = overviewStats || {};
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader 
-        title="Tableau de bord" 
-        description="Vue d'ensemble de l'activité de la plateforme"
-      />
+      {/* En-tête */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Tableau de bord</h1>
+        <p className="text-muted-foreground mt-2">
+          Vue d'ensemble de l'activité de la plateforme
+        </p>
+      </div>
 
-      {/* KPIs */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
+      {/* KPIs - Ligne 1 : Utilisateurs */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
           title="Utilisateurs totaux"
-          value={dashboard?.users?.total ?? "-"}
+          value={stats.users?.total || 0}
+          subtitle={`+${stats.users?.new_last_7_days || 0} cette semaine`}
           icon={Users}
-          trend={{ value: 12, label: "vs mois dernier" }}
+          trend={{
+            value: stats.users?.new_last_7_days || 0,
+            label: "nouveaux (7j)",
+            isPositive: true,
+          }}
+          iconColor="text-blue-600"
+          iconBgColor="bg-blue-100"
         />
-        <StatsCard
-          title="Nouveaux (7j)"
-          value={dashboard?.users?.newThisWeek ?? "-"}
+        <StatCard
+          title="Actifs (24h)"
+          value={stats.users?.active_last_24h || 0}
+          subtitle="Utilisateurs actifs"
           icon={TrendingUp}
-          trend={{ value: 8, label: "vs semaine dernière" }}
+          iconColor="text-green-600"
+          iconBgColor="bg-green-100"
         />
-        <StatsCard
+        <StatCard
           title="Entreprises créées"
-          value={dashboard?.companies?.total ?? "-"}
+          value={stats.companies?.total || 0}
+          subtitle={`+${stats.companies?.new_last_7_days || 0} cette semaine`}
           icon={Building2}
-          trend={{ value: 15, label: "vs mois dernier" }}
+          trend={{
+            value: stats.companies?.new_last_7_days || 0,
+            label: "nouvelles (7j)",
+            isPositive: true,
+          }}
+          iconColor="text-purple-600"
+          iconBgColor="bg-purple-100"
         />
-        <StatsCard
+      </div>
+
+      {/* KPIs - Ligne 2 : Paiements */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Revenus totaux"
+          value={`${((stats.payments?.total_revenue || 0) / 1000000).toFixed(2)}M`}
+          subtitle="FCFA encaissés"
+          icon={DollarSign}
+          iconColor="text-green-600"
+          iconBgColor="bg-green-100"
+        />
+        <StatCard
+          title="Ce mois"
+          value={`${((stats.payments?.revenue_last_30_days || 0) / 1000).toFixed(0)}K`}
+          subtitle="FCFA (30 derniers jours)"
+          icon={TrendingUp}
+          iconColor="text-emerald-600"
+          iconBgColor="bg-emerald-100"
+        />
+        <StatCard
+          title="En attente"
+          value={stats.payments?.pending_count || 0}
+          subtitle={`${((stats.payments?.pending_amount || 0) / 1000).toFixed(0)}K FCFA`}
+          icon={Clock}
+          iconColor="text-orange-600"
+          iconBgColor="bg-orange-100"
+        />
+        <StatCard
+          title="Taux validation"
+          value={`${(stats.payments?.validation_rate || 0).toFixed(0)}%`}
+          subtitle={`${(stats.payments?.avg_validation_time_minutes || 0).toFixed(0)} min moy.`}
+          icon={CheckCircle2}
+          iconColor="text-blue-600"
+          iconBgColor="bg-blue-100"
+        />
+      </div>
+
+      {/* KPIs - Ligne 3 : Documents & Statuts */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
           title="Documents générés"
-          value={dashboard?.documents?.total ?? "-"}
+          value={stats.documents?.total || 0}
+          subtitle={`+${stats.documents?.generated_today || 0} aujourd'hui`}
           icon={FileText}
-          trend={{ value: 22, label: "vs mois dernier" }}
+          iconColor="text-indigo-600"
+          iconBgColor="bg-indigo-100"
         />
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Entreprises payées</p>
+              <div className="flex items-center justify-between">
+                <h2 className="text-3xl font-bold text-green-600">{stats.companies?.paid || 0}</h2>
+                <CheckCircle2 className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">En attente paiement</p>
+              <div className="flex items-center justify-between">
+                <h2 className="text-3xl font-bold text-orange-600">{stats.companies?.pending || 0}</h2>
+                <Clock className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Non payées</p>
+              <div className="flex items-center justify-between">
+                <h2 className="text-3xl font-bold text-red-600">{stats.companies?.unpaid || 0}</h2>
+                <AlertCircle className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Charts */}
+      {/* Graphique des revenus */}
+      <RevenueChart data={revenueData} onPeriodChange={handleRevenuePeriodChange} />
+
+      {/* Alertes & Activité */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              Créations cette semaine
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: "hsl(var(--card))", 
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px"
-                    }} 
-                  />
-                  <Bar dataKey="créations" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
-              Répartition par type
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[250px] flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={typeDistribution}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={2}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={false}
-                  >
-                    {typeDistribution.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: "hsl(var(--card))", 
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px"
-                    }} 
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Status Summary & Recent Activity */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              Par statut
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">En attente</span>
-              <div className="flex items-center gap-2">
-                <span className="font-bold">{statusStats.pending}</span>
-                <StatusBadge status="pending" />
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">En cours</span>
-              <div className="flex items-center gap-2">
-                <span className="font-bold">{statusStats.processing}</span>
-                <StatusBadge status="processing" />
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Terminés</span>
-              <div className="flex items-center gap-2">
-                <span className="font-bold">{statusStats.completed}</span>
-                <StatusBadge status="completed" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-primary" />
-              Activité récente
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {(dashboard?.recentCompanies ?? []).slice(0, 5).map((c: any) => (
-                <div key={c.id} className="flex items-center gap-4 rounded-lg border p-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <Building2 className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{c.company_name}</p>
-                    <p className="text-sm text-muted-foreground">{c.company_type}</p>
-                  </div>
-                  <StatusBadge status={c.status} />
-                </div>
-              ))}
-              {(dashboard?.recentCompanies ?? []).length === 0 && (
-                <p className="text-muted-foreground text-center py-4">Aucune activité récente</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <QuickAlerts
+          pendingPayments={stats.alerts?.pendingPayments || []}
+          unpaidCompanies={stats.alerts?.unpaidCompanies || []}
+        />
+        <RecentActivity activities={activities} />
       </div>
     </div>
   );
