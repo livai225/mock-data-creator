@@ -319,6 +319,7 @@ const generateStatutsHTML = (company, associates, managers) => {
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   const gerantProfession = gerant?.profession || '[PROFESSION]';
   const gerantAdresse = gerant?.adresse || gerant?.address || '[ADRESSE]';
+  const gerantVilleResidence = gerant?.ville_residence || gerant?.villeResidence || '';
   const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
   const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
   const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';

@@ -596,6 +596,32 @@ export default function PreviewDocuments() {
           </div>
         </div>
 
+        {/* Type de société - Indicateur permanent */}
+        {companyTypeName && price !== undefined && (
+          <div className="border-b bg-white">
+            <div className="container mx-auto px-4 py-3">
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm text-blue-600 font-semibold">
+                      Type de société
+                    </span>
+                    <p className="text-lg font-bold text-blue-900 mt-1">
+                      {companyTypeName}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm text-blue-600 font-semibold">Prix</span>
+                    <p className="text-lg font-bold text-blue-900 mt-1">
+                      {price.toLocaleString()} FCFA
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="container mx-auto px-4 py-6">
           <div className="grid lg:grid-cols-[280px_1fr] gap-6">
             {/* Sidebar - Liste des documents */}

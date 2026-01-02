@@ -1,6 +1,45 @@
 import Payment from '../models/Payment.js';
 import Company from '../models/Company.js';
-import { AppError } from '../utils/errorHandler.js';
+import AppError from '../utils/errorHandler.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import multer from 'multer';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configuration Multer pour l'upload des captures de paiement
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../../uploads/payment-proofs');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+    cb(null, `payment-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|pdf/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mime);
+
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error('Seules les images (JPG, PNG, GIF) et PDF sont autorisés'));
+  }
+});
+
+export const uploadPaymentProof = upload.single('payment_proof');
 
 // @desc    Initier un paiement
 // @route   POST /api/payments/initiate
@@ -270,6 +309,344 @@ export const getPaymentHistory = async (req, res, next) => {
       data: payments
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Soumettre une preuve de paiement
+// @route   POST /api/payments/submit-proof
+// @access  Private
+export const submitPaymentProof = async (req, res, next) => {
+  try {
+    const { companyId, phoneNumber, transactionReference } = req.body;
+    const userId = req.user.id;
+
+    if (!companyId) {
+      return next(new AppError('Company ID requis', 400));
+    }
+
+    // Vérifier que l'entreprise appartient à l'utilisateur
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return next(new AppError('Entreprise non trouvée', 404));
+    }
+
+    if (company.user_id !== userId) {
+      return next(new AppError('Accès non autorisé', 403));
+    }
+
+    // Gérer l'upload de la preuve (capture d'écran)
+    let proofImagePath = null;
+    if (req.file) {
+      proofImagePath = `/uploads/payments/${req.file.filename}`;
+    }
+
+    // Créer la demande de paiement
+    const paymentId = await Payment.create({
+      companyId,
+      userId,
+      amount: company.payment_amount || 0,
+      phoneNumber,
+      transactionReference,
+      proofImagePath
+    });
+
+    const payment = await Payment.findById(paymentId);
+
+    res.status(201).json({
+      success: true,
+      message: 'Preuve de paiement soumise avec succès. Un administrateur va la vérifier.',
+      data: payment
+    });
+  } catch (error) {
+    console.error('Erreur soumission preuve paiement:', error);
+    next(error);
+  }
+};
+
+// @desc    Obtenir tous les paiements (Admin)
+// @route   GET /api/payments/admin/all
+// @access  Private (Admin)
+export const getAllPayments = async (req, res, next) => {
+  try {
+    const { status, limit } = req.query;
+    
+    const payments = await Payment.getAll({
+      status,
+      limit: limit || 100
+    });
+
+    const stats = await Payment.getStats();
+
+    res.json({
+      success: true,
+      data: {
+        payments,
+        stats
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Valider/Rejeter un paiement (Admin)
+// @route   PUT /api/payments/admin/:id/verify
+// @access  Private (Admin)
+export const verifyPayment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status, adminNotes } = req.body;
+    const adminId = req.user.id;
+
+    if (!['verified', 'rejected'].includes(status)) {
+      return next(new AppError('Status invalide. Utilisez "verified" ou "rejected"', 400));
+    }
+
+    const payment = await Payment.findById(id);
+    if (!payment) {
+      return next(new AppError('Paiement non trouvé', 404));
+    }
+
+    await Payment.verify(id, adminId, status, adminNotes);
+
+    const updatedPayment = await Payment.findById(id);
+
+    res.json({
+      success: true,
+      message: status === 'verified' ? 'Paiement vérifié avec succès' : 'Paiement rejeté',
+      data: updatedPayment
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Obtenir le statut de paiement d'une entreprise
+// @route   GET /api/payments/company/:companyId/status
+// @access  Private
+export const getCompanyPaymentStatus = async (req, res, next) => {
+  try {
+    const { companyId } = req.params;
+    const userId = req.user.id;
+
+    // Vérifier que l'entreprise appartient à l'utilisateur (sauf si admin)
+    if (req.user.role !== 'admin') {
+      const company = await Company.findById(companyId);
+      if (!company || company.user_id !== userId) {
+        return next(new AppError('Accès non autorisé', 403));
+      }
+    }
+
+    const payments = await Payment.findByCompanyId(companyId);
+    const company = await Company.findById(companyId);
+
+    res.json({
+      success: true,
+      data: {
+        paymentStatus: company.payment_status,
+        payments,
+        canDownload: company.payment_status === 'paid'
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Soumettre un paiement manuel avec preuve
+// @route   POST /api/payments/submit-manual
+// @access  Private
+export const submitManualPayment = async (req, res, next) => {
+  try {
+    const { company_id, amount, transaction_reference } = req.body;
+    const userId = req.user.id;
+    const paymentProof = req.file;
+
+    if (!company_id || !amount) {
+      return next(new AppError('company_id et amount sont requis', 400));
+    }
+
+    if (!paymentProof) {
+      return next(new AppError('La preuve de paiement est requise', 400));
+    }
+
+    if (!transaction_reference) {
+      return next(new AppError('La référence de transaction est requise', 400));
+    }
+
+    // Vérifier que l'entreprise appartient à l'utilisateur
+    const company = await Company.findById(company_id);
+    if (!company) {
+      return next(new AppError('Entreprise non trouvée', 404));
+    }
+
+    if (company.user_id !== userId) {
+      return next(new AppError('Accès non autorisé', 403));
+    }
+
+    // Vérifier si un paiement en attente ou validé existe déjà
+    const existingPayment = await Payment.getLastValidPayment(company_id);
+    if (existingPayment && (existingPayment.status === 'completed' || existingPayment.status === 'pending')) {
+      return res.status(200).json({
+        success: true,
+        message: existingPayment.status === 'completed' 
+          ? 'Un paiement a déjà été validé pour cette entreprise'
+          : 'Un paiement est déjà en attente de validation',
+        data: { payment: existingPayment }
+      });
+    }
+
+    // Créer un nouveau paiement avec statut "pending"
+    const paymentId = await Payment.create({
+      user_id: userId,
+      company_id,
+      amount: parseFloat(amount),
+      currency: 'FCFA',
+      payment_method: 'manual_transfer',
+      status: 'pending',
+      transaction_reference,
+      payment_proof_path: paymentProof.path,
+      metadata: {
+        original_filename: paymentProof.originalname,
+        file_size: paymentProof.size,
+        mime_type: paymentProof.mimetype,
+        submitted_at: new Date().toISOString()
+      }
+    });
+
+    const payment = await Payment.findById(paymentId);
+
+    // Mettre à jour le statut de l'entreprise en "pending"
+    await Company.updatePaymentStatus(company_id, 'pending', amount, payment.payment_reference);
+
+    res.status(201).json({
+      success: true,
+      message: 'Preuve de paiement soumise avec succès. En attente de validation par l\'administrateur.',
+      data: {
+        payment: {
+          id: payment.id,
+          payment_reference: payment.payment_reference,
+          amount: payment.amount,
+          status: payment.status,
+          submitted_at: payment.created_at
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Erreur soumission paiement manuel:', error);
+    next(error);
+  }
+};
+
+// @desc    Valider un paiement manuel (Admin)
+// @route   PUT /api/payments/:id/validate
+// @access  Private (Admin only)
+export const validateManualPayment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+    const adminId = req.user.id;
+
+    const payment = await Payment.findById(id);
+    if (!payment) {
+      return next(new AppError('Paiement non trouvé', 404));
+    }
+
+    if (payment.status !== 'pending') {
+      return next(new AppError('Ce paiement ne peut pas être validé (statut actuel: ' + payment.status + ')', 400));
+    }
+
+    // Valider le paiement
+    const updated = await Payment.validatePayment(id, adminId, notes);
+    
+    if (!updated) {
+      return next(new AppError('Erreur lors de la validation du paiement', 500));
+    }
+
+    // Mettre à jour le statut de l'entreprise en "paid"
+    await Company.updatePaymentStatus(
+      payment.company_id, 
+      'paid', 
+      payment.amount, 
+      payment.payment_reference
+    );
+
+    // Récupérer le paiement mis à jour
+    const updatedPayment = await Payment.findById(id);
+
+    res.json({
+      success: true,
+      message: 'Paiement validé avec succès',
+      data: updatedPayment
+    });
+  } catch (error) {
+    console.error('Erreur validation paiement:', error);
+    next(error);
+  }
+};
+
+// @desc    Rejeter un paiement manuel (Admin)
+// @route   PUT /api/payments/:id/reject
+// @access  Private (Admin only)
+export const rejectManualPayment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const adminId = req.user.id;
+
+    if (!reason) {
+      return next(new AppError('La raison du rejet est requise', 400));
+    }
+
+    const payment = await Payment.findById(id);
+    if (!payment) {
+      return next(new AppError('Paiement non trouvé', 404));
+    }
+
+    if (payment.status !== 'pending') {
+      return next(new AppError('Ce paiement ne peut pas être rejeté (statut actuel: ' + payment.status + ')', 400));
+    }
+
+    // Rejeter le paiement
+    const updated = await Payment.rejectPayment(id, adminId, reason);
+    
+    if (!updated) {
+      return next(new AppError('Erreur lors du rejet du paiement', 500));
+    }
+
+    // Mettre à jour le statut de l'entreprise en "unpaid"
+    await Company.updatePaymentStatus(payment.company_id, 'unpaid');
+
+    // Récupérer le paiement mis à jour
+    const updatedPayment = await Payment.findById(id);
+
+    res.json({
+      success: true,
+      message: 'Paiement rejeté',
+      data: updatedPayment
+    });
+  } catch (error) {
+    console.error('Erreur rejet paiement:', error);
+    next(error);
+  }
+};
+
+// @desc    Obtenir les paiements en attente (Admin)
+// @route   GET /api/payments/pending
+// @access  Private (Admin only)
+export const getPendingPayments = async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+    const payments = await Payment.getPendingPayments(limit);
+
+    res.json({
+      success: true,
+      data: payments,
+      count: payments.length
+    });
+  } catch (error) {
+    console.error('Erreur récupération paiements en attente:', error);
     next(error);
   }
 };

@@ -83,10 +83,13 @@ class Company {
             mgr.lieuNaissance, 
             mgr.nationalite, 
             mgr.adresse, 
+            mgr.profession,  // Nouveau champ
             mgr.typeIdentite, 
             mgr.numeroIdentite,
             mgr.dateDelivranceId, 
+            mgr.dateValiditeId,  // Nouveau champ
             mgr.lieuDelivranceId, 
+            mgr.villeResidence,  // Nouveau champ
             mgr.pereNom, 
             mgr.mereNom,
             mgr.dureeMandat, 
@@ -95,9 +98,9 @@ class Company {
           await connection.execute(
             `INSERT INTO managers 
             (company_id, nom, prenoms, date_naissance, lieu_naissance, nationalite, adresse, 
-             type_identite, numero_identite, date_delivrance_id, lieu_delivrance_id, 
-             pere_nom, mere_nom, duree_mandat, is_main)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             profession, type_identite, numero_identite, date_delivrance_id, date_validite_id,
+             lieu_delivrance_id, ville_residence, pere_nom, mere_nom, duree_mandat, is_main)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             cleanParams(managerParams)
           );
         }

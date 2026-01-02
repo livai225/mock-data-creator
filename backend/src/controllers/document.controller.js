@@ -103,6 +103,7 @@ export const generateDocuments = async (req, res, next) => {
           nationalite: m.nationalite || m.nationality || '',
           adresse: m.adresse || m.address || '',
           profession: m.profession || '',
+          ville_residence: m.ville_residence || m.villeResidence || '',
           type_identite: m.type_identite || m.typeIdentite || 'CNI',
           numero_identite: m.numero_identite || m.numeroIdentite || '',
           date_delivrance_id: m.date_delivrance_id || m.dateDelivranceId || null,
@@ -120,6 +121,7 @@ export const generateDocuments = async (req, res, next) => {
         if (!normalized.nationalite) missingFields.push('nationalite');
         if (!normalized.lieu_naissance) missingFields.push('lieu_naissance');
         if (!normalized.adresse) missingFields.push('adresse');
+        if (!normalized.date_validite_id) missingFields.push('date_validite_id');
         
         if (missingFields.length > 0 && m) {
           console.warn(`⚠️ Champs manquants pour manager dans generateDocuments:`, {

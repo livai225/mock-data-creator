@@ -48,6 +48,14 @@ Ce document décrit le parcours complet d'un **nouvel utilisateur** qui souhaite
 
 #### 2.2 Remplissage du formulaire
 
+**💡 Indicateur visuel recommandé :**
+- Afficher un **badge ou bandeau permanent** en haut du formulaire indiquant :
+  - Le type de société en cours de création (ex: "SARL Unipersonnelle", "SARL Pluripersonnelle")
+  - Le prix associé
+  - Possibilité de revenir en arrière pour changer de type
+- Cet indicateur reste visible pendant toute la saisie du formulaire
+- Design suggéré : Badge coloré en haut à gauche ou bandeau sticky en haut de page
+
 **Selon le type de société choisi :**
 
 **A. SARL Unipersonnelle (SARLU) :**
@@ -330,10 +338,11 @@ Backend →
 
 ## 🔄 Améliorations possibles
 
-1. **Sauvegarde automatique** du formulaire pendant la saisie
-2. **Édition** d'une entreprise existante
-3. **Regénération** de documents avec nouvelles données
-4. **Historique** des modifications
-5. **Notifications** par email lors de la génération de documents
-6. **Paiement en ligne** intégré avant génération
+1. **Indicateur du type de société** : Badge/bandeau permanent rappelant le type de société en cours de création (⚠️ **Prioritaire** - problème UX identifié)
+2. **Sauvegarde automatique** du formulaire pendant la saisie
+3. **Édition** d'une entreprise existante
+4. **Regénération** de documents avec nouvelles données
+5. **Historique** des modifications
+6. **Notifications** par email lors de la génération de documents
+7. **Paiement en ligne** intégré avant génération
 

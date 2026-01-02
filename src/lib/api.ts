@@ -251,6 +251,47 @@ export async function simulatePaymentApi(token: string, paymentId: number) {
   });
 }
 
+export async function submitPaymentProofApi(token: string, formData: FormData) {
+  const response = await fetch(`${API_URL}/api/payments/submit-proof`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    body: formData // Ne pas définir Content-Type, le navigateur le fait automatiquement avec boundary
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Erreur lors de l\'envoi de la preuve');
+  }
+
+  return await response.json();
+}
+
+export async function getCompanyPaymentStatusApi(token: string, companyId: number) {
+  return await apiRequest(`/api/payments/company/${companyId}/status`, {
+    method: 'GET',
+    token
+  });
+}
+
+// API Admin pour les paiements
+export async function adminGetAllPaymentsApi(token: string, status?: string) {
+  const query = status ? `?status=${status}` : '';
+  return await apiRequest(`/api/payments/admin/all${query}`, {
+    method: 'GET',
+    token
+  });
+}
+
+export async function adminVerifyPaymentApi(token: string, paymentId: number, status: 'verified' | 'rejected', adminNotes?: string) {
+  return await apiRequest(`/api/payments/admin/${paymentId}/verify`, {
+    method: 'PUT',
+    token,
+    body: { status, adminNotes }
+  });
+}
+
 export async function viewDocumentApi(token: string, id: number) {
   return apiRequestBlob(`/api/documents/${id}/view`, {
     method: "GET",
@@ -323,5 +364,46 @@ export async function adminUpdatePricingApi(token: string, payload: PricingSetti
     method: "PUT",
     token,
     body: JSON.stringify(payload),
+  });
+}
+
+// ===== Paiement Manuel =====
+export async function submitManualPaymentApi(token: string, formData: FormData) {
+  const response = await fetch(`${API_BASE_URL}/api/payments/submit-manual`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Erreur lors de la soumission du paiement');
+  }
+
+  return response.json();
+}
+
+export async function validateManualPaymentApi(token: string, paymentId: number, notes?: string) {
+  return apiRequest<ApiResult<any>>(`/api/payments/${paymentId}/validate`, {
+    method: "PUT",
+    token,
+    body: JSON.stringify({ notes }),
+  });
+}
+
+export async function rejectManualPaymentApi(token: string, paymentId: number, reason: string) {
+  return apiRequest<ApiResult<any>>(`/api/payments/${paymentId}/reject`, {
+    method: "PUT",
+    token,
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function getPendingPaymentsApi(token: string, limit?: number) {
+  return apiRequest<ApiResult<any[]>>(`/api/payments/admin/pending${limit ? `?limit=${limit}` : ''}`, {
+    method: "GET",
+    token,
   });
 }

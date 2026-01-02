@@ -6,10 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircle2, CheckCircle, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp, RefreshCw, User, CreditCard } from "lucide-react";
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { useAuth } from "@/auth/AuthContext";
-import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, deleteCompanyDocumentsApi, checkCompanyPaymentApi, type UserDocument } from "@/lib/api";
+import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, deleteCompanyDocumentsApi, getCompanyPaymentStatusApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { toast } from "sonner";
-import { PaymentModal } from "@/components/payment/PaymentModal";
+import { ManualPaymentModal } from "@/components/payment/ManualPaymentModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -173,19 +173,28 @@ export default function ClientDashboard() {
 
     // Vérifier le statut de paiement
     try {
-      const response = await checkCompanyPaymentApi(token, companyId);
+      const response = await getCompanyPaymentStatusApi(token, companyId);
       if (response.success && response.data) {
-        const canDownload = response.data.can_download;
+        const canDownload = response.data.canDownload;
+        const paymentStatus = response.data.paymentStatus;
         
-        if (canDownload) {
-          // Paiement effectué, autoriser l'action
+        if (canDownload && paymentStatus === 'paid') {
+          // Paiement effectué et vérifié, autoriser l'action
           action();
         } else {
-          // Pas de paiement, afficher le popup
-          const company = companies.find(c => c.id === companyId);
-          const amount = company?.payment_amount || 0;
-          setSelectedCompanyForPayment({ id: companyId, amount });
-          setShowPaymentModal(true);
+          // Vérifier s'il y a un paiement en attente
+          const hasPendingPayment = response.data.payments?.some((p: any) => p.status === 'pending');
+          
+          if (hasPendingPayment) {
+            // Paiement en attente de vérification
+            toast.info("Votre paiement est en cours de vérification. Vous pourrez télécharger les documents une fois validé par un administrateur.");
+          } else {
+            // Pas de paiement, afficher le modal
+            const company = companies.find(c => c.id === companyId);
+            const amount = company?.payment_amount || 0;
+            setSelectedCompanyForPayment({ id: companyId, amount });
+            setShowPaymentModal(true);
+          }
         }
       }
     } catch (error) {
@@ -674,9 +683,9 @@ export default function ClientDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-        {/* Payment Modal */}
+        {/* Manual Payment Modal */}
         {selectedCompanyForPayment && (
-          <PaymentModal
+          <ManualPaymentModal
             open={showPaymentModal}
             onClose={() => {
               setShowPaymentModal(false);
@@ -684,10 +693,9 @@ export default function ClientDashboard() {
             }}
             companyId={selectedCompanyForPayment.id}
             amount={selectedCompanyForPayment.amount}
-            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentSubmitted={handlePaymentSuccess}
           />
         )}
-      </div>
     </Layout>
   );
 }

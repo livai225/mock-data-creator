@@ -16,6 +16,7 @@ const adminLinks = [
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: Users },
   { href: "/admin/entreprises", label: "Entreprises", icon: Building2 },
   { href: "/admin/documents", label: "Documents", icon: FileText },
+  { href: "/admin/paiements", label: "Paiements", icon: CreditCard },
   { href: "/admin/tarifs", label: "Tarifs", icon: CreditCard },
   { href: "/admin/banniere", label: "Bannière", icon: Bell },
 ];

@@ -211,6 +211,35 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
 
   return (
     <div className="space-y-8">
+      {/* Type de société - Indicateur permanent */}
+      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-sm text-blue-600 font-semibold">
+              Type de société sélectionné
+            </span>
+            <p className="text-lg font-bold text-blue-900 mt-1">
+              {companyTypeName}
+            </p>
+          </div>
+          <div className="text-right">
+            <span className="text-sm text-blue-600 font-semibold">Prix</span>
+            <p className="text-lg font-bold text-blue-900 mt-1">
+              {price.toLocaleString()} FCFA
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onBack}
+            className="border-blue-500 text-blue-700 hover:bg-blue-100"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Changer
+          </Button>
+        </div>
+      </div>
+
       {/* Progress */}
       <div className="bg-muted/50 p-6 rounded-lg">
         <div className="flex items-center justify-between max-w-3xl mx-auto">

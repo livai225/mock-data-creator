@@ -443,11 +443,33 @@ export default function CreationEntreprise() {
           )}
           {step === 'info' && formData.companyType && (
             <div className="space-y-8">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => setStep('type')}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Retour
-                </Button>
+              {/* Type de société - Indicateur permanent */}
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm text-blue-600 font-semibold">
+                      Type de société sélectionné
+                    </span>
+                    <p className="text-lg font-bold text-blue-900 mt-1">
+                      {formData.companyType.fullName}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm text-blue-600 font-semibold">Prix</span>
+                    <p className="text-lg font-bold text-blue-900 mt-1">
+                      {formData.companyType.price.toLocaleString()} FCFA
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setStep('type')}
+                    className="border-blue-500 text-blue-700 hover:bg-blue-100"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Changer
+                  </Button>
+                </div>
               </div>
 
               <Card>
@@ -547,11 +569,33 @@ export default function CreationEntreprise() {
           {/* Step 3: Associates */}
           {step === 'associes' && formData.companyType && (
             <div className="space-y-8">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => setStep('info')}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Retour
-                </Button>
+              {/* Type de société - Indicateur permanent */}
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm text-blue-600 font-semibold">
+                      Type de société sélectionné
+                    </span>
+                    <p className="text-lg font-bold text-blue-900 mt-1">
+                      {formData.companyType.fullName}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm text-blue-600 font-semibold">Prix</span>
+                    <p className="text-lg font-bold text-blue-900 mt-1">
+                      {formData.companyType.price.toLocaleString()} FCFA
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setStep('type')}
+                    className="border-blue-500 text-blue-700 hover:bg-blue-100"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Changer
+                  </Button>
+                </div>
               </div>
 
               <Card>
@@ -621,11 +665,33 @@ export default function CreationEntreprise() {
           {/* Step 4: Recap */}
           {step === 'recap' && formData.companyType && (
             <div className="space-y-8">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => setStep('associes')}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Retour
-                </Button>
+              {/* Type de société - Indicateur permanent */}
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm text-blue-600 font-semibold">
+                      Type de société sélectionné
+                    </span>
+                    <p className="text-lg font-bold text-blue-900 mt-1">
+                      {formData.companyType.fullName}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm text-blue-600 font-semibold">Prix</span>
+                    <p className="text-lg font-bold text-blue-900 mt-1">
+                      {formData.companyType.price.toLocaleString()} FCFA
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setStep('type')}
+                    className="border-blue-500 text-blue-700 hover:bg-blue-100"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Changer
+                  </Button>
+                </div>
               </div>
 
               <Card variant="gold">
@@ -697,11 +763,36 @@ export default function CreationEntreprise() {
           {/* Contact Form (for notary-required types) */}
           {step === 'contact' && formData.companyType && (
             <div className="space-y-8">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => setStep('type')}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Retour
-                </Button>
+              {/* Type de société - Indicateur permanent */}
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm text-blue-600 font-semibold">
+                      Type de société sélectionné
+                    </span>
+                    <p className="text-lg font-bold text-blue-900 mt-1">
+                      {formData.companyType.fullName}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm text-blue-600 font-semibold">Prix</span>
+                    <p className="text-lg font-bold text-blue-900 mt-1">
+                      {formData.companyType.price > 0 
+                        ? `${formData.companyType.price.toLocaleString()} FCFA`
+                        : 'Sur devis'
+                      }
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setStep('type')}
+                    className="border-blue-500 text-blue-700 hover:bg-blue-100"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Changer
+                  </Button>
+                </div>
               </div>
 
               <Card variant="outline" className="border-destructive/30">

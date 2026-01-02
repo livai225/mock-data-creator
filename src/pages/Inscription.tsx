@@ -84,7 +84,26 @@ export default function Inscription() {
 
                     navigate(redirectTo, { replace: true });
                   } catch (e: any) {
-                    toast.error(e?.message ?? "Inscription impossible");
+                    // Gérer les différents types d'erreurs
+                    let errorMessage = "Une erreur est survenue lors de l'inscription";
+                    
+                    if (e?.response?.status === 502 || e?.response?.status === 503) {
+                      errorMessage = "Le serveur est temporairement indisponible. Veuillez réessayer dans quelques instants.";
+                    } else if (e?.response?.status === 500) {
+                      errorMessage = "Une erreur serveur est survenue. Veuillez contacter le support si le problème persiste.";
+                    } else if (e?.response?.status === 409 || (e?.message && e.message.includes('existe déjà'))) {
+                      errorMessage = "Un compte existe déjà avec cet email. Veuillez vous connecter ou utiliser un autre email.";
+                    } else if (e?.response?.status === 400) {
+                      errorMessage = e?.message || "Les informations fournies sont invalides. Vérifiez votre email et votre mot de passe.";
+                    } else if (e?.message) {
+                      errorMessage = e.message;
+                    } else if (!navigator.onLine) {
+                      errorMessage = "Vous êtes hors ligne. Veuillez vérifier votre connexion internet.";
+                    }
+                    
+                    toast.error(errorMessage, {
+                      duration: 5000,
+                    });
                   } finally {
                     setSubmitting(false);
                   }

@@ -73,7 +73,28 @@ export default function Connexion() {
                       navigate(redirectTo ?? "/dashboard", { replace: true });
                     }
                   } catch (e: any) {
-                    toast.error(e?.message ?? "Connexion impossible");
+                    // Gérer les différents types d'erreurs
+                    let errorMessage = "Une erreur est survenue lors de la connexion";
+                    
+                    if (e?.response?.status === 502 || e?.response?.status === 503) {
+                      errorMessage = "Le serveur est temporairement indisponible. Veuillez réessayer dans quelques instants.";
+                    } else if (e?.response?.status === 500) {
+                      errorMessage = "Une erreur serveur est survenue. Veuillez contacter le support si le problème persiste.";
+                    } else if (e?.response?.status === 401) {
+                      errorMessage = "Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.";
+                    } else if (e?.response?.status === 403) {
+                      errorMessage = "Votre compte a été désactivé. Veuillez contacter le support.";
+                    } else if (e?.response?.status === 404) {
+                      errorMessage = "Aucun compte n'existe avec cet email. Veuillez créer un compte.";
+                    } else if (e?.message) {
+                      errorMessage = e.message;
+                    } else if (!navigator.onLine) {
+                      errorMessage = "Vous êtes hors ligne. Veuillez vérifier votre connexion internet.";
+                    }
+                    
+                    toast.error(errorMessage, {
+                      duration: 5000,
+                    });
                   } finally {
                     setSubmitting(false);
                   }
