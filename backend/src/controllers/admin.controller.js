@@ -65,7 +65,7 @@ export const getOverviewStats = async (req, res, next) => {
       SELECT 
         p.id,
         p.amount,
-        p.payment_reference,
+        p.transaction_reference,
         p.created_at,
         c.company_name,
         u.first_name,
@@ -433,7 +433,6 @@ export const getAllDocuments = async (req, res, next) => {
     const documents = await query(`
       SELECT 
         d.*,
-        d.name as doc_name,
         c.company_name,
         c.company_type,
         u.email as user_email,
