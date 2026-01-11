@@ -332,10 +332,10 @@ export async function adminDocumentsApi(token: string) {
 }
 
 export async function adminToggleUserStatusApi(token: string, userId: number) {
-  return apiRequest<any>(`/api/admin/users/${userId}/toggle-status`, { method: "PUT", token });
+  return apiRequest<any>(`/api/admin/users/${userId}/toggle`, { method: "PUT", token });
 }
 
-export async function adminUpdateUserRoleApi(token: string, userId: number, role: "user" | "admin") {
+export async function adminUpdateUserRoleApi(token: string, userId: number, role: "client" | "admin") {
   return apiRequest<any>(`/api/admin/users/${userId}/role`, {
     method: "PUT",
     token,

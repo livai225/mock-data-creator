@@ -11,7 +11,6 @@ import { StatCard } from "@/components/admin/StatCard";
 import { RevenueChart } from "@/components/admin/RevenueChart";
 import { QuickAlerts } from "@/components/admin/QuickAlerts";
 import { RecentActivity } from "@/components/admin/RecentActivity";
-import { CompanyTypesChart } from "@/components/admin/CompanyTypesChart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Users,
@@ -32,7 +31,6 @@ export default function AdminDashboard() {
   const [overviewStats, setOverviewStats] = useState<any>(null);
   const [revenueData, setRevenueData] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
-  const [companyTypesData, setCompanyTypesData] = useState<any[]>([]);
   const [revenuePeriod, setRevenuePeriod] = useState('30d');
 
   const loadData = async () => {
@@ -41,11 +39,10 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       // Charger toutes les stats en parallèle
-      const [overview, revenue, activitiesRes, companiesStats] = await Promise.all([
+      const [overview, revenue, activitiesRes] = await Promise.all([
         getOverviewStatsApi(token),
         getRevenueStatsApi(token, '30d'),
         getRecentActivitiesApi(token, 20),
-        getCompaniesStatsApi(token, '365d'),
       ]);
 
       if (overview.success) {
@@ -58,10 +55,6 @@ export default function AdminDashboard() {
 
       if (activitiesRes.success) {
         setActivities(activitiesRes.data || []);
-      }
-
-      if (companiesStats.success) {
-        setCompanyTypesData(companiesStats.data.byType || []);
       }
     } catch (error: any) {
       console.error("Erreur chargement dashboard:", error);
@@ -233,9 +226,6 @@ export default function AdminDashboard() {
 
       {/* Graphique des revenus */}
       <RevenueChart data={revenueData} onPeriodChange={handleRevenuePeriodChange} />
-
-      {/* Stats par type d'entreprise */}
-      <CompanyTypesChart data={companyTypesData} />
 
       {/* Alertes & Activité */}
       <div className="grid gap-6 lg:grid-cols-2">

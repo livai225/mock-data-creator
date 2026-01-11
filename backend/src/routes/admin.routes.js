@@ -5,7 +5,13 @@ import {
   getRevenueStats,
   getCompaniesStats,
   getUsersStats,
-  getRecentActivities
+  getRecentActivities,
+  getAllUsers,
+  getAllCompanies,
+  getAllDocuments,
+  toggleUserStatus,
+  updateUserRole,
+  updateCompanyStatus
 } from '../controllers/admin.controller.js';
 
 const router = express.Router();
@@ -19,5 +25,17 @@ router.get('/stats/revenue', getRevenueStats);
 router.get('/stats/companies', getCompaniesStats);
 router.get('/stats/users', getUsersStats);
 router.get('/stats/activities', getRecentActivities);
+
+// Gestion des utilisateurs
+router.get('/users', getAllUsers);
+router.put('/users/:id/toggle', toggleUserStatus);
+router.put('/users/:id/role', updateUserRole);
+
+// Gestion des entreprises
+router.get('/companies', getAllCompanies);
+router.put('/companies/:id/status', updateCompanyStatus);
+
+// Gestion des documents
+router.get('/documents', getAllDocuments);
 
 export default router;

@@ -364,3 +364,182 @@ export const getRecentActivities = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get all users (admin)
+// @route   GET /api/admin/users
+// @access  Private (Admin only)
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await query(`
+      SELECT 
+        id,
+        email,
+        first_name,
+        last_name,
+        phone,
+        role,
+        is_active,
+        created_at,
+        updated_at,
+        (SELECT COUNT(*) FROM companies WHERE user_id = users.id) as companies_count
+      FROM users
+      ORDER BY created_at DESC
+    `);
+
+    res.json({
+      success: true,
+      data: users
+    });
+  } catch (error) {
+    console.error('Erreur récupération utilisateurs:', error);
+    next(error);
+  }
+};
+
+// @desc    Get all companies (admin)
+// @route   GET /api/admin/companies
+// @access  Private (Admin only)
+export const getAllCompanies = async (req, res, next) => {
+  try {
+    const companies = await query(`
+      SELECT 
+        c.*,
+        u.email as user_email,
+        u.first_name as user_first_name,
+        u.last_name as user_last_name,
+        (SELECT COUNT(*) FROM documents WHERE company_id = c.id) as documents_count,
+        (SELECT COUNT(*) FROM payments WHERE company_id = c.id) as payments_count,
+        (SELECT amount FROM payments WHERE company_id = c.id AND status = 'completed' ORDER BY created_at DESC LIMIT 1) as last_payment_amount
+      FROM companies c
+      LEFT JOIN users u ON c.user_id = u.id
+      ORDER BY c.created_at DESC
+    `);
+
+    res.json({
+      success: true,
+      data: companies
+    });
+  } catch (error) {
+    console.error('Erreur récupération entreprises:', error);
+    next(error);
+  }
+};
+
+// @desc    Get all documents (admin)
+// @route   GET /api/admin/documents
+// @access  Private (Admin only)
+export const getAllDocuments = async (req, res, next) => {
+  try {
+    const documents = await query(`
+      SELECT 
+        d.*,
+        d.name as doc_name,
+        c.company_name,
+        c.company_type,
+        u.email as user_email,
+        u.first_name as user_first_name,
+        u.last_name as user_last_name
+      FROM documents d
+      LEFT JOIN companies c ON d.company_id = c.id
+      LEFT JOIN users u ON c.user_id = u.id
+      ORDER BY d.created_at DESC
+    `);
+
+    res.json({
+      success: true,
+      data: documents
+    });
+  } catch (error) {
+    console.error('Erreur récupération documents:', error);
+    next(error);
+  }
+};
+
+// @desc    Toggle user status (admin)
+// @route   PUT /api/admin/users/:id/toggle
+// @access  Private (Admin only)
+export const toggleUserStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    await query(`
+      UPDATE users 
+      SET is_active = NOT is_active,
+          updated_at = NOW()
+      WHERE id = ?
+    `, [id]);
+
+    res.json({
+      success: true,
+      message: 'Statut utilisateur mis à jour'
+    });
+  } catch (error) {
+    console.error('Erreur toggle statut utilisateur:', error);
+    next(error);
+  }
+};
+
+// @desc    Update user role (admin)
+// @route   PUT /api/admin/users/:id/role
+// @access  Private (Admin only)
+export const updateUserRole = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!['admin', 'client'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rôle invalide'
+      });
+    }
+
+    await query(`
+      UPDATE users 
+      SET role = ?,
+          updated_at = NOW()
+      WHERE id = ?
+    `, [role, id]);
+
+    res.json({
+      success: true,
+      message: 'Rôle utilisateur mis à jour'
+    });
+  } catch (error) {
+    console.error('Erreur mise à jour rôle utilisateur:', error);
+    next(error);
+  }
+};
+
+// @desc    Update company status (admin)
+// @route   PUT /api/admin/companies/:id/status
+// @access  Private (Admin only)
+export const updateCompanyStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ['draft', 'pending', 'processing', 'completed', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Statut invalide'
+      });
+    }
+
+    await query(`
+      UPDATE companies 
+      SET status = ?,
+          updated_at = NOW()
+      WHERE id = ?
+    `, [status, id]);
+
+    res.json({
+      success: true,
+      message: 'Statut entreprise mis à jour'
+    });
+  } catch (error) {
+    console.error('Erreur mise à jour statut entreprise:', error);
+    next(error);
+  }
+};

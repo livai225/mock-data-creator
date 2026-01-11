@@ -12,7 +12,7 @@ import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Users, Shield, UserX, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 
-type FilterRole = "all" | "admin" | "user";
+type FilterRole = "all" | "admin" | "client";
 type FilterStatus = "all" | "active" | "inactive";
 
 export default function AdminUsers() {
@@ -70,7 +70,7 @@ export default function AdminUsers() {
 
   const handleToggleRole = async () => {
     if (!token || !confirmDialog.user) return;
-    const newRole = confirmDialog.user.role === "admin" ? "user" : "admin";
+    const newRole = confirmDialog.user.role === "admin" ? "client" : "admin";
     try {
       await adminUpdateUserRoleApi(token, confirmDialog.user.id, newRole);
       toast.success(`Rôle modifié en ${newRole}`);
@@ -146,7 +146,7 @@ export default function AdminUsers() {
               <SelectContent>
                 <SelectItem value="all">Tous les rôles</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="user">Utilisateur</SelectItem>
+                <SelectItem value="client">Client</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as FilterStatus)}>
