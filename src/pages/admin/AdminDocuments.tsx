@@ -7,16 +7,19 @@ import { useAuth } from "@/auth/AuthContext";
 import { adminDocumentsApi, downloadDocumentApi } from "@/lib/api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { SearchInput } from "@/components/admin/SearchInput";
-import { FileText, Download, Calendar, User } from "lucide-react";
+import { FileText, Download, Calendar, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 type FilterType = "all" | string;
+
+const ITEMS_PER_PAGE = 10;
 
 export default function AdminDocuments() {
   const { token } = useAuth();
   const [rows, setRows] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<FilterType>("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (!token) return;
@@ -36,6 +39,18 @@ export default function AdminDocuments() {
       return matchSearch && matchType;
     });
   }, [rows, search, filterType]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredRows.length / ITEMS_PER_PAGE);
+  const paginatedRows = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredRows.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredRows, currentPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterType]);
 
   const stats = useMemo(() => ({
     total: rows.length,
@@ -160,7 +175,7 @@ export default function AdminDocuments() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRows.map((d) => (
+                {paginatedRows.map((d) => (
                   <TableRow key={d.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -208,9 +223,35 @@ export default function AdminDocuments() {
             </Table>
           </div>
 
-          <p className="text-sm text-muted-foreground">
-            {filteredRows.length} document(s) sur {rows.length}
-          </p>
+          {/* Pagination */}
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Affichage de {filteredRows.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1} à {Math.min(currentPage * ITEMS_PER_PAGE, filteredRows.length)} sur {filteredRows.length} document(s)
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Précédent
+              </Button>
+              <div className="text-sm text-muted-foreground">
+                Page {currentPage} sur {totalPages || 1}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages || filteredRows.length === 0}
+              >
+                Suivant
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
