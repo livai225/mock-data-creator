@@ -4,26 +4,34 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/auth/AuthContext";
-import { adminDocumentsApi, downloadDocumentApi } from "@/lib/api";
+import { adminDocumentsApi, adminCompaniesListApi, downloadDocumentApi } from "@/lib/api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { SearchInput } from "@/components/admin/SearchInput";
-import { FileText, Download, Calendar, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, Download, Calendar, User, Building, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 type FilterType = "all" | string;
+type CompanyFilterType = "all" | string;
 
 const ITEMS_PER_PAGE = 10;
 
 export default function AdminDocuments() {
   const { token } = useAuth();
   const [rows, setRows] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<FilterType>("all");
+  const [companyFilter, setCompanyFilter] = useState<CompanyFilterType>("all");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (!token) return;
+    
+    // Charger les documents
     adminDocumentsApi(token).then((r) => setRows(r.data ?? [])).catch(() => setRows([]));
+    
+    // Charger la liste des entreprises
+    adminCompaniesListApi(token).then((r) => setCompanies(r.data ?? [])).catch(() => setCompanies([]));
   }, [token]);
 
   const documentTypes = useMemo(() => {
@@ -34,11 +42,13 @@ export default function AdminDocuments() {
   const filteredRows = useMemo(() => {
     return rows.filter((d) => {
       const matchSearch = d.doc_name?.toLowerCase().includes(search.toLowerCase()) ||
-        d.user_email?.toLowerCase().includes(search.toLowerCase());
+        d.user_email?.toLowerCase().includes(search.toLowerCase()) ||
+        d.company_name?.toLowerCase().includes(search.toLowerCase());
       const matchType = filterType === "all" || d.doc_name === filterType;
-      return matchSearch && matchType;
+      const matchCompany = companyFilter === "all" || d.company_id?.toString() === companyFilter;
+      return matchSearch && matchType && matchCompany;
     });
-  }, [rows, search, filterType]);
+  }, [rows, search, filterType, companyFilter]);
 
   // Pagination
   const totalPages = Math.ceil(filteredRows.length / ITEMS_PER_PAGE);
@@ -50,7 +60,7 @@ export default function AdminDocuments() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, filterType]);
+  }, [search, filterType, companyFilter]);
 
   const stats = useMemo(() => ({
     total: rows.length,
@@ -148,9 +158,25 @@ export default function AdminDocuments() {
               <SearchInput
                 value={search}
                 onChange={setSearch}
-                placeholder="Rechercher par nom ou email..."
+                placeholder="Rechercher par nom, email ou entreprise..."
               />
             </div>
+            <Select value={companyFilter} onValueChange={(v) => setCompanyFilter(v)}>
+              <SelectTrigger className="w-full sm:w-[250px]">
+                <SelectValue placeholder="Entreprise" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les entreprises</SelectItem>
+                {companies.map((c) => (
+                  <SelectItem key={c.id} value={c.id.toString()}>
+                    <div className="flex items-center gap-2">
+                      <Building className="h-3 w-3" />
+                      {c.company_name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select value={filterType} onValueChange={(v) => setFilterType(v)}>
               <SelectTrigger className="w-full sm:w-[250px]">
                 <SelectValue placeholder="Type de document" />
@@ -169,6 +195,7 @@ export default function AdminDocuments() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Document</TableHead>
+                  <TableHead>Entreprise</TableHead>
                   <TableHead>Utilisateur</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -185,6 +212,15 @@ export default function AdminDocuments() {
                         <div>
                           <p className="font-medium">{d.doc_name}</p>
                           <p className="text-sm text-muted-foreground">{d.file_name || "document.pdf"}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{d.company_name || "-"}</p>
+                          <p className="text-sm text-muted-foreground">{d.company_type || "-"}</p>
                         </div>
                       </div>
                     </TableCell>
@@ -214,7 +250,7 @@ export default function AdminDocuments() {
                 ))}
                 {filteredRows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                       Aucun document trouvé
                     </TableCell>
                   </TableRow>

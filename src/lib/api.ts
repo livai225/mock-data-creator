@@ -331,6 +331,10 @@ export async function adminDocumentsApi(token: string) {
   return apiRequest<any>("/api/admin/documents", { method: "GET", token });
 }
 
+export async function adminCompaniesListApi(token: string) {
+  return apiRequest<any>("/api/admin/companies-list", { method: "GET", token });
+}
+
 export async function adminToggleUserStatusApi(token: string, userId: number) {
   return apiRequest<any>(`/api/admin/users/${userId}/toggle`, { method: "PUT", token });
 }

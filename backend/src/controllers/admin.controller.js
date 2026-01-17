@@ -454,6 +454,33 @@ export const getAllDocuments = async (req, res, next) => {
   }
 };
 
+// @desc    Get all companies for filter (admin)
+// @route   GET /api/admin/companies-list
+// @access  Private (Admin only)
+export const getCompaniesList = async (req, res, next) => {
+  try {
+    const companies = await query(`
+      SELECT 
+        id,
+        company_name,
+        company_type,
+        user_id,
+        u.email as user_email
+      FROM companies c
+      LEFT JOIN users u ON c.user_id = u.id
+      ORDER BY company_name ASC
+    `);
+
+    res.json({
+      success: true,
+      data: companies
+    });
+  } catch (error) {
+    console.error('Erreur récupération entreprises:', error);
+    next(error);
+  }
+};
+
 // @desc    Toggle user status (admin)
 // @route   PUT /api/admin/users/:id/toggle
 // @access  Private (Admin only)

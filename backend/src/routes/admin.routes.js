@@ -9,6 +9,7 @@ import {
   getAllUsers,
   getAllCompanies,
   getAllDocuments,
+  getCompaniesList,
   toggleUserStatus,
   updateUserRole,
   updateCompanyStatus
@@ -37,5 +38,6 @@ router.put('/companies/:id/status', updateCompanyStatus);
 
 // Gestion des documents
 router.get('/documents', getAllDocuments);
+router.get('/companies-list', getCompaniesList);
 
 export default router;
