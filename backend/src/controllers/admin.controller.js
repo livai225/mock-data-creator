@@ -459,6 +459,7 @@ export const getAllDocuments = async (req, res, next) => {
 // @access  Private (Admin only)
 export const getCompaniesList = async (req, res, next) => {
   try {
+    console.log('🔍 getCompaniesList appelé');
     const companies = await query(`
       SELECT 
         id,
@@ -471,13 +472,19 @@ export const getCompaniesList = async (req, res, next) => {
       ORDER BY company_name ASC
     `);
 
+    console.log(`✅ ${companies.length} entreprises trouvées`);
+
     res.json({
       success: true,
       data: companies
     });
   } catch (error) {
-    console.error('Erreur récupération entreprises:', error);
-    next(error);
+    console.error('❌ Erreur récupération entreprises:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des entreprises',
+      error: error.message
+    });
   }
 };
 
