@@ -7,7 +7,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { adminDocumentsApi, downloadDocumentApi } from "@/lib/api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { SearchInput } from "@/components/admin/SearchInput";
-import { FileText, Download, Calendar, User, Building, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, Download, Calendar, User, Building, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { toast } from "sonner";
 
 type FilterType = "all" | string;
@@ -159,6 +159,31 @@ export default function AdminDocuments() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Information Section */}
+      <Card className="border-blue-200 bg-blue-50/50">
+        <CardContent className="flex items-start gap-3 p-4">
+          <div className="rounded-full bg-blue-100 p-2 mt-0.5">
+            <Info className="h-4 w-4 text-blue-600" />
+          </div>
+          <div className="space-y-1">
+            <p className="font-medium text-blue-900">Pourquoi les documents apparaissent-ils en double ?</p>
+            <p className="text-sm text-blue-700">
+              Chaque document généré est disponible en <strong>deux formats</strong> : 
+              <span className="inline-flex items-center gap-1 mx-1">
+                <FileText className="h-3 w-3" /> PDF (pour consultation)
+              </span> 
+              et 
+              <span className="inline-flex items-center gap-1 mx-1">
+                <FileText className="h-3 w-3" /> DOCX (pour modification)
+              </span>
+            </p>
+            <p className="text-xs text-blue-600">
+              Le PDF est idéal pour l'archivage et le partage, tandis que le le DOCX permet la modification du contenu si nécessaire.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <Card>
