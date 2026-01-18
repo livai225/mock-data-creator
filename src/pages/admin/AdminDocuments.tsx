@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/auth/AuthContext";
-import { adminDocumentsApi, adminCompaniesListApi, downloadDocumentApi } from "@/lib/api";
+import { adminDocumentsApi, downloadDocumentApi } from "@/lib/api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { SearchInput } from "@/components/admin/SearchInput";
 import { FileText, Download, Calendar, User, Building, ChevronLeft, ChevronRight } from "lucide-react";
@@ -18,7 +18,6 @@ const ITEMS_PER_PAGE = 10;
 export default function AdminDocuments() {
   const { token } = useAuth();
   const [rows, setRows] = useState<any[]>([]);
-  const [companies, setCompanies] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [companyFilter, setCompanyFilter] = useState<CompanyFilterType>("all");
@@ -27,16 +26,30 @@ export default function AdminDocuments() {
   useEffect(() => {
     if (!token) return;
     
-    // Charger les documents
+    // Charger les documents (qui incluent déjà les infos entreprises)
     adminDocumentsApi(token).then((r) => setRows(r.data ?? [])).catch(() => setRows([]));
-    
-    // Charger la liste des entreprises
-    adminCompaniesListApi(token).then((r) => setCompanies(r.data ?? [])).catch(() => setCompanies([]));
   }, [token]);
 
   const documentTypes = useMemo(() => {
     const types = new Set(rows.map((d) => d.doc_name));
     return Array.from(types).sort();
+  }, [rows]);
+
+  const companies = useMemo(() => {
+    const uniqueCompanies = new Map();
+    rows.forEach((d) => {
+      if (d.company_id && d.company_name) {
+        uniqueCompanies.set(d.company_id, {
+          id: d.company_id,
+          company_name: d.company_name,
+          company_type: d.company_type,
+          user_email: d.user_email
+        });
+      }
+    });
+    return Array.from(uniqueCompanies.values()).sort((a, b) => 
+      a.company_name.localeCompare(b.company_name)
+    );
   }, [rows]);
 
   const filteredRows = useMemo(() => {
