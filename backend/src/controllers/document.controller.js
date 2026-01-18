@@ -5,6 +5,7 @@ import { AppError } from '../middleware/errorHandler.js';
 import Document from '../models/Document.js';
 import Company from '../models/Company.js';
 import { generateDocument, generateMultipleDocuments } from '../utils/documentGenerator.js';
+import { generateDocumentFromModel, generateMultipleDocumentsFromModels } from '../utils/modelBasedGenerator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -204,7 +205,10 @@ export const generateDocuments = async (req, res, next) => {
     console.log(`📋 Données additionnelles:`, JSON.stringify(additionalData, null, 2));
     
     // Générer tous les documents
-    const results = await generateMultipleDocuments(
+    console.log(`🚀 Début génération de ${docs.length} documents avec modèles DOCX...`);
+    
+    // Utiliser le nouveau système basé sur les modèles
+    const results = await generateMultipleDocumentsFromModels(
       docs,
       company,
       associates,

@@ -589,7 +589,11 @@ export const generateDocument = async (docName, company, associates = [], manage
   // Générer le contenu texte
   let content;
   try {
-    if (docName.includes('Statuts') || docName.includes('statuts')) {
+    // Si du contenu personnalisé est fourni, l'utiliser
+    if (options.customContent) {
+      console.log(`   📝 Utilisation du contenu personnalisé fourni`);
+      content = options.customContent;
+    } else if (docName.includes('Statuts') || docName.includes('statuts')) {
       console.log(`   📝 Utilisation: generateStatutsSARL`);
       content = generateStatutsSARL(company, associates, managers);
     } else if (docName.includes('Bail') || docName.includes('bail')) {
