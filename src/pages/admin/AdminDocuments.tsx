@@ -13,7 +13,7 @@ import { toast } from "sonner";
 type FilterType = "all" | string;
 type CompanyFilterType = "all" | string;
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 25;
 
 export default function AdminDocuments() {
   const { token } = useAuth();
@@ -229,49 +229,50 @@ export default function AdminDocuments() {
           </div>
 
           <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Document</TableHead>
-                  <TableHead>Entreprise</TableHead>
-                  <TableHead>Utilisateur</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+            <div className="max-h-[600px] overflow-y-auto">
+              <Table>
+                <TableHeader className="sticky top-0 bg-background z-10">
+                  <TableRow>
+                    <TableHead>Document</TableHead>
+                    <TableHead>Entreprise</TableHead>
+                    <TableHead>Utilisateur</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
               <TableBody>
                 {paginatedRows.map((d) => (
                   <TableRow key={d.id}>
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-primary/10 p-2">
-                          <FileText className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{d.doc_name}</p>
-                          <p className="text-sm text-muted-foreground">{d.file_name || "document.pdf"}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
                       <div className="flex items-center gap-2">
-                        <Building className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{d.company_name || "-"}</p>
-                          <p className="text-sm text-muted-foreground">{d.company_type || "-"}</p>
+                        <div className="rounded-lg bg-primary/10 p-1.5">
+                          <FileText className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm truncate">{d.doc_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{d.file_name || "document.pdf"}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <User className="h-4 w-4" />
-                        {d.user_email ?? "-"}
+                      <div className="flex items-center gap-1.5">
+                        <Building className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{d.company_name || "-"}</p>
+                          <p className="text-xs text-muted-foreground truncate">{d.company_type || "-"}</p>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        {d.created_at ? new Date(d.created_at).toLocaleDateString() : "-"}
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <User className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span className="text-sm truncate">{d.user_email ?? "-"}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span className="text-sm">{d.created_at ? new Date(d.created_at).toLocaleDateString() : "-"}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -294,7 +295,8 @@ export default function AdminDocuments() {
                   </TableRow>
                 )}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </div>
 
           {/* Pagination */}
