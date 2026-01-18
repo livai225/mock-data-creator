@@ -5,11 +5,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/auth/AuthContext";
-import { adminCompaniesApi, adminUpdateCompanyStatusApi } from "@/lib/api";
+import { adminCompaniesApi, adminUpdateCompanyStatusApi, adminDocumentsApi } from "@/lib/api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { SearchInput } from "@/components/admin/SearchInput";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { Building2, Eye, Download, FileText, Calendar, User } from "lucide-react";
+import { Building2, Eye, Download, FileText, Calendar, User, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 import { companyTypes } from "@/lib/mock-data";
 
@@ -31,6 +31,9 @@ export default function AdminCompanies() {
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [companyDocuments, setCompanyDocuments] = useState<any[]>([]);
+  const [showDocumentsModal, setShowDocumentsModal] = useState(false);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
 
   const refresh = () => {
     if (!token) return;
@@ -66,6 +69,53 @@ export default function AdminCompanies() {
       refresh();
     } catch {
       toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
+  const handleViewDocuments = async (company: any) => {
+    if (!token) return;
+    
+    setLoadingDocuments(true);
+    try {
+      const response = await adminDocumentsApi(token);
+      const allDocuments = response.data || [];
+      const companyDocs = allDocuments.filter(doc => doc.company_id === company.id);
+      
+      setCompanyDocuments(companyDocs);
+      setSelectedCompany(company);
+      setShowDocumentsModal(true);
+    } catch (error) {
+      toast.error("Erreur lors du chargement des documents");
+    } finally {
+      setLoadingDocuments(false);
+    }
+  };
+
+  const downloadDocument = async (doc: any) => {
+    if (!token) return;
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/documents/${doc.id}/download`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) throw new Error('Erreur de téléchargement');
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.file_name || `${doc.doc_name}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      
+      toast.success("Document téléchargé");
+    } catch (error) {
+      toast.error("Erreur lors du téléchargement");
     }
   };
 
@@ -212,13 +262,23 @@ export default function AdminCompanies() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{c.user_email ?? "-"}</TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedCompany(c)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-2 justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewDocuments(c)}
+                          disabled={loadingDocuments}
+                        >
+                          <FolderOpen className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedCompany(c)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -238,6 +298,80 @@ export default function AdminCompanies() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Documents Modal */}
+      <Dialog open={showDocumentsModal} onOpenChange={() => setShowDocumentsModal(false)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5" />
+              Documents de {selectedCompany?.company_name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {loadingDocuments ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-muted-foreground">Chargement des documents...</div>
+            </div>
+          ) : companyDocuments.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Aucun document trouvé pour cette entreprise</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                {companyDocuments.length} document(s) trouvé(s)
+              </div>
+              
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document</TableHead>
+                      <TableHead>Date de création</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {companyDocuments.map((doc) => (
+                      <TableRow key={doc.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="rounded-lg bg-primary/10 p-2">
+                              <FileText className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{doc.doc_name}</p>
+                              <p className="text-sm text-muted-foreground">{doc.file_name || "document.pdf"}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Calendar className="h-4 w-4" />
+                            {doc.created_at ? new Date(doc.created_at).toLocaleDateString() : "-"}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="gold"
+                            onClick={() => downloadDocument(doc)}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Télécharger
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Detail Modal */}
       <Dialog open={!!selectedCompany} onOpenChange={() => setSelectedCompany(null)}>
