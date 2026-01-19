@@ -775,3 +775,119 @@ export const getTemplates = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Régénérer un document spécifique
+// @route   POST /api/documents/regenerate/:id
+// @access  Private
+export const regenerateDocument = async (req, res, next) => {
+  try {
+    console.log('🔄 Requête de régénération reçue:', {
+      documentId: req.params.id,
+      userId: req.user.id
+    });
+
+    const documentId = req.params.id;
+    
+    // Récupérer le document existant
+    const existingDoc = await Document.findById(documentId);
+    if (!existingDoc) {
+      console.error(`❌ Document ${documentId} non trouvé`);
+      return next(new AppError('Document non trouvé', 404));
+    }
+
+    console.log(`✅ Document trouvé: ${existingDoc.doc_name} (company_id: ${existingDoc.company_id})`);
+
+    // Vérifier les permissions
+    if (existingDoc.user_id !== req.user.id && req.user.role !== 'admin') {
+      console.error(`❌ Accès non autorisé: user ${req.user.id} != document.user_id ${existingDoc.user_id}`);
+      return next(new AppError('Accès non autorisé', 403));
+    }
+
+    // Récupérer les données de l'entreprise si companyId existe
+    let company = null;
+    let associates = [];
+    let managers = [];
+
+    if (existingDoc.company_id) {
+      console.log(`🔍 Récupération données entreprise ID: ${existingDoc.company_id}`);
+      company = await Company.findById(existingDoc.company_id);
+      if (!company) {
+        console.error(`❌ Entreprise ${existingDoc.company_id} non trouvée`);
+        return next(new AppError('Entreprise associée non trouvée', 404));
+      }
+
+      associates = company.associates || [];
+      managers = company.managers || [];
+      console.log(`📊 Données récupérées: ${associates.length} associés, ${managers.length} gérants`);
+    }
+
+    // Supprimer l'ancien fichier physique
+    if (existingDoc.file_path && fs.existsSync(existingDoc.file_path)) {
+      try {
+        fs.unlinkSync(existingDoc.file_path);
+        console.log(`🗑️ Ancien fichier supprimé: ${existingDoc.file_path}`);
+      } catch (fileError) {
+        console.warn(`⚠️ Erreur suppression ancien fichier:`, fileError.message);
+      }
+    }
+
+    // Importer le générateur
+    const { generateDocumentFromModel } = await import('./utils/modelBasedGenerator.js');
+
+    // Régénérer le document avec les nouveaux modèles
+    console.log(`🚀 Régénération du document: ${existingDoc.docName}`);
+    
+    const result = await generateDocumentFromModel(
+      existingDoc.docName,
+      company || {},
+      associates,
+      managers,
+      {}, // additionalData vide pour régénération
+      { formats: [existingDoc.docType.includes('pdf') ? 'pdf' : 'docx'] }
+    );
+
+    if (result.error) {
+      console.error(`❌ Erreur régénération:`, result.error);
+      return next(new AppError(`Erreur lors de la régénération: ${result.error}`, 500));
+    }
+
+    // Déterminer le format et le fichier généré
+    const isPdf = existingDoc.docType.includes('pdf');
+    const generatedFile = isPdf ? result.pdf : result.docx;
+
+    if (!generatedFile) {
+      console.error(`❌ Aucun fichier généré pour le format ${isPdf ? 'PDF' : 'DOCX'}`);
+      return next(new AppError('Échec de la génération du fichier', 500));
+    }
+
+    // Mettre à jour le document dans la base de données
+    const updatedDoc = {
+      fileName: generatedFile.fileName,
+      filePath: generatedFile.filePath,
+      mimeType: generatedFile.mimeType,
+      updated_at: new Date()
+    };
+
+    const success = await Document.update(documentId, updatedDoc);
+    
+    if (!success) {
+      console.error(`❌ Erreur mise à jour base de données`);
+      return next(new AppError('Erreur lors de la mise à jour du document', 500));
+    }
+
+    console.log(`✅ Document régénéré avec succès: ${generatedFile.filePath}`);
+
+    // Récupérer le document mis à jour
+    const newDocData = await Document.findById(documentId);
+
+    res.json({
+      success: true,
+      message: 'Document régénéré avec succès',
+      data: newDocData
+    });
+
+  } catch (error) {
+    console.error('❌ Erreur régénération document:', error);
+    next(error);
+  }
+};
