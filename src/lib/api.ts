@@ -327,6 +327,13 @@ export async function adminUpdateCompanyStatusApi(token: string, companyId: stri
   });
 }
 
+export async function adminDeleteCompanyApi(token: string, companyId: string) {
+  return apiRequest<any>(`/api/companies/${companyId}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
 export async function adminDocumentsApi(token: string) {
   return apiRequest<any>("/api/admin/documents", { method: "GET", token });
 }
