@@ -126,9 +126,21 @@ export const generateStatutsSARL = (company, associates, managers) => {
   const anneeWords = numberToWords(annee);
   const dateActuelle = formatDate(new Date().toISOString());
   
-  // Construire l'objet social complet
+  // Construire l'objet social complet avec liste à puces
   const objetSocial = company.activity || '[OBJET SOCIAL]';
-  const objetSocialComplet = `${objetSocial}
+  
+  // Formater les activités en liste à puces (chaque ligne devient un point)
+  const activitesFormatees = objetSocial
+    .split('\n')
+    .filter(line => line.trim())
+    .map(line => `• ${line.trim().replace(/^[-•]\s*/, '')}`)
+    .join('\n');
+  
+  const objetSocialComplet = `${activitesFormatees}
+
+et généralement, toutes opérations industrielles, commerciales, financières, civiles, mobilières ou immobilières pouvant se rattacher directement ou indirectement à l'objet social ou à tous objets similaires ou connexes ou susceptibles d'en faciliter l'extension ou le développement.
+
+En outre, la Société peut également participer par tous moyens, directement ou indirectement, dans toutes opérations pouvant se rattacher à son objet.
 
 - l'acquisition, la location et la vente de tous biens meubles et immeubles.
 
@@ -138,7 +150,7 @@ export const generateStatutsSARL = (company, associates, managers) => {
 
 - la prise de participation dans toute société existante ou devant être créée
 
-- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
+- et généralement, toutes opérations financières, commerciales, industrielles, mobilières et immobilières, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
   
   // Construire l'adresse complète pour l'en-tête
   const adresseComplete = `${(company.address || '[ADRESSE]').toUpperCase()}${company.commune ? ', COMMUNE DE ' + company.commune.toUpperCase() : ''}${company.quartier ? ', ' + company.quartier.toUpperCase() : ''}, ${(company.city || 'ABIDJAN').toUpperCase()}${company.lot ? ' LOT ' + company.lot : ''}${company.ilot ? ', ILOT ' + company.ilot : ''}`;
