@@ -468,7 +468,7 @@ const generateStatutsHTML = (company, associates, managers) => {
       const debutParts = index === 0 ? 1 : associates.slice(0, index).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) + 1;
       const finParts = associates.slice(0, index + 1).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0);
       repartitionParts += `
-        <p class="article-content">- M. ${escapeHtml(assocNom)} : ${parts} parts sociales numérotées de ${debutParts} à ${finParts}</p>
+        <tr><td>M. ${escapeHtml(assocNom)}</td><td>${parts} parts sociales numérotées de ${debutParts} à ${finParts}</td></tr>
       `;
       
       // Signatures
@@ -493,7 +493,7 @@ const generateStatutsHTML = (company, associates, managers) => {
         <td>${capital.toLocaleString('fr-FR')} FCFA</td>
       </tr>
     `;
-    repartitionParts = `<p class="article-content">- M. ${escapeHtml(gerantNom)} : ${nombreParts} parts sociales numérotées de 1 à ${nombreParts}</p>`;
+    repartitionParts = `<tr><td>M. ${escapeHtml(gerantNom)}</td><td>${nombreParts} parts sociales numérotées de 1 à ${nombreParts}</td></tr>`;
     signaturesHTML = `
       <div class="signature-box">
         <p>L'Associé Unique</p>
@@ -600,29 +600,248 @@ const generateStatutsHTML = (company, associates, managers) => {
           Le capital social est fixé à la somme de <strong>${capitalWords} (${capital.toLocaleString('fr-FR')}) de francs CFA</strong>, divisé en ${nombreParts} parts sociales entièrement souscrites et libérées intégralement.
         </p>
         
-        <h3 class="article-title">ARTICLE 7 - ASSOCIÉS</h3>
-        <p class="article-content">Les parts sociales sont réparties entre les associés de la manière suivante :</p>
-        ${repartitionParts}
-        <p class="article-content mt-20"><strong>TOTAL : ${nombreParts} parts sociales</strong></p>
+        <h3 class="article-title">ARTICLE 7 - APPORTS</h3>
+        <p class="article-content"><strong>Apports en numéraire</strong></p>
+        <p class="article-content">Lors de la constitution, les soussignés ont fait apport à la société, à savoir :</p>
+        <table>
+          <thead>
+            <tr>
+              <th>IDENTITÉ DES APPORTEURS</th>
+              <th>MONTANT APPORT EN NUMÉRAIRE</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${associates && associates.length > 0 ? associates.map((a, i) => {
+              const parts = parseInt(a.parts) || 0;
+              const apport = (capital * parts) / nombreParts;
+              return `<tr><td>${escapeHtml(a.name || '[NOM]')}</td><td>${apport.toLocaleString('fr-FR')} FCFA</td></tr>`;
+            }).join('') : `<tr><td>${escapeHtml(gerantNom)}</td><td>${capital.toLocaleString('fr-FR')} FCFA</td></tr>`}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th>Total des apports en numéraire</th>
+              <th>${capital.toLocaleString('fr-FR')} FCFA</th>
+            </tr>
+          </tfoot>
+        </table>
+        <p class="article-content">
+          Les apports en numéraire de ${capitalWords} de francs CFA (${capital.toLocaleString('fr-FR')} FCFA) correspondent à ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA entièrement souscrites et libérées intégralement. La somme correspondante a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${escapeHtml(company.banque || '[NOM BANQUE]')}.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 8 - CAPITAL SOCIAL</h3>
+        <p class="article-content">
+          Le capital social est fixé à la somme de ${capital.toLocaleString('fr-FR')} FCFA divisé en ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA, entièrement souscrites et libérées intégralement, numérotées de 1 à ${nombreParts}, attribuées aux associés, à savoir :
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>IDENTITÉ DES ASSOCIÉS</th>
+              <th>CONCURRENCE DES PARTS</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${repartitionParts}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th>TOTAL</th>
+              <th>${nombreParts} parts sociales</th>
+            </tr>
+          </tfoot>
+        </table>
         
         <div class="page-break"></div>
         
-        <h3 class="article-title">ARTICLE 8 - GÉRANCE</h3>
+        <h3 class="article-title">ARTICLE 9 - AUGMENTATION ET RÉDUCTION DU CAPITAL</h3>
         <p class="article-content">
-          La société est gérée par un ou plusieurs gérants, associés ou non, personnes physiques, nommés pour une durée déterminée ou non.
+          Le capital social peut être augmenté ou réduit dans les conditions prévues par l'Acte Uniforme relatif au droit des sociétés commerciales et du groupement d'intérêt économique.
         </p>
-        <p class="article-content mt-20"><strong>Gérant désigné :</strong></p>
         <p class="article-content">
-          <strong>${escapeHtml(gerantNom.toUpperCase())}</strong>
+          L'augmentation du capital est décidée par les associés représentant au moins la moitié des parts sociales. Si cette majorité n'est pas obtenue, et sauf stipulation contraire des statuts, les associés sont, selon les cas, convoqués ou consultés une seconde fois et les décisions sont prises à la majorité des votes émis, quel que soit le nombre des votants.
+        </p>
+        <p class="article-content">
+          La réduction du capital est autorisée par l'assemblée des associés statuant dans les conditions exigées pour la modification des statuts.
         </p>
         
-        <div class="signature-section">
-          <p class="text-center mt-40">Fait à ${escapeHtml(company.city || 'Abidjan')}, le ${dateActuelle}</p>
-          
-          <div class="signature-row" style="flex-wrap: wrap; gap: 20px;">
-            ${signaturesHTML}
-          </div>
-        </div>
+        <h3 class="article-title">ARTICLE 10 - PARTS SOCIALES</h3>
+        <p class="article-content">
+          Les parts sociales ne peuvent être représentées par des titres négociables. Les droits de chaque associé dans la société résultent seulement des statuts, des actes modificatifs et des cessions de parts régulièrement notifiées et publiées.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 11 - INDIVISIBILITÉ DES PARTS</h3>
+        <p class="article-content">
+          Les parts sociales sont indivisibles à l'égard de la société qui ne reconnaît qu'un seul propriétaire pour chaque part. Les copropriétaires indivis de parts sociales sont tenus de désigner l'un d'entre eux pour les représenter auprès de la société. À défaut d'entente, il appartient à l'un des indivisaires de demander au président de la juridiction compétente, statuant à bref délai, la désignation d'un mandataire chargé de les représenter.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 12 - DROITS DES ASSOCIÉS</h3>
+        <p class="article-content">
+          Chaque part sociale confère à son propriétaire un droit égal dans les bénéfices de la société et dans tout l'actif social. Elle donne droit à une voix dans tous les votes et délibérations.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 13 - RESPONSABILITÉ DES ASSOCIÉS</h3>
+        <p class="article-content">
+          Les associés ne supportent les pertes qu'à concurrence de leurs apports. Au-delà, tout appel de fonds est interdit.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 14 - CESSION DE PARTS SOCIALES</h3>
+        <p class="article-content">
+          Les parts sociales sont librement cessibles entre associés. Elles ne peuvent être cédées à des tiers étrangers à la société qu'avec le consentement de la majorité des associés représentant au moins les trois quarts (3/4) des parts sociales, déduction faite des parts de l'associé cédant.
+        </p>
+        <p class="article-content">
+          Le projet de cession est notifié à la société et à chacun des associés par acte extrajudiciaire ou par tout moyen écrit. Si la société n'a pas fait connaître sa décision dans le délai de trois mois à compter de la dernière des notifications, le consentement à la cession est réputé acquis.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 15 - TRANSMISSION DES PARTS</h3>
+        <p class="article-content">
+          En cas de décès d'un associé, la société continue entre les associés survivants et les héritiers et ayants droit de l'associé décédé, et éventuellement son conjoint survivant, qui acquièrent la qualité d'associé.
+        </p>
+        <p class="article-content">
+          Toutefois, les héritiers et ayants droit devront, pour exercer les droits attachés aux parts sociales, justifier de leur qualité dans les trois mois du décès par la production de l'expédition d'un acte de notoriété ou d'un extrait d'intitulé d'inventaire.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 16 - NANTISSEMENT DES PARTS SOCIALES</h3>
+        <p class="article-content">
+          Les parts sociales peuvent faire l'objet d'un nantissement constaté par acte authentique ou par acte sous seing privé signifié à la société ou accepté par elle dans un acte authentique.
+        </p>
+        
+        <div class="page-break"></div>
+        
+        <h3 class="article-title">ARTICLE 17 - GÉRANCE</h3>
+        <p class="article-content">
+          La société est gérée par une ou plusieurs personnes physiques, associées ou non. Le gérant est nommé par les associés pour une durée indéterminée.
+        </p>
+        <p class="article-content"><strong>Est nommé gérant de la société :</strong></p>
+        <p class="article-content">
+          M. <strong>${escapeHtml(gerantNom.toUpperCase())}</strong>, ${escapeHtml(gerantProfession)}, résidant à ${escapeHtml(gerantAdresse.toUpperCase())} de nationalité ${escapeHtml(gerantNationalite)}, né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance.toUpperCase())} et titulaire de la ${gerantTypeId} N°${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}, qui accepte.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 18 - POUVOIRS DU GÉRANT</h3>
+        <p class="article-content">
+          Le gérant peut faire tous les actes de gestion dans l'intérêt de la société. Dans les rapports avec les tiers, le gérant est investi des pouvoirs les plus étendus pour agir en toute circonstance au nom de la société, sous réserve des pouvoirs que la loi attribue expressément aux associés.
+        </p>
+        <p class="article-content">
+          La société est engagée même par les actes du gérant qui ne relèvent pas de l'objet social, à moins qu'elle ne prouve que le tiers savait que l'acte dépassait cet objet ou qu'il ne pouvait l'ignorer compte tenu des circonstances.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 19 - RÉMUNÉRATION DU GÉRANT</h3>
+        <p class="article-content">
+          En rémunération de ses fonctions, le gérant pourra recevoir un traitement fixe ou proportionnel, ou à la fois fixe et proportionnel au bénéfice ou au chiffre d'affaires, dont le montant et les modalités de paiement seront déterminés par décision collective des associés.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 20 - RÉVOCATION DU GÉRANT</h3>
+        <p class="article-content">
+          Le gérant peut être révoqué par décision des associés représentant plus de la moitié des parts sociales. Si la révocation est décidée sans juste motif, elle peut donner lieu à des dommages et intérêts.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 21 - DÉCISIONS COLLECTIVES</h3>
+        <p class="article-content">
+          Les décisions collectives sont prises en assemblée ou par consultation écrite. Toutefois, la réunion d'une assemblée est obligatoire pour statuer sur l'approbation des comptes de chaque exercice.
+        </p>
+        <p class="article-content">
+          Les décisions collectives ordinaires sont adoptées par un ou plusieurs associés représentant plus de la moitié des parts sociales. Si cette majorité n'est pas obtenue, les associés sont, selon les cas, convoqués ou consultés une seconde fois et les décisions sont prises à la majorité des votes émis, quel que soit le nombre des votants.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 22 - DÉCISIONS EXTRAORDINAIRES</h3>
+        <p class="article-content">
+          Les décisions extraordinaires, notamment celles portant modification des statuts, sont prises par les associés représentant au moins les trois quarts (3/4) des parts sociales.
+        </p>
+        <p class="article-content">
+          Toutefois, l'augmentation du capital par incorporation de bénéfices ou de réserves est décidée par les associés représentant au moins la moitié des parts sociales.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 23 - EXERCICE SOCIAL</h3>
+        <p class="article-content">
+          L'exercice social commence le premier janvier et se termine le trente et un décembre de chaque année. Par exception, le premier exercice sera clos le trente et un décembre de l'année suivante si la société commence ses activités au-delà des six premiers mois de l'année en cours.
+        </p>
+        
+        <div class="page-break"></div>
+        
+        <h3 class="article-title">ARTICLE 24 - INVENTAIRE - COMPTES ANNUELS</h3>
+        <p class="article-content">
+          À la clôture de chaque exercice, le gérant dresse l'inventaire des divers éléments de l'actif et du passif existant à cette date. Il dresse également le bilan, le compte de résultat et l'annexe, en se conformant aux dispositions légales.
+        </p>
+        <p class="article-content">
+          Il établit un rapport de gestion contenant les indications fixées par les textes en vigueur.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 25 - AFFECTATION ET RÉPARTITION DES BÉNÉFICES</h3>
+        <p class="article-content">
+          Le bénéfice distribuable est constitué par le bénéfice de l'exercice, diminué des pertes antérieures et des sommes portées en réserve en application de la loi ou des statuts, et augmenté du report bénéficiaire.
+        </p>
+        <p class="article-content">
+          Après approbation des comptes et constatation de l'existence d'un bénéfice distribuable, l'assemblée générale détermine la part attribuée aux associés sous forme de dividendes.
+        </p>
+        <p class="article-content">
+          Tout dividende distribué en violation de ces règles constitue un dividende fictif.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 26 - DISSOLUTION - LIQUIDATION</h3>
+        <p class="article-content">
+          La société à responsabilité limitée est dissoute pour les causes communes à toutes les sociétés et, en outre, dans les cas prévus par l'Acte Uniforme.
+        </p>
+        <p class="article-content">
+          La dissolution de la société entraîne sa mise en liquidation. La personnalité morale de la société subsiste pour les besoins de la liquidation et jusqu'à la clôture de celle-ci.
+        </p>
+        <p class="article-content">
+          Si toutes les parts sociales sont réunies en une seule main, l'expiration de la société ou sa dissolution pour quelque cause que ce soit, entraîne la transmission universelle du patrimoine social à l'associé unique, sans qu'il y ait lieu à liquidation, sous réserve du droit d'opposition des créanciers.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 27 - CONTESTATIONS ENTRE ASSOCIÉS OU ENTRE UN OU PLUSIEURS ASSOCIÉS ET LA SOCIÉTÉ</h3>
+        <p class="article-content"><u>Variante 1. Droit commun</u></p>
+        <p class="article-content">
+          Les contestations relatives aux affaires de la société survenant pendant la vie de la société ou au cours de sa liquidation, entre les associés ou entre un ou plusieurs associés et la société, sont soumises au tribunal chargé des affaires commerciales.
+        </p>
+        <p class="article-content"><u>Variante 2. Arbitrage</u></p>
+        <p class="article-content">
+          Les contestations relatives aux affaires, survenant pendant la durée de société ou au cours de sa liquidation, entre les associés ou entre un ou plusieurs associés et la société, sont soumises à l'arbitrage conformément aux dispositions de l'Acte Uniforme de l'OHADA s'y rapportant.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 28 - ENGAGEMENTS POUR LE COMPTE DE LA SOCIÉTÉ</h3>
+        <p class="article-content">
+          Un état des actes accomplis par les fondateurs pour le compte de la société en formation, avec indication de l'engagement qui en résulterait, sera présenté à la société qui s'engage à les reprendre.
+        </p>
+        
+        <div class="page-break"></div>
+        
+        <h3 class="article-title">ARTICLE 29 - MANDAT</h3>
+        <p class="article-content">
+          En outre, les soussignés donnent mandat à 1- M. <strong>${escapeHtml(gerantNom.toUpperCase())}</strong>, à l'effet de prendre les engagements suivants au nom et pour le compte de la société.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 30 - FRAIS</h3>
+        <p class="article-content">
+          Les frais, droits et honoraires des présents Statuts sont à la charge de la société.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 31 - ÉLECTION DE DOMICILE</h3>
+        <p class="article-content">
+          Pour l'exécution des présentes et de leurs suites, les parties déclarent faire élection de domicile au siège sociale.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 32 - POUVOIRS</h3>
+        <p class="article-content">
+          Les associés donnent tous pouvoirs à 1- M. <strong>${escapeHtml(gerantNom.toUpperCase())}</strong>, ${escapeHtml(gerantProfession)} résidant à ${escapeHtml(gerantAdresse.toUpperCase())} de nationalité ${escapeHtml(gerantNationalite)}, né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance.toUpperCase())} et titulaire du ${gerantTypeId} N°${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}, à l'effet de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins des formalités, de signer tout acte et en donner bonne et valable décharge.
+        </p>
+        
+        <p class="article-content mt-40 text-center"><strong>En Deux (2) exemplaires originaux</strong></p>
+        
+        <p class="article-content text-center mt-20">Fait à ${escapeHtml(company.city || 'ABIDJAN')}, le ${dateActuelle}</p>
+        
+        <table class="mt-40">
+          <thead>
+            <tr>
+              <th style="width: 50%;">NOMS DES ASSOCIÉS</th>
+              <th style="width: 50%;">SIGNATURES</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${associates && associates.length > 0 ? associates.map((a, i) => {
+              return `<tr><td>M. ${escapeHtml((a.name || '[NOM]').toUpperCase())}</td><td style="height: 50px;"></td></tr>`;
+            }).join('') : `<tr><td>M. ${escapeHtml(gerantNom.toUpperCase())}</td><td style="height: 50px;"></td></tr>`}
+          </tbody>
+        </table>
+        
+        <div class="page-number" style="margin-top: 30px;">16</div>
       </div>
     </body>
     </html>
