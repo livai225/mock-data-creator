@@ -1105,113 +1105,145 @@ Fait à ${company.city || 'Abidjan'}, le ${formatDate(new Date().toISOString())}
 export const generateFormulaireCEPICI = (company, managers, associates) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
   
-  // Debug: Afficher les données du gérant
-  if (gerant) {
-    console.log('🔍 [DOCX CEPICI] Données gérant:', {
-      nom: gerant.nom,
-      prenoms: gerant.prenoms,
-      nationalite: gerant.nationalite,
-      lieu_naissance: gerant.lieu_naissance,
-      lieuNaissance: gerant.lieuNaissance,
-      adresse: gerant.adresse,
-      address: gerant.address,
-      profession: gerant.profession,
-      date_naissance: gerant.date_naissance,
-      dateNaissance: gerant.dateNaissance
-    });
-  }
-  
   const capital = parseFloat(company.capital) || 0;
-  const capitalNumeraire = capital;
-  const apportsNature = 0;
   const dureeSociete = company.duree_societe || 99;
   
-  // Récupérer les champs du gérant avec toutes les variantes
-  const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : '[NOM]';
-  const gerantAdresse = gerant?.adresse || gerant?.address || '[ADRESSE]';
-  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITE]';
-  const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE]';
-  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU]';
+  // Récupérer les informations du déclarant (consultant comptable)
+  const declarant = company.declarant || {};
+  const declarantNom = declarant.nom || '[NOM DECLARANT]';
+  const declarantQualite = declarant.qualite || 'CONSULTANT COMPTABLE';
+  const declarantNumeroCompte = declarant.numeroCompte || '[NUMERO COMPTE]';
+  const declarantAdresse = declarant.adresse || '[ADRESSE DECLARANT]';
+  const declarantTel = declarant.telephone || '[TEL]';
+  const declarantFax = declarant.fax || '[FAX]';
+  const declarantMobile = declarant.mobile || '[MOBILE]';
+  const declarantEmail = declarant.email || '[EMAIL]';
+  
+  // Récupérer les projections sur 3 ans
+  const projections = company.projections || {};
+  const investAnnee1 = projections.investissementAnnee1 || 0;
+  const investAnnee2 = projections.investissementAnnee2 || 0;
+  const investAnnee3 = projections.investissementAnnee3 || 0;
+  const emploisAnnee1 = projections.emploisAnnee1 || 0;
+  const emploisAnnee2 = projections.emploisAnnee2 || 0;
+  const emploisAnnee3 = projections.emploisAnnee3 || 0;
   
   return `
 RÉPUBLIQUE DE CÔTE D'IVOIRE
+[LOGO ARMOIRIES]
 Union - Discipline - Travail
 
-CEPICI
-CENTRE DE PROMOTION DES INVESTISSEMENTS EN COTE D'IVOIRE
+Présidence de la République
+[LOGO CEPICI]
+CENTRE DE PROMOTION DES INVESTISSEMENTS EN CÔTE D'IVOIRE
 
-GUICHET UNIQUE
-Création d'Entreprise
+FORMULAIRE UNIQUE
+D'IMMATRICULATION DES ENTREPRISES
+(PERSONNES MORALES)
 
-FORMULAIRE UNIQUE DE DEMANDE DE CRÉATION D'ENTREPRISE
 
-SECTION A: IDENTIFICATION DE L'ENTREPRISE
+CADRE RÉSERVÉ AU CEPICI
 
-Denomination sociale : ${company.company_name || '[DENOMINATION]'}
-Nom commercial : 
-Sigle : 
-Duree : ${dureeSociete} ANS
+DOSSIER N° ………………………………………………
+
+DATE DE RECEPTION ………………………………………
+
+NUMERO REGISTRE DE COMMERCE      /___/___/___/___/___/___/___/___/___/___/
+NUMERO COMPTE CONTRIBUABLE       /___/___/___/___/___/___/___/___/___/___/
+NUMERO CNPS ENTREPRISE           /___/___/___/___/___/___/___/___/___/___/
+CODE IMPORT-EXPORT               /___/___/___/___/___/___/___/___/___/___/
+
+
+DÉCLARANT RESPONSABLE POUR L'ACCOMPLISSEMENT DES FORMALITÉS
+
+DÉCLARATION ÉTABLIE PAR : ${declarantNom}
+
+AGISSANT EN QUALITÉ DE : ${declarantQualite}
+
+NUMÉRO DE COMPTE CONTRIBUABLE ………………………………………………………………………………………
+
+ADRESSE PERSONNELLE : ${declarantAdresse}
+
+………………………………………………………………………………………………………………………………………………
+
+TEL :……………………………………… FAX :…………… MOBILE : ${declarantMobile}…………
+
+E-MAIL : ${declarantEmail}
+
+
+I- IDENTIFICATION
+
+                                    ANNÉE 1         ANNÉE 2         ANNÉE 3
+
+Montant d'Investissement         ${investAnnee1.toLocaleString().padEnd(15)} ${investAnnee2.toLocaleString().padEnd(15)} ${investAnnee3.toLocaleString()}
+(projeté)
+
+Nombre d'Emplois                 ${emploisAnnee1.toString().padEnd(15)} ${emploisAnnee2.toString().padEnd(15)} ${emploisAnnee3.toString()}
+(projetés)
+
+
+II- DÉNOMINATION
+
+Dénomination sociale : ${company.company_name || '[DENOMINATION]'}
+
+Sigle : ${company.sigle || ''}
+
 Forme juridique : ${company.company_type || 'SARL'}
+
+Durée : ${dureeSociete} ANS
+
 Montant du capital : ${capital.toLocaleString('fr-FR')} FCFA
-    Dont : Montant en numéraire : ${capitalNumeraire.toLocaleString('fr-FR')} FCFA
-    Evaluation des apports en nature : ${apportsNature.toLocaleString('fr-FR')} FCFA
 
-PREVISIONS SUR 3 ANS:
-    Montant d'Investissement : A determiner
-    Nombre d'Emplois : A determiner
 
-__________________________________________________________________________
-II- ACTIVITE
-__________________________________________________________________________
+III- ACTIVITÉ
 
-Activite principale : 
-${company.activity || '[ACTIVITE PRINCIPALE]'}
+Activité principale : ${company.activity || '[ACTIVITE PRINCIPALE]'}
 
-Activites secondaires : 
+Activités secondaires : ${company.activite_secondaire || ''}
 
-Chiffre d'affaires previsionnel : ${company.chiffre_affaires_prev ? company.chiffre_affaires_prev.toLocaleString('fr-FR') : '-'} FCFA
-Nombre d'employes : 1
-Date embauche 1er employe : ${formatDate(new Date().toISOString())}
-Date de debut d'activite : ${formatDate(new Date().toISOString())}
+Chiffre d'affaires prévisionnel : ${company.chiffre_affaires_prev || '[CA PREV]'} FCFA
 
-__________________________________________________________________________
-III- LOCALISATION DU SIEGE SOCIAL
-__________________________________________________________________________
+
+IV- LOCALISATION DU SIÈGE SOCIAL
 
 Ville : ${company.city || 'ABIDJAN'}
-Commune : ${company.commune || '[COMMUNE]'}
-Quartier : ${company.quartier || '[QUARTIER]'}
-Rue : ${company.address || ''}
-Lot n° : ${company.lot || ''}      Ilot n° : ${company.ilot || ''}
-Numero etage :      Numero porte : 
-Tel. : ${company.telephone || '[TELEPHONE]'}
-Email : ${company.email || '[EMAIL]'}
 
-__________________________________________________________________________
+Commune : ${company.commune || '[COMMUNE]'}
+
+Quartier : ${company.quartier || '[QUARTIER]'}
+
+Rue : ${company.address || '[RUE]'}
+
+Lot n° : ${company.lot || ''}      Ilot n° : ${company.ilot || ''}
+
+Téléphone : ${company.telephone || '[TELEPHONE]'}
+
+E-mail : ${company.email || '[EMAIL]'}
+
+
 V- INFORMATIONS SUR LES DIRIGEANTS
-__________________________________________________________________________
 
 DIRIGEANT SOCIAL
 
-Nom et Prenoms : ${gerantNom}
-Adresse : ${gerantAdresse}
-Nationalite : ${gerantNationalite}
-Date et lieu de naissance : ${gerantDateNaissance} a ${gerantLieuNaissance}
-Regime matrimonial : [REGIME]
-Fonction : GERANT
+Nom et Prénoms : ${gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : '[NOM GERANT]'}
+
+Adresse : ${gerant?.adresse || gerant?.address || '[ADRESSE]'}
+
+Nationalité : ${gerant?.nationalite || '[NATIONALITE]'}
+
+Date et lieu de naissance : ${gerant ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE]'} à ${gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU]'}
+
+Fonction : GÉRANT
+
 
 __________________________________________________________________________
 
-Fait a Abidjan, le ${formatDate(new Date().toISOString())}
+Fait à Abidjan, le ${formatDate(new Date().toISOString())}
 
-Signature
+Signature du déclarant
+
 
 _____________________
-
-
-__________________________________________________________________________
-CEPICI : BP V152 ABIDJAN 01 - ABIDJAN PLATEAU 2eme etage immeuble DJEKANOU
-Tel : (225) 20 30 23 85 - Fax : (225) 20 21 40 71 - Site web : www.cepici.gouv.ci
 `;
 };
 
