@@ -1130,11 +1130,10 @@ export const generateFormulaireCEPICI = (company, managers, associates) => {
   
   return `
 RÉPUBLIQUE DE CÔTE D'IVOIRE
-[LOGO ARMOIRIES]
 Union - Discipline - Travail
 
 Présidence de la République
-[LOGO CEPICI]
+CEPICI
 CENTRE DE PROMOTION DES INVESTISSEMENTS EN CÔTE D'IVOIRE
 
 FORMULAIRE UNIQUE
