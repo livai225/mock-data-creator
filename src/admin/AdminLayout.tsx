@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Layout } from "@/components/layout/Layout";
 import { 
@@ -8,8 +8,12 @@ import {
   FileText, 
   CreditCard, 
   Bell,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from "lucide-react";
+import { useAuth } from "@/auth/AuthContext";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const adminLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -23,6 +27,14 @@ const adminLinks = [
 
 export default function AdminLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Déconnexion réussie");
+    navigate("/");
+  };
 
   return (
     <Layout>
@@ -36,7 +48,7 @@ export default function AdminLayout() {
                 </div>
                 <div>
                   <h2 className="font-semibold">Administration</h2>
-                  <p className="text-sm text-muted-foreground">Panneau de gestion</p>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
                 </div>
               </div>
             </div>
@@ -66,6 +78,17 @@ export default function AdminLayout() {
                 })}
               </div>
             </nav>
+
+            <div className="p-3 border-t">
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4 mr-3" />
+                Déconnexion
+              </Button>
+            </div>
 
             <div className="p-4 mx-3 mb-3 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
               <p className="text-sm font-medium">Besoin d'aide ?</p>
