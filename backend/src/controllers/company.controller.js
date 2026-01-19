@@ -24,7 +24,9 @@ export const createCompany = async (req, res, next) => {
       associates,
       managers,
       chiffreAffairesPrev,
-      paymentAmount
+      paymentAmount,
+      declarant,
+      projections
     } = req.body;
 
     const companyData = {
@@ -38,7 +40,9 @@ export const createCompany = async (req, res, next) => {
       gerant,
       chiffreAffairesPrev,
       managers: managers || [],
-      paymentAmount
+      paymentAmount,
+      declarant: declarant || {},
+      projections: projections || {}
     };
 
     const companyId = await Company.create(companyData, associates || []);
