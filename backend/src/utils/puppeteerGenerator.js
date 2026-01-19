@@ -60,7 +60,7 @@ const getCommonStyles = () => `
     font-family: 'Times New Roman', Georgia, serif;
     font-size: 11pt;
     line-height: 1.5;
-    color: #1a1a1a;
+    color: #000;
     background: white;
   }
   
@@ -68,17 +68,108 @@ const getCommonStyles = () => `
     max-width: 100%;
   }
   
+  /* Page de garde - Encadré OHADA */
+  .cover-box {
+    border: 2px solid #000;
+    padding: 15px 20px;
+    margin: 30px auto;
+    max-width: 90%;
+    text-align: center;
+    font-size: 10pt;
+  }
+  
+  .cover-box p {
+    margin: 8px 0;
+  }
+  
+  .cover-box .title {
+    font-weight: bold;
+    text-decoration: underline;
+    margin: 15px 0;
+  }
+  
+  .nb-section {
+    text-align: left;
+    margin: 30px 0;
+    font-size: 10pt;
+  }
+  
+  .nb-section .nb-title {
+    text-decoration: underline;
+    margin-bottom: 10px;
+  }
+  
+  .nb-section ol {
+    margin-left: 20px;
+  }
+  
+  .nb-section li {
+    margin-bottom: 8px;
+  }
+  
+  .type-societe {
+    text-align: center;
+    margin: 60px 0 40px 0;
+    font-size: 14pt;
+    font-weight: bold;
+  }
+  
+  .page-number {
+    text-align: right;
+    font-size: 10pt;
+    margin-top: 50px;
+  }
+  
+  /* Page 2 - Titre principal */
+  .main-header {
+    border: 3px solid #000;
+    padding: 15px;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .main-header h1 {
+    font-size: 14pt;
+    font-weight: bold;
+    text-decoration: underline;
+    margin-bottom: 10px;
+  }
+  
+  .main-header .company-name {
+    font-size: 16pt;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  
+  .main-header .capital-info {
+    font-size: 11pt;
+    margin-top: 10px;
+  }
+  
+  .date-section {
+    margin: 30px 0;
+  }
+  
+  .associe-item {
+    margin: 20px 0;
+    text-align: justify;
+  }
+  
+  .associe-number {
+    font-weight: bold;
+  }
+  
   .header {
     text-align: center;
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 2px solid #1a365d;
+    border-bottom: 2px solid #000;
   }
   
   .header h1 {
     font-size: 16pt;
     font-weight: bold;
-    color: #1a365d;
+    color: #000;
     margin-bottom: 5px;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -86,7 +177,7 @@ const getCommonStyles = () => `
   
   .header .subtitle {
     font-size: 10pt;
-    color: #666;
+    color: #333;
   }
   
   .main-title {
@@ -94,19 +185,15 @@ const getCommonStyles = () => `
     font-size: 18pt;
     font-weight: bold;
     margin: 30px 0 20px 0;
-    color: #1a365d;
+    color: #000;
     text-transform: uppercase;
   }
   
-  .company-name {
+  .company-name-simple {
     text-align: center;
     font-size: 14pt;
     font-weight: bold;
     margin: 15px 0;
-    padding: 10px 20px;
-    background-color: #FFF3CD;
-    border-radius: 5px;
-    display: inline-block;
   }
   
   .company-name-container {
@@ -118,16 +205,16 @@ const getCommonStyles = () => `
     font-size: 12pt;
     font-weight: bold;
     margin: 25px 0 10px 0;
-    color: #1a365d;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 5px;
+    color: #000;
+    text-decoration: underline;
   }
   
   .article-title {
     font-size: 11pt;
     font-weight: bold;
     margin: 20px 0 8px 0;
-    color: #2c3e50;
+    color: #000;
+    text-decoration: underline;
   }
   
   .article-content {
@@ -143,7 +230,7 @@ const getCommonStyles = () => `
   .info-label {
     font-weight: bold;
     min-width: 200px;
-    color: #333;
+    color: #000;
   }
   
   .info-value {
@@ -167,7 +254,7 @@ const getCommonStyles = () => `
   }
   
   .signature-line {
-    border-top: 1px solid #333;
+    border-top: 1px solid #000;
     margin-top: 50px;
     padding-top: 5px;
   }
@@ -184,8 +271,16 @@ const getCommonStyles = () => `
     font-weight: bold;
   }
   
+  .text-underline {
+    text-decoration: underline;
+  }
+  
   .mt-20 {
     margin-top: 20px;
+  }
+  
+  .mt-40 {
+    margin-top: 40px;
   }
   
   .mb-10 {
@@ -193,7 +288,7 @@ const getCommonStyles = () => `
   }
   
   .separator {
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #000;
     margin: 15px 0;
   }
   
@@ -204,7 +299,7 @@ const getCommonStyles = () => `
   }
   
   table th, table td {
-    border: 1px solid #333;
+    border: 1px solid #000;
     padding: 8px;
     text-align: left;
   }
@@ -221,9 +316,9 @@ const getCommonStyles = () => `
     right: 0;
     text-align: center;
     font-size: 9pt;
-    color: #666;
+    color: #333;
     padding: 10px 0;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #000;
   }
 `;
 
@@ -291,35 +386,20 @@ const escapeHtml = (text) => {
 };
 
 /**
- * Template HTML: Statuts SARL
+ * Template HTML: Statuts SARL - Format professionnel OHADA
  */
 const generateStatutsHTML = (company, associates, managers) => {
   const capital = parseFloat(company.capital) || 0;
   const capitalWords = numberToWords(Math.floor(capital)).toUpperCase();
   const duree = company.duree_societe || 99;
+  const dureeWords = numberToWords(duree);
   
   const gerant = managers && managers.length > 0 ? managers[0] : null;
-  
-  // Debug: Afficher les données du gérant
-  if (gerant) {
-    console.log('🔍 [Statuts HTML] Données gérant:', {
-      nom: gerant.nom,
-      prenoms: gerant.prenoms,
-      nationalite: gerant.nationalite,
-      lieu_naissance: gerant.lieu_naissance,
-      lieuNaissance: gerant.lieuNaissance,
-      adresse: gerant.adresse,
-      address: gerant.address,
-      profession: gerant.profession,
-      date_naissance: gerant.date_naissance,
-      dateNaissance: gerant.dateNaissance
-    });
-  }
   
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   const gerantProfession = gerant?.profession || '[PROFESSION]';
   const gerantAdresse = gerant?.adresse || gerant?.address || '[ADRESSE]';
-  const gerantVilleResidence = gerant?.ville_residence || gerant?.villeResidence || '';
+  const gerantVilleResidence = gerant?.ville_residence || gerant?.villeResidence || company.city || 'ABIDJAN';
   const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
   const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
   const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
@@ -327,7 +407,7 @@ const generateStatutsHTML = (company, associates, managers) => {
   const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '[NUMÉRO]';
   const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
   const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
-  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la république de Côte d\'Ivoire';
+  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la République de Côte d\'Ivoire';
   
   const isUnipersonnelle = !associates || associates.length <= 1;
   const nombreParts = associates?.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) || Math.floor(capital / 5000);
@@ -339,31 +419,86 @@ const generateStatutsHTML = (company, associates, managers) => {
   // Construire l'objet social
   const objetSocial = company.activity || '[OBJET SOCIAL]';
   
-  // Liste des associés pour le tableau
+  // Construire l'adresse complète
+  const adresseComplete = `${(company.address || '[ADRESSE]').toUpperCase()}${company.commune ? ' COMMUNE DE ' + company.commune.toUpperCase() : ''}${company.quartier ? ', ' + company.quartier.toUpperCase() : ''}, ${(company.city || 'ABIDJAN').toUpperCase()}${company.lot ? ' LOT ' + company.lot : ''}${company.ilot ? ', ILOT ' + company.ilot : ''}`;
+  
+  // Générer la liste des associés numérotée
+  let associesListHTML = '';
   let associesTableRows = '';
   let totalApports = 0;
+  let repartitionParts = '';
+  let signaturesHTML = '';
   
   if (associates && associates.length > 0) {
     associates.forEach((associe, index) => {
       const parts = parseInt(associe.parts) || 0;
       const apport = (capital * parts) / nombreParts;
       totalApports += apport;
+      
+      // Récupérer les infos de l'associé
+      const assocNom = associe.name || `[NOM ASSOCIÉ ${index + 1}]`;
+      const assocProfession = associe.profession || '[PROFESSION]';
+      const assocAdresse = associe.adresse || associe.address || gerantVilleResidence;
+      const assocNationalite = associe.nationalite || associe.nationality || '[NATIONALITÉ]';
+      const assocDateNaissance = associe.date_naissance || associe.dateNaissance ? formatDate(associe.date_naissance || associe.dateNaissance) : '[DATE]';
+      const assocLieuNaissance = associe.lieu_naissance || associe.lieuNaissance || '[LIEU]';
+      const assocTypeId = associe.type_identite || associe.typeIdentite || 'passeport';
+      const assocNumId = associe.numero_identite || associe.numeroIdentite || '[N°]';
+      const assocDateDelivrance = associe.date_delivrance_id || associe.dateDelivranceId ? formatDate(associe.date_delivrance_id || associe.dateDelivranceId) : '[DATE]';
+      const assocDateValidite = associe.date_validite_id || associe.dateValiditeId ? formatDate(associe.date_validite_id || associe.dateValiditeId) : '[DATE]';
+      const assocLieuDelivrance = associe.lieu_delivrance_id || associe.lieuDelivranceId || 'la République de Côte d\'Ivoire';
+      
+      // Liste numérotée des associés pour la page 2
+      associesListHTML += `
+        <div class="associe-item">
+          <span class="associe-number">${index + 1}- M. ${escapeHtml(assocNom.toUpperCase())}</span>, ${escapeHtml(assocProfession)} résidant à ${escapeHtml(assocAdresse.toUpperCase())} de nationalité ${escapeHtml(assocNationalite)}, né le ${assocDateNaissance} à ${escapeHtml(assocLieuNaissance.toUpperCase())}, ${assocTypeId === 'CNI' ? 'TAMIL NADU (INDE)' : ''} et titulaire du ${assocTypeId} N°${escapeHtml(assocNumId)} délivrée le ${assocDateDelivrance} et valable jusqu'au ${assocDateValidite} par ${escapeHtml(assocLieuDelivrance)}.
+        </div>
+      `;
+      
+      // Tableau des apports
       associesTableRows += `
         <tr>
-          <td>${escapeHtml(associe.name || '[NOM ASSOCIÉ]')}</td>
+          <td>${escapeHtml(assocNom)}</td>
           <td>${parts} parts</td>
           <td>${apport.toLocaleString('fr-FR')} FCFA</td>
         </tr>
       `;
+      
+      // Répartition des parts
+      const debutParts = index === 0 ? 1 : associates.slice(0, index).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) + 1;
+      const finParts = associates.slice(0, index + 1).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0);
+      repartitionParts += `
+        <p class="article-content">- M. ${escapeHtml(assocNom)} : ${parts} parts sociales numérotées de ${debutParts} à ${finParts}</p>
+      `;
+      
+      // Signatures
+      signaturesHTML += `
+        <div class="signature-box">
+          <p>Associé ${index + 1}</p>
+          <div class="signature-line">${escapeHtml(assocNom)}</div>
+        </div>
+      `;
     });
   } else {
     totalApports = capital;
+    associesListHTML = `
+      <div class="associe-item">
+        <span class="associe-number">1- M. ${escapeHtml(gerantNom.toUpperCase())}</span>, ${escapeHtml(gerantProfession)} résidant à ${escapeHtml(gerantAdresse.toUpperCase())} de nationalité ${escapeHtml(gerantNationalite)}, né le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance.toUpperCase())} et titulaire de la ${gerantTypeId} N°${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}.
+      </div>
+    `;
     associesTableRows = `
       <tr>
         <td>${escapeHtml(gerantNom)}</td>
         <td>${nombreParts} parts</td>
         <td>${capital.toLocaleString('fr-FR')} FCFA</td>
       </tr>
+    `;
+    repartitionParts = `<p class="article-content">- M. ${escapeHtml(gerantNom)} : ${nombreParts} parts sociales numérotées de 1 à ${nombreParts}</p>`;
+    signaturesHTML = `
+      <div class="signature-box">
+        <p>L'Associé Unique</p>
+        <div class="signature-line">${escapeHtml(gerantNom)}</div>
+      </div>
     `;
   }
 
@@ -376,62 +511,60 @@ const generateStatutsHTML = (company, associates, managers) => {
     </head>
     <body>
       <div class="document">
-        <h1 class="main-title">STATUTS</h1>
-        <p class="text-center text-bold">SOCIÉTÉ À RESPONSABILITÉ LIMITÉE</p>
-        
-        <div class="company-name-container">
-          <span class="company-name">« ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} »</span>
+        <!-- PAGE 1 : PAGE DE GARDE -->
+        <div class="cover-box">
+          <p>Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur</p>
+          <p>de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au</p>
+          <p>Droit des Sociétés commerciales et du Groupement d'Intérêt Économique</p>
+          <p class="title">STATUT TYPE SOUS SEING PRIVÉ</p>
+          <p>Cas d'une Société à Responsabilité Limitée comportant plusieurs</p>
+          <p>associés et constituée exclusivement par apports en numéraire</p>
         </div>
         
-        ${company.sigle ? `<p class="text-center">Sigle : ${escapeHtml(company.sigle)}</p>` : ''}
+        <div class="nb-section">
+          <p class="nb-title"><u>N.B : Indications d'utilisation</u></p>
+          <p style="font-style: italic; margin-bottom: 10px;">Ce cas de figure courant a été conçu pour faciliter et encadrer le processus de création d'entreprise pour une meilleure sécurisation des opérateurs économiques.</p>
+          <ol>
+            <li>les espaces en pointillé sont des champs à remplir et à adapter à partir des informations décrites dans les parenthèses qui suivent ;</li>
+            <li>établir les statuts en nombre suffisant pour la remise d'un exemplaire original à chaque associé, le dépôt d'un exemplaire au siège social, et l'accomplissement des formalités de constitution.</li>
+          </ol>
+        </div>
         
-        <p class="text-center mt-20">
-          AYANT SON SIÈGE SOCIAL À ${escapeHtml((company.address || '[ADRESSE]').toUpperCase())}, ${escapeHtml((company.city || 'ABIDJAN').toUpperCase())}
-        </p>
+        <div class="type-societe">
+          <p>SARL ${isUnipersonnelle ? 'unipersonnelle' : 'pluripersonnelle'} constituée exclusivement</p>
+          <p>Par apports en numéraire</p>
+        </div>
         
-        <div class="separator"></div>
+        <div class="page-number">1</div>
         
-        <p class="text-center">L'An ${numberToWords(annee)},</p>
-        <p class="text-center">Le ${dateActuelle}</p>
+        <!-- PAGE 2 : STATUTS -->
+        <div class="page-break"></div>
         
-        <p class="mt-20">Le soussigné${isUnipersonnelle ? '' : 's'},</p>
+        <div class="main-header">
+          <h1>STATUTS DE LA SOCIÉTÉ A RESPONSABILITÉ LIMITÉE DÉNOMMÉE</h1>
+          <p class="company-name">«${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')}${company.sigle ? ' ' + company.sigle : ''} SARL»</p>
+          <p class="capital-info">Au capital de ${capital.toLocaleString('fr-FR')} FCFA, située à ${adresseComplete}</p>
+        </div>
+        
+        <div class="date-section">
+          <p>L'An Deux Mil ${numberToWords(annee % 100).charAt(0).toUpperCase() + numberToWords(annee % 100).slice(1)},</p>
+          <p>Le ${dateActuelle}</p>
+        </div>
+        
+        ${associesListHTML}
         
         <p class="mt-20">
-          <strong>M. ${escapeHtml(gerantNom)}</strong>, ${escapeHtml(gerantProfession)}, résident à ${escapeHtml(gerantAdresse)} 
-          de nationalité ${escapeHtml(gerantNationalite)} né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance)} 
-          et titulaire de la ${gerantTypeId} ${escapeHtml(gerantNumId)} délivré(e) le ${gerantDateDelivranceId} 
-          et valable ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}.
+          ${isUnipersonnelle ? 'A établi' : 'Ont établi'} ainsi qu'il suit les statuts de la société à responsabilité limitée devant exister entre ${isUnipersonnelle ? 'lui' : 'eux'}.
         </p>
         
-        <p class="mt-20">
-          ${isUnipersonnelle ? 'A établi' : 'Ont établi'} par les présentes, les statuts de la Société à Responsabilité Limitée dont la teneur suit :
-        </p>
-        
-        <h2 class="section-title">TITRE I : DISPOSITIONS GÉNÉRALES</h2>
-        
-        <h3 class="article-title">ARTICLE 1 - FORME</h3>
+        <!-- ARTICLES -->
+        <h3 class="article-title">ARTICLE 1 - FORME JURIDIQUE</h3>
         <p class="article-content">
-          Il est constitué par ${isUnipersonnelle ? 'le soussigné' : 'les soussignés'}, une Société à Responsabilité Limitée 
-          devant exister entre ${isUnipersonnelle ? 'lui' : 'eux'} et tous propriétaires de parts sociales ultérieures, 
-          qui sera régie par l'Acte Uniforme révisé de l'OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales 
-          et du Groupement d'intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires 
-          applicables et les présents statuts.
+          Il est formé entre les soussignés une société à responsabilité limitée qui sera régie par l'Acte Uniforme de l'OHADA relatif au droit des sociétés commerciales et du groupement d'intérêt économique, ainsi que par les présents statuts.
         </p>
         
-        <h3 class="article-title">ARTICLE 2 - DÉNOMINATION</h3>
-        <p class="article-content">
-          La société a pour dénomination : <strong>${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')}</strong>
-        </p>
-        <p class="article-content">
-          La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, 
-          notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie 
-          immédiatement en caractère lisible de l'indication Société à Responsabilité Limitée ou SARL, du montant de son 
-          capital social, de l'adresse de son siège social et de la mention de son immatriculation au registre du commerce 
-          et du Crédit Mobilier.
-        </p>
-        
-        <h3 class="article-title">ARTICLE 3 - OBJET</h3>
-        <p class="article-content">La société a pour objet en CÔTE D'IVOIRE :</p>
+        <h3 class="article-title">ARTICLE 2 - OBJET SOCIAL</h3>
+        <p class="article-content">La société a pour objet, en Côte d'Ivoire et à l'Étranger, directement ou indirectement :</p>
         <p class="article-content">${escapeHtml(objetSocial)}</p>
         <p class="article-content">et généralement, toutes opérations industrielles, commerciales, financières, civiles, mobilières ou immobilières pouvant se rattacher directement ou indirectement à l'objet social ou à tous objets similaires ou connexes ou susceptibles d'en faciliter l'extension ou le développement.</p>
         <p class="article-content">En outre, la Société peut également participer par tous moyens, directement ou indirectement, dans toutes opérations pouvant se rattacher à son objet.</p>
@@ -441,98 +574,53 @@ const generateStatutsHTML = (company, associates, managers) => {
         <p class="article-content">- la prise de participation dans toute société existante ou devant être créée</p>
         <p class="article-content">- et généralement, toutes opérations financières, commerciales, industrielles, mobilières et immobilières, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.</p>
         
-        <h3 class="article-title">ARTICLE 4 - SIÈGE SOCIAL</h3>
+        <h3 class="article-title">ARTICLE 3 - DÉNOMINATION SOCIALE</h3>
         <p class="article-content">
-          Le siège social est fixé à : <strong>${escapeHtml(company.address || '[ADRESSE]')}, ${escapeHtml(company.city || 'Abidjan')}</strong>
+          La société prend la dénomination de : <strong>${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')}</strong>
         </p>
         <p class="article-content">
-          Il peut être transféré dans les limites du territoire de la République de CÔTE D'IVOIRE par décision de la gérance 
-          qui modifie en conséquence les statuts, sous réserve de la ratification de cette décision par la plus prochaine 
-          Assemblée Générale Ordinaire.
+          Dans tous les actes et documents émanant de la société, la dénomination sociale devra toujours être précédée ou suivie des mots "Société à Responsabilité Limitée" ou des initiales "SARL" et de l'énonciation du capital social.
+        </p>
+        
+        <h3 class="article-title">ARTICLE 4 - SIÈGE SOCIAL</h3>
+        <p class="article-content">
+          Le siège social est fixé à : <strong>${adresseComplete}</strong>, République de Côte d'Ivoire.
+        </p>
+        <p class="article-content">
+          Il pourra être transféré en tout autre endroit de la même ville par simple décision des associés, et en tout autre lieu par décision collective extraordinaire des associés, et en tout autre lieu par décision collective extraordinaire des associés.
         </p>
         
         <h3 class="article-title">ARTICLE 5 - DURÉE</h3>
         <p class="article-content">
-          La durée de la société est de <strong>${numberToWords(duree)} (${duree}) années</strong>, sauf dissolution anticipée ou prorogation.
+          La durée de la société est fixée à <strong>${dureeWords} (${duree}) ans</strong>, à compter de son immatriculation au Registre du Commerce et du Crédit Mobilier.
         </p>
         
-        <h3 class="article-title">ARTICLE 6 - EXERCICE SOCIAL</h3>
+        <h3 class="article-title">ARTICLE 6 - CAPITAL SOCIAL</h3>
         <p class="article-content">
-          L'exercice social commence le premier janvier et se termine le trente et-un décembre de chaque année.
+          Le capital social est fixé à la somme de <strong>${capitalWords} (${capital.toLocaleString('fr-FR')}) de francs CFA</strong>, divisé en ${nombreParts} parts sociales entièrement souscrites et libérées intégralement.
         </p>
         
-        <h3 class="article-title">ARTICLE 7 - APPORTS</h3>
-        <p class="article-content"><strong>Apports en numéraires</strong></p>
-        <p class="article-content">
-          Lors de la constitution, ${isUnipersonnelle ? 'le soussigné a fait' : 'les soussignés ont fait'} apport à la société, à savoir :
-        </p>
-        
-        <table>
-          <thead>
-            <tr>
-              <th>Identité des apporteurs</th>
-              <th>Nombre de parts</th>
-              <th>Montant apport en numéraire</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${associesTableRows}
-          </tbody>
-          <tfoot>
-            <tr>
-              <th>TOTAL</th>
-              <th>${nombreParts} parts</th>
-              <th>${totalApports.toLocaleString('fr-FR')} FCFA</th>
-            </tr>
-          </tfoot>
-        </table>
-        
-        <h3 class="article-title">ARTICLE 8 - CAPITAL SOCIAL</h3>
-        <p class="article-content">
-          Le capital social est fixé à la somme de <strong>${capitalWords} FRANCS CFA (${capital.toLocaleString('fr-FR')} FCFA)</strong> 
-          divisé en ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA, 
-          entièrement souscrites et libérées intégralement, numérotées de 1 à ${nombreParts}.
-        </p>
+        <h3 class="article-title">ARTICLE 7 - ASSOCIÉS</h3>
+        <p class="article-content">Les parts sociales sont réparties entre les associés de la manière suivante :</p>
+        ${repartitionParts}
+        <p class="article-content mt-20"><strong>TOTAL : ${nombreParts} parts sociales</strong></p>
         
         <div class="page-break"></div>
         
-        <h2 class="section-title">TITRE II : FONCTIONNEMENT - DISSOLUTION</h2>
-        
-        <h3 class="article-title">ARTICLE 9 - GÉRANCE</h3>
+        <h3 class="article-title">ARTICLE 8 - GÉRANCE</h3>
         <p class="article-content">
-          La société est gérée par une ou plusieurs personnes physiques. Le gérant est nommé pour une durée indéterminée.
+          La société est gérée par un ou plusieurs gérants, associés ou non, personnes physiques, nommés pour une durée déterminée ou non.
         </p>
+        <p class="article-content mt-20"><strong>Gérant désigné :</strong></p>
         <p class="article-content">
-          <strong>Est nommé gérant de la société :</strong>
-        </p>
-        <p class="article-content">
-          M. ${escapeHtml(gerantNom)}, ${escapeHtml(gerantProfession)}, résident à ${escapeHtml(gerantAdresse)} 
-          de nationalité ${escapeHtml(gerantNationalite)} né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance)} 
-          et titulaire de la ${gerantTypeId} ${escapeHtml(gerantNumId)} délivré(e) le ${gerantDateDelivranceId} 
-          et valable ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}, qui accepte.
-        </p>
-        
-        <h3 class="article-title">ARTICLE 10 - POUVOIRS DU GÉRANT</h3>
-        <p class="article-content">
-          Le gérant peut faire tous les actes de gestion dans l'intérêt de la société. Dans les rapports avec les tiers, 
-          le gérant est investi des pouvoirs les plus étendus pour agir en toute circonstance, au nom de la société.
-        </p>
-        
-        <h3 class="article-title">ARTICLE 11 - DISSOLUTION</h3>
-        <p class="article-content">
-          La société à responsabilité limitée est dissoute pour les causes communes à toutes les sociétés. 
-          La dissolution de la société entraîne sa mise en liquidation.
+          <strong>${escapeHtml(gerantNom.toUpperCase())}</strong>
         </p>
         
         <div class="signature-section">
-          <p class="text-center">Fait à ${escapeHtml(company.city || 'Abidjan')}, le ${dateActuelle}</p>
-          <p class="text-center mt-20">EN QUATRE (4) EXEMPLAIRES ORIGINAUX</p>
+          <p class="text-center mt-40">Fait à ${escapeHtml(company.city || 'Abidjan')}, le ${dateActuelle}</p>
           
-          <div class="signature-row">
-            <div class="signature-box">
-              <p><strong>${isUnipersonnelle ? 'L\'Associé Unique' : 'Les Associés'}</strong></p>
-              <div class="signature-line">${escapeHtml(gerantNom)}</div>
-            </div>
+          <div class="signature-row" style="flex-wrap: wrap; gap: 20px;">
+            ${signaturesHTML}
           </div>
         </div>
       </div>
