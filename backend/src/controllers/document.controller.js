@@ -202,6 +202,18 @@ export const generateDocuments = async (req, res, next) => {
       company.email = req.body.email;
     }
     
+    // Ajouter les données du déclarant si fournies
+    if (req.body.declarant) {
+      additionalData.declarant = req.body.declarant;
+      console.log(`📋 Déclarant reçu:`, JSON.stringify(req.body.declarant, null, 2));
+    }
+    
+    // Ajouter les projections sur 3 ans si fournies
+    if (req.body.projections) {
+      additionalData.projections = req.body.projections;
+      console.log(`📋 Projections reçues:`, JSON.stringify(req.body.projections, null, 2));
+    }
+    
     console.log(`📋 Données additionnelles:`, JSON.stringify(additionalData, null, 2));
     
     // Générer tous les documents

@@ -1515,10 +1515,14 @@ const generateDSVHTML = (company, associates, managers) => {
 const generateFormulaireCEPICIHTML = (company, managers, associates, additionalData = {}) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
   
+  // Debug: Afficher les données reçues
+  console.log('🔍 [CEPICI] company:', JSON.stringify(company, null, 2));
+  console.log('🔍 [CEPICI] additionalData:', JSON.stringify(additionalData, null, 2));
+  
   const capital = parseFloat(company.capital) || 0;
   const capitalNumeraire = capital;
   const apportsNature = 0;
-  const dureeSociete = company.duree_societe || 99;
+  const dureeSociete = company.duree_societe || company.dureeSociete || 99;
   
   const dateActuelle = formatDate(new Date().toISOString());
   
@@ -1533,24 +1537,41 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
   const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '';
   const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '';
   
-  // Récupérer les données du déclarant
+  // Récupérer les données du déclarant - vérifier plusieurs sources
   const declarant = additionalData.declarant || company.declarant || {};
-  const declarantNom = declarant.nom || gerantNom || '';
-  const declarantQualite = declarant.qualite || 'CONSULTANT COMPTABLE';
-  const declarantAdresse = declarant.adresse || gerantAdresse || '';
-  const declarantTel = declarant.telephone || company.telephone || '';
-  const declarantFax = declarant.fax || '';
-  const declarantMobile = declarant.mobile || '';
-  const declarantEmail = declarant.email || company.email || '';
+  const declarantNom = declarant.nom || additionalData.declarant_nom || gerantNom || '';
+  const declarantQualite = declarant.qualite || additionalData.declarant_qualite || '';
+  const declarantAdresse = declarant.adresse || additionalData.declarant_adresse || gerantAdresse || '';
+  const declarantTel = declarant.telephone || additionalData.declarant_telephone || company.telephone || '';
+  const declarantFax = declarant.fax || additionalData.declarant_fax || '';
+  const declarantMobile = declarant.mobile || additionalData.declarant_mobile || '';
+  const declarantEmail = declarant.email || additionalData.declarant_email || company.email || '';
   
-  // Récupérer les projections sur 3 ans
+  // Récupérer les projections sur 3 ans - vérifier plusieurs sources
   const projections = additionalData.projections || company.projections || {};
-  const investAnnee1 = projections.investissement_annee1 || projections.investissementAnnee1 || '';
-  const investAnnee2 = projections.investissement_annee2 || projections.investissementAnnee2 || '';
-  const investAnnee3 = projections.investissement_annee3 || projections.investissementAnnee3 || '';
-  const emploisAnnee1 = projections.emplois_annee1 || projections.emploisAnnee1 || '';
-  const emploisAnnee2 = projections.emplois_annee2 || projections.emploisAnnee2 || '';
-  const emploisAnnee3 = projections.emplois_annee3 || projections.emploisAnnee3 || '';
+  const investAnnee1 = projections.investissement_annee1 || projections.investissementAnnee1 || additionalData.investissement_annee1 || '';
+  const investAnnee2 = projections.investissement_annee2 || projections.investissementAnnee2 || additionalData.investissement_annee2 || '';
+  const investAnnee3 = projections.investissement_annee3 || projections.investissementAnnee3 || additionalData.investissement_annee3 || '';
+  const emploisAnnee1 = projections.emplois_annee1 || projections.emploisAnnee1 || additionalData.emplois_annee1 || '';
+  const emploisAnnee2 = projections.emplois_annee2 || projections.emploisAnnee2 || additionalData.emplois_annee2 || '';
+  const emploisAnnee3 = projections.emplois_annee3 || projections.emploisAnnee3 || additionalData.emplois_annee3 || '';
+  
+  // Récupérer les champs de localisation - vérifier plusieurs sources
+  const commune = additionalData.commune || company.commune || '';
+  const quartier = additionalData.quartier || company.quartier || '';
+  const lot = additionalData.lot || company.lot || '';
+  const ilot = additionalData.ilot || company.ilot || '';
+  const nomImmeuble = additionalData.nom_immeuble || company.nom_immeuble || '';
+  const numeroEtage = additionalData.numero_etage || company.numero_etage || '';
+  const numeroPorte = additionalData.numero_porte || company.numero_porte || '';
+  const section = additionalData.section || company.section || '';
+  const parcelle = additionalData.parcelle || company.parcelle || '';
+  const tfNumero = additionalData.tf_numero || company.tf_numero || '';
+  const fax = additionalData.fax || company.fax || '';
+  const adressePostale = additionalData.adresse_postale || company.adresse_postale || '';
+  
+  console.log('🔍 [CEPICI] Projections:', { investAnnee1, investAnnee2, investAnnee3, emploisAnnee1, emploisAnnee2, emploisAnnee3 });
+  console.log('🔍 [CEPICI] Declarant:', { declarantNom, declarantQualite, declarantAdresse });
 
   return `
     <!DOCTYPE html>
@@ -1829,13 +1850,13 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
         <!-- III- LOCALISATION -->
         <p class="section-title">III- LOCALISATION DU SIÈGE SOCIAL / DE LA SUCCURSALE</p>
         
-        <div class="form-line">Ville : … <strong>${escapeHtml(company.city || 'ABIDJAN')}</strong>…… Commune : … <strong>${escapeHtml(company.commune || '')}</strong>…… Quartier : …… <strong>${escapeHtml(company.quartier || '')}</strong></div>
-        <div class="form-line">Rue : …… <strong>${escapeHtml(company.address || '')}</strong>…… Lot n° : … <strong>${escapeHtml(company.lot || '')}</strong>…… Ilot n° : …… <strong>${escapeHtml(company.ilot || '')}</strong>……</div>
-        <div class="form-line">Nom immeuble : ……………………… Numéro étage : ……… Numéro porte : ……… …B1………</div>
-        <div class="form-line">Section : ……………………………………… Parcelle : ………………………………</div>
-        <div class="form-line">TF n° : ……………………………………… Tél. : ${escapeHtml(company.telephone || '')} ………</div>
-        <div class="form-line">Fax : ………………………………</div>
-        <div class="form-line">Adresse postale : ……………………… Email : ……… ${escapeHtml(company.email || '')}………………</div>
+        <div class="form-line">Ville : … <strong>${escapeHtml(company.city || 'ABIDJAN')}</strong>…… Commune : … <strong>${escapeHtml(commune)}</strong>…… Quartier : …… <strong>${escapeHtml(quartier)}</strong></div>
+        <div class="form-line">Rue : …… <strong>${escapeHtml(company.address || '')}</strong>…… Lot n° : … <strong>${escapeHtml(lot)}</strong>…… Ilot n° : …… <strong>${escapeHtml(ilot)}</strong>……</div>
+        <div class="form-line">Nom immeuble : …… <strong>${escapeHtml(nomImmeuble)}</strong>…… Numéro étage : …… <strong>${escapeHtml(numeroEtage)}</strong>…… Numéro porte : …… <strong>${escapeHtml(numeroPorte)}</strong>……</div>
+        <div class="form-line">Section : …… <strong>${escapeHtml(section)}</strong>…… Parcelle : …… <strong>${escapeHtml(parcelle)}</strong>……</div>
+        <div class="form-line">TF n° : …… <strong>${escapeHtml(tfNumero)}</strong>…… Tél. : <strong>${escapeHtml(company.telephone || '')}</strong> ………</div>
+        <div class="form-line">Fax : …… <strong>${escapeHtml(fax)}</strong>……</div>
+        <div class="form-line">Adresse postale : …… <strong>${escapeHtml(adressePostale)}</strong>…… Email : …… <strong>${escapeHtml(company.email || '')}</strong>……</div>
         
         <!-- PAGE 3 - DIRIGEANTS -->
         <div class="page-break"></div>
