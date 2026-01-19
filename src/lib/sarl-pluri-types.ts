@@ -59,6 +59,8 @@ export interface SARLPluriFormData {
 
 export interface GerantInfo {
   id: string;
+  isFromAssociate: boolean; // true si le gérant est sélectionné parmi les associés
+  associateId?: string; // ID de l'associé si isFromAssociate est true
   nom: string;
   prenoms: string;
   dateNaissance: string;
@@ -97,6 +99,8 @@ export const defaultAssocieInfo: AssocieInfo = {
 
 export const defaultGerantInfo: GerantInfo = {
   id: '',
+  isFromAssociate: false,
+  associateId: undefined,
   nom: '',
   prenoms: '',
   dateNaissance: '',

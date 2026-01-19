@@ -7,7 +7,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { adminDocumentsApi, downloadDocumentApi } from "@/lib/api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { SearchInput } from "@/components/admin/SearchInput";
-import { FileText, Download, Calendar, User, Building, ChevronLeft, ChevronRight, Info, RefreshCw } from "lucide-react";
+import { FileText, Download, Calendar, User, Building, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { toast } from "sonner";
 
 type FilterType = "all" | string;
@@ -22,7 +22,6 @@ export default function AdminDocuments() {
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [companyFilter, setCompanyFilter] = useState<CompanyFilterType>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [regeneratingIds, setRegeneratingIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!token) return;
@@ -85,50 +84,7 @@ export default function AdminDocuments() {
       return new Date(d.created_at) > weekAgo;
     }).length,
     types: documentTypes.length,
-  }), [rows, search, filterType, companyFilter]);
-
-  const handleRegenerate = async (doc: any) => {
-    if (!token) return;
-    
-    setRegeneratingIds(prev => new Set(prev).add(doc.id));
-    
-    try {
-      // Appeler l'API de régénération
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/documents/regenerate/${doc.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Erreur lors de la régénération');
-      }
-      
-      const result = await response.json();
-      
-      // Mettre à jour le document dans la liste
-      setRows(prevRows => 
-        prevRows.map(row => 
-          row.id === doc.id 
-            ? { ...row, ...result.data, updated_at: new Date().toISOString() }
-            : row
-        )
-      );
-      
-      toast.success("Document régénéré avec succès");
-    } catch (error) {
-      console.error('Erreur régénération:', error);
-      toast.error("Erreur lors de la régénération du document");
-    } finally {
-      setRegeneratingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(doc.id);
-        return newSet;
-      });
-    }
-  };
+  }), [rows, documentTypes]);
 
   const handleDownload = async (doc: any) => {
     if (!token) return;
@@ -320,25 +276,14 @@ export default function AdminDocuments() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center gap-2 justify-end">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRegenerate(d)}
-                          disabled={regeneratingIds.has(d.id)}
-                        >
-                          <RefreshCw className={`h-4 w-4 mr-2 ${regeneratingIds.has(d.id) ? 'animate-spin' : ''}`} />
-                          {regeneratingIds.has(d.id) ? 'Régénération...' : 'Régénérer'}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="gold"
-                          onClick={() => handleDownload(d)}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Télécharger
-                        </Button>
-                      </div>
+                      <Button
+                        size="sm"
+                        variant="gold"
+                        onClick={() => handleDownload(d)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Télécharger
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

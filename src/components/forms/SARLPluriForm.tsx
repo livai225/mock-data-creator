@@ -82,9 +82,53 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
     }
   };
 
-  const updateGerant = (index: number, field: keyof GerantInfo, value: string | number) => {
+  const updateGerant = (index: number, field: keyof GerantInfo, value: string | number | boolean) => {
     const newGerants = [...formData.gerants];
     newGerants[index] = { ...newGerants[index], [field]: value };
+    setFormData(prev => ({ ...prev, gerants: newGerants }));
+  };
+
+  // Fonction pour sélectionner un associé comme gérant
+  const selectAssociateAsGerant = (gerantIndex: number, associateId: string) => {
+    const newGerants = [...formData.gerants];
+    
+    if (associateId === 'manual') {
+      // Saisie manuelle - réinitialiser le gérant
+      newGerants[gerantIndex] = {
+        ...defaultGerantInfo,
+        id: newGerants[gerantIndex].id,
+        isFromAssociate: false,
+        associateId: undefined,
+      };
+    } else {
+      // Sélectionner un associé
+      const associe = formData.associes.find(a => a.id === associateId);
+      if (associe) {
+        newGerants[gerantIndex] = {
+          ...newGerants[gerantIndex],
+          isFromAssociate: true,
+          associateId: associateId,
+          nom: associe.nom,
+          prenoms: associe.prenoms,
+          dateNaissance: associe.dateNaissance,
+          lieuNaissance: associe.lieuNaissance,
+          nationalite: associe.nationalite,
+          profession: associe.profession,
+          adresse: associe.adresseDomicile,
+          typeIdentite: associe.typeIdentite,
+          numeroIdentite: associe.numeroIdentite,
+          dateDelivranceId: associe.dateDelivranceId,
+          lieuDelivranceId: associe.lieuDelivranceId,
+          // Les champs spécifiques au gérant restent à remplir
+          dateValiditeId: newGerants[gerantIndex].dateValiditeId || '',
+          pereNom: newGerants[gerantIndex].pereNom || '',
+          mereNom: newGerants[gerantIndex].mereNom || '',
+          dureeMandat: newGerants[gerantIndex].dureeMandat || 'indeterminee',
+          dureeMandatAnnees: newGerants[gerantIndex].dureeMandatAnnees,
+        };
+      }
+    }
+    
     setFormData(prev => ({ ...prev, gerants: newGerants }));
   };
 
@@ -783,6 +827,40 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                   )}
                 </div>
 
+                {/* Sélection de la source du gérant */}
+                <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+                  <Label className="text-sm font-medium">Source des informations du gérant</Label>
+                  <Select
+                    value={gerant.isFromAssociate ? gerant.associateId : 'manual'}
+                    onValueChange={(value) => selectAssociateAsGerant(index, value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choisir la source..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          Saisie manuelle (gérant externe)
+                        </div>
+                      </SelectItem>
+                      {formData.associes.map((associe) => (
+                        <SelectItem key={associe.id} value={associe.id}>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            {associe.nom} {associe.prenoms} (Associé)
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {gerant.isFromAssociate && (
+                    <p className="text-xs text-muted-foreground">
+                      ✓ Les informations de base ont été copiées depuis l'associé. Complétez les champs supplémentaires ci-dessous.
+                    </p>
+                  )}
+                </div>
+
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor={`gerantNom-${index}`}>Nom *</Label>
@@ -791,6 +869,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       placeholder="Nom de famille"
                       value={gerant.nom}
                       onChange={(e) => updateGerant(index, 'nom', e.target.value)}
+                      disabled={gerant.isFromAssociate}
+                      className={gerant.isFromAssociate ? "bg-muted" : ""}
                     />
                   </div>
                   <div className="space-y-2">
@@ -799,6 +879,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       id={`gerantPrenoms-${index}`}
                       value={gerant.prenoms}
                       onChange={(e) => updateGerant(index, 'prenoms', e.target.value)}
+                      disabled={gerant.isFromAssociate}
+                      className={gerant.isFromAssociate ? "bg-muted" : ""}
                     />
                   </div>
                   <div className="space-y-2">
@@ -808,6 +890,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       type="date"
                       value={gerant.dateNaissance}
                       onChange={(e) => updateGerant(index, 'dateNaissance', e.target.value)}
+                      disabled={gerant.isFromAssociate}
+                      className={gerant.isFromAssociate ? "bg-muted" : ""}
                     />
                   </div>
                   <div className="space-y-2">
@@ -816,6 +900,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       id={`gerantLieuNaissance-${index}`}
                       value={gerant.lieuNaissance}
                       onChange={(e) => updateGerant(index, 'lieuNaissance', e.target.value)}
+                      disabled={gerant.isFromAssociate}
+                      className={gerant.isFromAssociate ? "bg-muted" : ""}
                     />
                   </div>
                   <div className="space-y-2">
@@ -824,6 +910,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       id={`gerantNationalite-${index}`}
                       value={gerant.nationalite}
                       onChange={(e) => updateGerant(index, 'nationalite', e.target.value)}
+                      disabled={gerant.isFromAssociate}
+                      className={gerant.isFromAssociate ? "bg-muted" : ""}
                     />
                   </div>
                   <div className="space-y-2">
@@ -833,6 +921,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       placeholder="Ex: Commerçant"
                       value={gerant.profession}
                       onChange={(e) => updateGerant(index, 'profession', e.target.value)}
+                      disabled={gerant.isFromAssociate}
+                      className={gerant.isFromAssociate ? "bg-muted" : ""}
                     />
                   </div>
                   <div className="space-y-2">
@@ -841,6 +931,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       id={`gerantAdresse-${index}`}
                       value={gerant.adresse}
                       onChange={(e) => updateGerant(index, 'adresse', e.target.value)}
+                      disabled={gerant.isFromAssociate}
+                      className={gerant.isFromAssociate ? "bg-muted" : ""}
                     />
                   </div>
                   <div className="space-y-2">
@@ -848,8 +940,9 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <Select
                       value={gerant.typeIdentite}
                       onValueChange={(value: 'CNI' | 'Passeport') => updateGerant(index, 'typeIdentite', value)}
+                      disabled={gerant.isFromAssociate}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={gerant.isFromAssociate ? "bg-muted" : ""}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -864,6 +957,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       id={`gerantNumeroIdentite-${index}`}
                       value={gerant.numeroIdentite}
                       onChange={(e) => updateGerant(index, 'numeroIdentite', e.target.value)}
+                      disabled={gerant.isFromAssociate}
+                      className={gerant.isFromAssociate ? "bg-muted" : ""}
                     />
                   </div>
                   <div className="space-y-2">
@@ -873,10 +968,12 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       type="date"
                       value={gerant.dateDelivranceId}
                       onChange={(e) => updateGerant(index, 'dateDelivranceId', e.target.value)}
+                      disabled={gerant.isFromAssociate}
+                      className={gerant.isFromAssociate ? "bg-muted" : ""}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor={`gerantDateValiditeId-${index}`}>Date de validité *</Label>
+                    <Label htmlFor={`gerantDateValiditeId-${index}`}>Date de validité * <span className="text-xs text-amber-600">(à compléter)</span></Label>
                     <Input
                       id={`gerantDateValiditeId-${index}`}
                       type="date"
@@ -890,28 +987,40 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       id={`gerantLieuDelivranceId-${index}`}
                       value={gerant.lieuDelivranceId}
                       onChange={(e) => updateGerant(index, 'lieuDelivranceId', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`gerantPereNom-${index}`}>Nom et Prénoms du Père</Label>
-                    <Input
-                      id={`gerantPereNom-${index}`}
-                      value={gerant.pereNom}
-                      onChange={(e) => updateGerant(index, 'pereNom', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`gerantMereNom-${index}`}>Nom et Prénoms de la Mère</Label>
-                    <Input
-                      id={`gerantMereNom-${index}`}
-                      value={gerant.mereNom}
-                      onChange={(e) => updateGerant(index, 'mereNom', e.target.value)}
+                      disabled={gerant.isFromAssociate}
+                      className={gerant.isFromAssociate ? "bg-muted" : ""}
                     />
                   </div>
                 </div>
 
+                {/* Champs spécifiques au gérant (toujours modifiables) */}
                 <div className="border-t pt-4 mt-4">
-                  <h4 className="font-semibold mb-4">Durée du mandat</h4>
+                  <h5 className="text-sm font-medium mb-3 text-amber-700">Informations complémentaires du gérant (à remplir)</h5>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor={`gerantPereNom-${index}`}>Nom et Prénoms du Père *</Label>
+                      <Input
+                        id={`gerantPereNom-${index}`}
+                        placeholder="Ex: KOUASSI Jean-Baptiste"
+                        value={gerant.pereNom}
+                        onChange={(e) => updateGerant(index, 'pereNom', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`gerantMereNom-${index}`}>Nom et Prénoms de la Mère *</Label>
+                      <Input
+                        id={`gerantMereNom-${index}`}
+                        placeholder="Ex: KOFFI Marie-Claire"
+                        value={gerant.mereNom}
+                        onChange={(e) => updateGerant(index, 'mereNom', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Durée du mandat */}
+                <div className="border-t pt-4 mt-4">
+                  <h5 className="text-sm font-medium mb-3">Durée du mandat</h5>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label>Type de mandat *</Label>

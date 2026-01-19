@@ -15,9 +15,4 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify(
-      mode === 'production' ? 'http://31.220.82.109:5000' : 'http://localhost:5000'
-    ),
-  },
 }));

@@ -9,8 +9,7 @@ import {
   getMyDocuments,
   downloadDocument,
   viewDocument,
-  deleteCompanyDocuments,
-  regenerateDocument
+  deleteCompanyDocuments
 } from '../controllers/document.controller.js';
 
 const router = express.Router();
@@ -26,7 +25,6 @@ router.use(protect);
 
 router.post('/generate', documentLimiter, generateDocuments);
 router.post('/generate-manual', documentLimiter, generateDocumentManual);
-router.post('/regenerate/:id', documentLimiter, regenerateDocument);
 router.get('/my', getMyDocuments);
 router.delete('/company/:companyId', deleteCompanyDocuments);
 router.get('/:id/view', viewDocument);
