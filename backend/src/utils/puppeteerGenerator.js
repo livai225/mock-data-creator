@@ -1291,7 +1291,7 @@ const generateDeclarationHonneurHTML = (company, managers) => {
 };
 
 /**
- * Template HTML: DSV - Format officiel OHADA professionnel
+ * Template HTML: DSV - Format officiel avec page de garde (sans couleurs)
  */
 const generateDSVHTML = (company, associates, managers) => {
   const capital = parseFloat(company.capital) || 0;
@@ -1306,6 +1306,8 @@ const generateDSVHTML = (company, associates, managers) => {
   
   const dateActuelle = formatDate(new Date().toISOString());
   const annee = new Date().getFullYear();
+  const sigle = company.sigle || '';
+  const banque = company.banque || '[NOM DE LA BANQUE]';
   const dureeSociete = company.duree_societe || company.dureeSociete || 99;
   
   // Récupérer les infos du gérant
@@ -1320,49 +1322,71 @@ const generateDSVHTML = (company, associates, managers) => {
   const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE]';
   const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE]';
   
-  // Objet social
+  // Construire l'objet social
   const objetSocial = company.activity || '[OBJET SOCIAL]';
   
-  // Construire le tableau des associés
-  let associesTableRows = '';
-  let totalSouscrit = 0;
-  let totalVerse = 0;
-  let isUnipersonnelle = !associates || associates.length <= 1;
-  let associeUniqueNom = '';
+  // Déterminer si c'est une SARL unipersonnelle ou pluripersonnelle
+  const isUnipersonnelle = !associates || associates.length <= 1;
+  
+  // Construire le tableau des associés et les signatures
+  let tableauSouscription = '';
+  let signaturesHTML = '';
+  let repartitionParts = '';
   
   if (associates && associates.length > 0) {
+    let debutParts = 1;
     associates.forEach((associe, index) => {
       const assocNom = associe.name || `${associe.nom || ''} ${associe.prenoms || ''}`.trim() || '[NOM ASSOCIÉ]';
-      if (index === 0) associeUniqueNom = assocNom;
       const parts = parseInt(associe.parts) || 0;
-      const montant = (capital * parts) / totalParts;
-      totalSouscrit += montant;
-      totalVerse += montant;
-      const debutParts = index === 0 ? 1 : associates.slice(0, index).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) + 1;
-      const finParts = associates.slice(0, index + 1).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0);
+      const montant = parts * valeurPart;
+      const finParts = debutParts + parts - 1;
       
-      associesTableRows += `
+      tableauSouscription += `
         <tr>
-          <td style="text-align: left; padding: 8px;">M. ${escapeHtml(assocNom.toUpperCase())}</td>
-          <td style="text-align: center; padding: 8px;">${parts} parts numérotées de ${debutParts} à ${finParts} inclus</td>
-          <td style="text-align: right; padding: 8px;">${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA</td>
-          <td style="text-align: right; padding: 8px;">${montant.toLocaleString('fr-FR')} FCFA</td>
-          <td style="text-align: right; padding: 8px;">${montant.toLocaleString('fr-FR')} FCFA</td>
+          <td style="text-align: left; padding: 8px; border: 1px solid #000;">M. ${escapeHtml(assocNom.toUpperCase())}</td>
+          <td style="text-align: center; padding: 8px; border: 1px solid #000;">${parts} parts sociales numérotées de ${debutParts} à ${finParts}</td>
+          <td style="text-align: center; padding: 8px; border: 1px solid #000;">${valeurPart.toLocaleString('fr-FR')} FCFA</td>
+          <td style="text-align: center; padding: 8px; border: 1px solid #000;">${montant.toLocaleString('fr-FR')} FCFA</td>
+          <td style="text-align: center; padding: 8px; border: 1px solid #000;">${montant.toLocaleString('fr-FR')} FCFA</td>
         </tr>
       `;
+      
+      repartitionParts += `<p style="margin: 5px 0;">- M. ${escapeHtml(assocNom.toUpperCase())} : ${parts} parts sociales numérotées de ${debutParts} à ${finParts}</p>`;
+      
+      debutParts = finParts + 1;
     });
+    
+    // Signatures pour plusieurs associés
+    signaturesHTML = '<div style="display: flex; justify-content: space-around; margin-top: 80px;">';
+    associates.forEach((associe, index) => {
+      const assocNom = associe.name || `${associe.nom || ''} ${associe.prenoms || ''}`.trim() || '[NOM]';
+      signaturesHTML += `
+        <div style="text-align: center;">
+          <p style="font-weight: bold;">L'associé ${index + 1}</p>
+          <p style="margin-top: 80px; font-weight: bold;">M. ${escapeHtml(assocNom.toUpperCase())}</p>
+        </div>
+      `;
+    });
+    signaturesHTML += '</div>';
   } else {
-    associeUniqueNom = gerantNom;
-    totalSouscrit = capital;
-    totalVerse = capital;
-    associesTableRows = `
+    // SARL Unipersonnelle
+    tableauSouscription = `
       <tr>
-        <td style="text-align: left; padding: 8px;">M. ${escapeHtml(gerantNom.toUpperCase())}</td>
-        <td style="text-align: center; padding: 8px;">${totalParts} parts numérotées de 1 à ${totalParts} inclus</td>
-        <td style="text-align: right; padding: 8px;">${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA</td>
-        <td style="text-align: right; padding: 8px;">${capital.toLocaleString('fr-FR')} FCFA</td>
-        <td style="text-align: right; padding: 8px;">${capital.toLocaleString('fr-FR')} FCFA</td>
+        <td style="text-align: left; padding: 8px; border: 1px solid #000;">M. ${escapeHtml(gerantNom.toUpperCase())}</td>
+        <td style="text-align: center; padding: 8px; border: 1px solid #000;">${totalParts} parts sociales numérotées de 1 à ${totalParts}</td>
+        <td style="text-align: center; padding: 8px; border: 1px solid #000;">${valeurPart.toLocaleString('fr-FR')} FCFA</td>
+        <td style="text-align: center; padding: 8px; border: 1px solid #000;">${capital.toLocaleString('fr-FR')} FCFA</td>
+        <td style="text-align: center; padding: 8px; border: 1px solid #000;">${capital.toLocaleString('fr-FR')} FCFA</td>
       </tr>
+    `;
+    
+    repartitionParts = `<p style="margin: 5px 0;">- M. ${escapeHtml(gerantNom.toUpperCase())} : ${totalParts} parts sociales numérotées de 1 à ${totalParts}</p>`;
+    
+    signaturesHTML = `
+      <div style="text-align: left; margin-top: 80px;">
+        <p style="font-weight: bold;">L'associé Unique</p>
+        <p style="margin-top: 80px; font-weight: bold;">M. ${escapeHtml(gerantNom.toUpperCase())}</p>
+      </div>
     `;
   }
 
@@ -1374,17 +1398,11 @@ const generateDSVHTML = (company, associates, managers) => {
       <style>
         @page {
           size: A4;
-          margin: 2.5cm 2cm;
+          margin: 2cm 2cm 2.5cm 2cm;
           @bottom-right {
             content: counter(page);
             font-size: 10pt;
           }
-        }
-        
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
         }
         
         body {
@@ -1392,17 +1410,72 @@ const generateDSVHTML = (company, associates, managers) => {
           font-size: 12pt;
           line-height: 1.5;
           color: #000;
-          background: #fff;
-        }
-        
-        .page {
-          page-break-after: always;
-          min-height: 100vh;
+          margin: 0;
           padding: 0;
         }
         
-        .page:last-child {
-          page-break-after: auto;
+        .page-break {
+          page-break-after: always;
+        }
+        
+        /* Page de garde DSV */
+        .dsv-cover {
+          height: 100vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          position: relative;
+          page-break-after: always;
+        }
+        
+        .dsv-cover-decoration {
+          position: absolute;
+          left: 0;
+          top: 50px;
+          width: 200px;
+          height: 60px;
+          background: linear-gradient(90deg, #3B5998 0%, #5B7FC0 100%);
+          clip-path: polygon(0 0, 85% 0, 100% 50%, 85% 100%, 0 100%);
+        }
+        
+        .dsv-cover-sidebar {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 15px;
+          height: 100%;
+          background: #3B5998;
+        }
+        
+        .dsv-cover-title {
+          font-size: 28pt;
+          font-weight: bold;
+          font-style: italic;
+          color: #000;
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        
+        .dsv-cover-company {
+          font-size: 20pt;
+          font-weight: bold;
+          font-style: italic;
+          color: #5B7FC0;
+          text-align: center;
+        }
+        
+        .dsv-cover-grass {
+          position: absolute;
+          bottom: 50px;
+          left: 30px;
+          width: 150px;
+          height: 200px;
+        }
+        
+        /* Contenu DSV */
+        .dsv-content {
+          padding: 0;
         }
         
         .dsv-title {
@@ -1410,23 +1483,18 @@ const generateDSVHTML = (company, associates, managers) => {
           font-weight: bold;
           font-size: 14pt;
           text-decoration: underline;
-          margin-bottom: 30px;
+          margin-bottom: 10px;
         }
         
         .dsv-subtitle {
           text-align: center;
           font-style: italic;
-          font-size: 11pt;
-          margin-bottom: 40px;
-        }
-        
-        .dsv-date-line {
-          text-align: center;
-          margin: 20px 0;
+          font-size: 10pt;
+          margin-bottom: 30px;
         }
         
         .dsv-section {
-          margin: 25px 0;
+          margin: 20px 0;
         }
         
         .dsv-section-title {
@@ -1435,70 +1503,21 @@ const generateDSVHTML = (company, associates, managers) => {
           margin-bottom: 15px;
         }
         
-        .dsv-paragraph {
-          text-align: justify;
-          margin: 15px 0;
-          text-indent: 1.5cm;
-        }
-        
-        .dsv-info-item {
-          margin: 10px 0;
-        }
-        
-        .dsv-info-label {
-          font-weight: bold;
-        }
-        
         .dsv-table {
           width: 100%;
           border-collapse: collapse;
-          margin: 20px 0;
+          margin: 15px 0;
         }
         
         .dsv-table th, .dsv-table td {
           border: 1px solid #000;
           padding: 8px;
-          font-size: 11pt;
-        }
-        
-        .dsv-table th {
-          background: #f5f5f5;
-          font-weight: bold;
           text-align: center;
         }
         
-        .dsv-table tfoot td {
+        .dsv-table th {
           font-weight: bold;
-          background: #f9f9f9;
-        }
-        
-        .dsv-conclusion {
-          font-weight: bold;
-          margin: 30px 0;
-        }
-        
-        .dsv-signature-section {
-          margin-top: 60px;
-        }
-        
-        .dsv-signature-date {
-          text-align: right;
-          margin-bottom: 10px;
-        }
-        
-        .dsv-signature-exemplaires {
-          text-align: right;
-          margin-bottom: 40px;
-        }
-        
-        .dsv-signature-title {
-          font-weight: bold;
-          margin-bottom: 80px;
-        }
-        
-        .dsv-signature-name {
-          font-weight: bold;
-          margin-top: 20px;
+          background: #fff;
         }
         
         .page-number {
@@ -1510,65 +1529,79 @@ const generateDSVHTML = (company, associates, managers) => {
       </style>
     </head>
     <body>
-      <!-- PAGE 1 -->
-      <div class="page">
+      <!-- PAGE DE GARDE -->
+      <div class="dsv-cover">
+        <div class="dsv-cover-sidebar"></div>
+        <div class="dsv-cover-decoration"></div>
+        
+        <h1 class="dsv-cover-title">DSV DE LA SOCIETE</h1>
+        <p class="dsv-cover-company">«${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')},<br>en Abrégée ${escapeHtml(sigle || company.company_name || '')}»</p>
+        
+        <svg class="dsv-cover-grass" viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20,150 Q25,100 30,50 Q32,30 28,10" stroke="#3B5998" stroke-width="1" fill="none"/>
+          <path d="M25,150 Q30,110 35,70 Q38,50 32,20" stroke="#5B7FC0" stroke-width="1" fill="none"/>
+          <path d="M30,150 Q35,120 40,80 Q42,60 38,30" stroke="#8BA4D9" stroke-width="1" fill="none"/>
+          <path d="M35,150 Q40,115 45,75 Q48,55 42,25" stroke="#3B5998" stroke-width="1" fill="none"/>
+          <path d="M40,150 Q45,125 50,90 Q52,70 48,40" stroke="#5B7FC0" stroke-width="1" fill="none"/>
+        </svg>
+      </div>
+      
+      <!-- PAGE 2: CONTENU DSV -->
+      <div class="dsv-content">
         <h1 class="dsv-title">DÉCLARATION DE SOUSCRIPTION ET DE VERSEMENT</h1>
         <p class="dsv-subtitle">(cf Art 314 de l'Acte uniforme révisé du 30 janvier 2014, Art 6 de l'Ordonnance N° 2014-161 du 02 avril 2014)</p>
         
-        <div class="dsv-date-line">
-          <p>L'An ${numberToWords(annee)},</p>
-          <p>Le ${dateActuelle}</p>
-        </div>
+        <div style="border-bottom: 2px solid #000; margin: 20px 0;"></div>
         
-        <p style="margin: 30px 0;">Le soussigné,</p>
+        <p style="text-align: center;">L'An ${numberToWords(annee)},</p>
+        <p style="text-align: center;">Le ${dateActuelle}</p>
         
-        <p class="dsv-paragraph">
+        <p style="margin-top: 20px;">Le soussigné,</p>
+        
+        <p style="margin: 15px 0; text-align: justify;">
           <strong>M. ${escapeHtml(gerantNom.toUpperCase())}</strong>, ${escapeHtml(gerantProfession)}, résident à ${escapeHtml(gerantAdresse)} 
           de nationalité ${escapeHtml(gerantNationalite)} né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance)} 
-          et titulaire de la ${gerantTypeId} N° ${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} 
+          et titulaire de la ${gerantTypeId} ${escapeHtml(gerantNumId)} délivré(e) le ${gerantDateDelivranceId} 
           et valable jusqu'au ${gerantDateValiditeId}.
         </p>
         
         <div class="dsv-section">
-          <h2 class="dsv-section-title">EXPOSÉ PRÉALABLE</h2>
+          <p class="dsv-section-title">EXPOSÉ PRÉALABLE</p>
           
-          <p class="dsv-paragraph">
+          <p style="text-align: justify;">
             Par Acte sous seing Privé en date du ${dateActuelle}, ont établi les statuts de la Société à Responsabilité Limitée 
             dont les principales caractéristiques sont les suivantes :
           </p>
           
-          <div class="dsv-info-item">
-            <span class="dsv-info-label">1 - FORME :</span> La société constituée est une société à Responsabilité Limitée régie par les dispositions de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales et du Groupement d'intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires applicables et ses présents statuts.
-          </div>
+          <p style="margin: 15px 0;"><strong>1 - FORME :</strong> La société constituée est une société à Responsabilité Limitée régie par les dispositions de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales et du Groupement d'intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires applicables et ses présents statuts.</p>
           
-          <div class="dsv-info-item">
-            <span class="dsv-info-label">2 - DÉNOMINATION :</span> <strong>${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')}</strong>
-          </div>
+          <p style="margin: 15px 0;"><strong>2 - DÉNOMINATION :</strong> <strong>${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')}</strong></p>
           
-          <div class="dsv-info-item">
-            <span class="dsv-info-label">3 - OBJET :</span> La société a pour objet en CÔTE D'IVOIRE : ${escapeHtml(objetSocial)}
-          </div>
+          <p style="margin: 15px 0;"><strong>3 - OBJET :</strong> La société a pour objet en CÔTE D'IVOIRE :</p>
+          <p style="margin-left: 20px; text-align: justify;">${escapeHtml(objetSocial)}</p>
+          <p style="margin-left: 20px;">- l'acquisition, la location et la vente de tous biens meubles et immeubles.</p>
+          <p style="margin-left: 20px;">- l'emprunt de toutes sommes auprès de tous établissements financiers avec possibilité de donner en garantie tout ou partie des biens sociaux.</p>
+          <p style="margin-left: 20px;">- la prise en location gérance de tous fonds de commerce.</p>
+          <p style="margin-left: 20px;">- la prise de participation dans toute société existante ou devant être créée</p>
+          <p style="margin-left: 20px;">- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.</p>
           
-          <div class="dsv-info-item">
-            <span class="dsv-info-label">4 - SIÈGE SOCIAL :</span> Le siège social est fixé à : ${escapeHtml(company.address || '[ADRESSE]')}, ${escapeHtml(company.city || 'Abidjan')}
-          </div>
+          <p style="margin: 15px 0;"><strong>4 - SIÈGE SOCIAL :</strong> Le siège social est fixé à : ${escapeHtml(company.address || '[ADRESSE]')}, ${escapeHtml(company.city || 'Abidjan')}</p>
           
-          <div class="dsv-info-item">
-            <span class="dsv-info-label">5 - DURÉE :</span> La durée de la société est de ${numberToWords(dureeSociete)} (${dureeSociete}) années, sauf dissolution anticipée ou prorogation.
-          </div>
+          <p style="margin: 15px 0;"><strong>5 - DURÉE :</strong> La durée de la société est de ${numberToWords(dureeSociete)} (${dureeSociete}) années, sauf dissolution anticipée ou prorogation.</p>
           
-          <div class="dsv-info-item">
-            <span class="dsv-info-label">6 - CAPITAL SOCIAL :</span> Le capital social est fixé à la somme de <strong>${capitalWords.toUpperCase()} FRANCS CFA (${capital.toLocaleString('fr-FR')} FCFA)</strong> divisé en ${totalParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA chacune.
-          </div>
+          <p style="margin: 15px 0;"><strong>6 - CAPITAL SOCIAL :</strong> Le capital social est fixé à la somme de <strong>${capitalWords.toUpperCase()} FRANCS CFA (${capital.toLocaleString('fr-FR')} FCFA)</strong> divisé en ${totalParts} parts sociales de ${valeurPart.toLocaleString('fr-FR')} FCFA chacune, attribuées aux associés en proportion de leurs apports, à savoir :</p>
+          
+          ${repartitionParts}
+          
+          <p style="margin: 15px 0;"><strong>TOTAL :</strong> ${totalParts} parts sociales</p>
         </div>
-      </div>
-      
-      <!-- PAGE 2 -->
-      <div class="page">
+        
+        <div class="page-break"></div>
+        
         <div class="dsv-section">
-          <h2 class="dsv-section-title">II- CONSTATATION DE LA LIBÉRATION ET DU DÉPÔT DES FONDS</h2>
+          <p class="dsv-section-title">II- CONSTATATION DE LA LIBÉRATION ET DU DÉPÔT DES FONDS</p>
           
-          <p class="dsv-paragraph">
+          <p style="text-align: justify;">
             Les soussignés déclarent que les souscriptions et les versements des fonds provenant de la libération des parts sociales ont été effectués comme suit :
           </p>
           
@@ -1583,39 +1616,35 @@ const generateDSVHTML = (company, associates, managers) => {
               </tr>
             </thead>
             <tbody>
-              ${associesTableRows}
+              ${tableauSouscription}
             </tbody>
             <tfoot>
               <tr>
-                <td style="text-align: center; font-weight: bold;">TOTAL</td>
-                <td style="text-align: center;">${totalParts} parts</td>
-                <td style="text-align: right;">${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA</td>
-                <td style="text-align: right;">${totalSouscrit.toLocaleString('fr-FR')} FCFA</td>
-                <td style="text-align: right;">${totalVerse.toLocaleString('fr-FR')} FCFA</td>
+                <td style="font-weight: bold; text-align: left; padding: 8px; border: 1px solid #000;">TOTAL</td>
+                <td style="font-weight: bold; padding: 8px; border: 1px solid #000;">${totalParts} parts</td>
+                <td style="font-weight: bold; padding: 8px; border: 1px solid #000;">${valeurPart.toLocaleString('fr-FR')} FCFA</td>
+                <td style="font-weight: bold; padding: 8px; border: 1px solid #000;">${capital.toLocaleString('fr-FR')} FCFA</td>
+                <td style="font-weight: bold; padding: 8px; border: 1px solid #000;">${capital.toLocaleString('fr-FR')} FCFA</td>
               </tr>
             </tfoot>
           </table>
           
-          <p class="dsv-paragraph">
+          <p style="margin: 20px 0; text-align: justify;">
             La somme correspondante à l'ensemble des souscriptions et versements effectués à ce jour, de 
-            <strong>${capitalWords.toLowerCase()} (${totalVerse.toLocaleString('fr-FR')} FCFA)</strong> a été déposée pour le compte 
-            de la société et conformément à la loi, dans un compte ouvert à ${escapeHtml(company.banque || '[NOM BANQUE]')}.
+            <strong>${capitalWords.toLowerCase()} (${capital.toLocaleString('fr-FR')} FCFA)</strong> a été déposée pour le compte 
+            de la société et conformément à la loi, dans un compte ouvert à <strong>${escapeHtml(banque)}</strong>.
           </p>
         </div>
-      </div>
-      
-      <!-- PAGE 3 - SIGNATURE -->
-      <div class="page">
-        <p class="dsv-conclusion">En Foi de quoi, ils ont dressé la présente, pour servir et valoir ce que de droit</p>
         
-        <div class="dsv-signature-section">
-          <p class="dsv-signature-date">Fait à A ${escapeHtml(company.city || 'ABIDJAN').toUpperCase()} le ${dateActuelle}</p>
-          <p class="dsv-signature-exemplaires">En Deux (2) exemplaires originaux</p>
-          
-          <p class="dsv-signature-title">${isUnipersonnelle ? "L'associé Unique" : "Les Associés"}</p>
-          
-          <p class="dsv-signature-name">M. ${escapeHtml(associeUniqueNom.toUpperCase())}</p>
+        <p style="font-weight: bold; margin: 30px 0;">En Foi de quoi, ils ont dressé la présente, pour servir et valoir ce que de droit</p>
+        
+        <div style="text-align: right; margin-top: 40px;">
+          <p>Fait à ${escapeHtml(company.city || 'Abidjan')} le ${dateActuelle}</p>
+          <p>En Deux (2) exemplaires originaux</p>
         </div>
+        
+        ${signaturesHTML}
+        
       </div>
     </body>
     </html>
