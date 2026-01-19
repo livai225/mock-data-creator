@@ -179,6 +179,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
       capital: formData.capitalSocial,
       capitalEnLettres: formData.capitalEnLettres,
       duree_societe: formData.dureeAnnees,
+      date_constitution: formData.dateConstitution,
+      banque: formData.banque,
       address: formData.adresseSiege,
       commune: formData.commune,
       quartier: formData.quartier,
@@ -203,15 +205,19 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
       },
       associates: formData.associes.map(a => ({
         name: `${a.nom} ${a.prenoms}`,
+        nom: a.nom,
+        prenoms: a.prenoms,
         parts: a.nombreParts,
         profession: a.profession,
         nationalite: a.nationalite,
         dateNaissance: a.dateNaissance,
         lieuNaissance: a.lieuNaissance,
+        adresseDomicile: a.adresseDomicile,
         adresse: a.adresseDomicile,
         typeIdentite: a.typeIdentite,
         numeroIdentite: a.numeroIdentite,
         dateDelivranceId: a.dateDelivranceId,
+        dateValiditeId: a.dateValiditeId,
         lieuDelivranceId: a.lieuDelivranceId
       })),
       managers: formData.gerants.map((g, idx) => ({
@@ -383,14 +389,14 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="dureeAnnees">Durée (années) *</Label>
+                <Label htmlFor="banque">Banque (dépôt du capital) *</Label>
                 <Input
-                  id="dureeAnnees"
-                  type="number"
-                  value={formData.dureeAnnees}
-                  onChange={(e) => updateField('dureeAnnees', Number(e.target.value))}
+                  id="banque"
+                  placeholder="Ex: NSIA BANQUE, SGBCI, BICICI..."
+                  value={formData.banque}
+                  onChange={(e) => updateField('banque', e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -400,6 +406,18 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                   type="date"
                   value={formData.dateConstitution}
                   onChange={(e) => updateField('dateConstitution', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="dureeAnnees">Durée de la société (années) *</Label>
+                <Input
+                  id="dureeAnnees"
+                  type="number"
+                  value={formData.dureeAnnees}
+                  onChange={(e) => updateField('dureeAnnees', Number(e.target.value))}
                 />
               </div>
               <div className="space-y-2">
@@ -723,6 +741,14 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       type="date"
                       value={associe.dateDelivranceId}
                       onChange={(e) => updateAssocie(index, 'dateDelivranceId', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Date de validité *</Label>
+                    <Input
+                      type="date"
+                      value={associe.dateValiditeId}
+                      onChange={(e) => updateAssocie(index, 'dateValiditeId', e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">

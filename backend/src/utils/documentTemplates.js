@@ -140,26 +140,55 @@ export const generateStatutsSARL = (company, associates, managers) => {
 
 - et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
   
+  // Construire l'adresse complète pour l'en-tête
+  const adresseComplete = `${(company.address || '[ADRESSE]').toUpperCase()}${company.commune ? ', COMMUNE DE ' + company.commune.toUpperCase() : ''}${company.quartier ? ', ' + company.quartier.toUpperCase() : ''}, ${(company.city || 'ABIDJAN').toUpperCase()}${company.lot ? ' LOT ' + company.lot : ''}${company.ilot ? ', ILOT ' + company.ilot : ''}`;
+
   return `
-STATUTS
+STATUTS DE LA SOCIETE
 
-SOCIÉTÉ À RESPONSABILITÉ LIMITÉE
+«${company.company_name || '[NOM SOCIÉTÉ]'}${company.sigle ? ' ' + company.sigle : ''} SARL»
 
-${company.company_name || '[NOM SOCIÉTÉ]'}
+AU CAPITAL DE ${capital.toLocaleString('fr-FR')} FCFA
 
-${company.sigle ? `Sigle : ${company.sigle}` : ''}
+Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d'Intérêt Economique
 
-AYANT SON SIEGE SOCIAL A ${(company.address || '[ADRESSE]').toUpperCase()}, ${(company.city || 'ABIDJAN').toUpperCase()}
+STATUT TYPE SOUS SEING PRIVE
 
-L'An ${anneeWords},
+${isUnipersonnelle ? 
+  `Cas d'une Société à Responsabilité Limitée comportant un associé unique et constituée exclusivement par apports en numéraire` :
+  `Cas d'une Société à Responsabilité Limitée comportant plusieurs associés et constituée exclusivement par apports en numéraire`}
+
+SARL ${isUnipersonnelle ? 'unipersonnelle' : 'pluripersonnelle'} constituée exclusivement
+Par apports en numéraire
+
+STATUTS DE LA SOCIETE A RESPONSABILITE LIMITEE DENOMMEE
+
+«${company.company_name || '[NOM SOCIÉTÉ]'}${company.sigle ? ' ' + company.sigle : ''} SARL»
+
+Au capital de ${capital.toLocaleString('fr-FR')} FCFA, située à ${adresseComplete}
+
+L'An Deux Mil ${anneeWords.charAt(0).toUpperCase() + anneeWords.slice(1)},
 
 Le ${dateActuelle}
 
 Le soussigné${isUnipersonnelle ? '' : 's'},
 
 ${isUnipersonnelle ? 
-  `M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId}.` :
-  associates.map(a => `M. ${a.name || '[NOM ASSOCIÉ]'}`).join('\n\n')
+  `M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire ${gerantTypeId === 'Passeport' ? 'du passeport' : 'de la CNI'} N°${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId}.` :
+  associates.map(a => {
+    const nom = a.name || `${a.nom || ''} ${a.prenoms || ''}`.trim() || '[NOM ASSOCIÉ]';
+    const profession = a.profession || '[PROFESSION]';
+    const adresse = a.adresseDomicile || a.adresse || '[ADRESSE]';
+    const nationalite = a.nationalite || '[NATIONALITÉ]';
+    const dateNaissance = a.dateNaissance ? formatDate(a.dateNaissance) : '[DATE NAISSANCE]';
+    const lieuNaissance = a.lieuNaissance || '[LIEU NAISSANCE]';
+    const typeId = a.typeIdentite || 'CNI';
+    const numId = a.numeroIdentite || '[NUMÉRO]';
+    const dateDelivrance = a.dateDelivranceId ? formatDate(a.dateDelivranceId) : '[DATE DÉLIVRANCE]';
+    const dateValidite = a.dateValiditeId ? formatDate(a.dateValiditeId) : '[DATE VALIDITÉ]';
+    const lieuDelivrance = a.lieuDelivranceId || 'la République de Côte d\'Ivoire';
+    return `M. ${nom}, ${profession} résidant à ${adresse} de nationalité ${nationalite}, né le ${dateNaissance} à ${lieuNaissance} et titulaire ${typeId === 'Passeport' ? 'du passeport' : 'de la CNI'} N°${numId} délivrée le ${dateDelivrance} et valable jusqu'au ${dateValidite} par ${lieuDelivrance}.`;
+  }).join('\n\n')
 }
 
 ${isUnipersonnelle ? 'A établi' : 'Ont établi'} par les présentes, les statuts de la Société à Responsabilité Limitée dont la teneur suit :
@@ -184,7 +213,7 @@ ${objetSocialComplet}
 
 ARTICLE 4- SIEGE SOCIAL
 
-Le siège social est fixé à : ${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}
+Le siège social est fixé à : ${company.address || '[ADRESSE]'}${company.commune ? ', COMMUNE DE ' + company.commune.toUpperCase() : ''}${company.quartier ? ', ' + company.quartier.toUpperCase() : ''}, ${(company.city || 'Abidjan').toUpperCase()}${company.lot ? ' LOT ' + company.lot : ''}${company.ilot ? ', ILOT ' + company.ilot : ''}
 
 Il peut être transféré dans les limites du territoire de la République de COTE D'IVOIRE par décision de la gérance qui modifie en conséquence les statuts, sous réserve de la ratification de cette décision par la plus prochaine Assemblée Générale Ordinaire.
 
@@ -214,7 +243,7 @@ Total des apports en numéraire : ${totalApports.toLocaleString('fr-FR')} de fra
 
 ${totalApports.toLocaleString('fr-FR')} F CFA
 
-Les apports en numéraire de ${capitalWords} de francs CFA (${capital.toLocaleString('fr-FR')}) F CFA correspondent à ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA entièrement souscrites et libérée intégralement, La somme correspondante a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à [NOM BANQUE]
+Les apports en numéraire de ${capitalWords} de francs CFA (${capital.toLocaleString('fr-FR')}) F CFA correspondent à ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA entièrement souscrites et libérée intégralement, La somme correspondante a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${company.banque || '[NOM BANQUE]'}
 
 ARTICLE 8- CAPITAL SOCIAL
 
@@ -585,16 +614,21 @@ L'associé donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résid
 
 Les associés donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId} à l'effet de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.`}
 
-Fait à ${company.city || 'Abidjan'}, le ${dateActuelle}
-
 ${isUnipersonnelle ? 'EN QUATRE (4) EXEMPLAIRES ORIGINAUX' : 'En Deux (2) exemplaires originaux'}
 
+NOMS DES ASSOCIES                                    SIGNATURES
+
 ${isUnipersonnelle ? 
-  `M. ${gerantNom}
+  `M. ${gerantNom}                                   ____________________
 
 Associé unique` :
-  associates.map((a, index) => `M. ${a.name || '[NOM ASSOCIÉ]'}`).join('\n\n')
+  associates.map((a, index) => {
+    const nom = a.name || `${a.nom || ''} ${a.prenoms || ''}`.trim() || '[NOM ASSOCIÉ]';
+    return `M. ${nom}                                   ____________________`;
+  }).join('\n\n')
 }
+
+Fait à ${company.city || 'Abidjan'}, le ${company.date_constitution ? formatDate(company.date_constitution) : dateActuelle}
 `;
 };
 

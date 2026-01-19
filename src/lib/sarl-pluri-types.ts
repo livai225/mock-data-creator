@@ -12,6 +12,7 @@ export interface AssocieInfo {
   typeIdentite: 'CNI' | 'Passeport';
   numeroIdentite: string;
   dateDelivranceId: string;
+  dateValiditeId: string;
   lieuDelivranceId: string;
   nombreParts: number;
   valeurParts: number;
@@ -29,6 +30,7 @@ export interface SARLPluriFormData {
   dureeAnnees: number;
   dateConstitution: string;
   chiffreAffairesPrev: string;
+  banque: string; // Nom de la banque pour le dépôt du capital
   
   // Siège social
   adresseSiege: string;
@@ -91,6 +93,7 @@ export const defaultAssocieInfo: AssocieInfo = {
   typeIdentite: 'CNI',
   numeroIdentite: '',
   dateDelivranceId: '',
+  dateValiditeId: '',
   lieuDelivranceId: '',
   nombreParts: 0,
   valeurParts: 10000,
@@ -129,6 +132,7 @@ export const defaultSARLPluriFormData: SARLPluriFormData = {
   dureeAnnees: 99,
   dateConstitution: new Date().toISOString().split('T')[0],
   chiffreAffairesPrev: '',
+  banque: '',
   
   adresseSiege: '',
   commune: '',
