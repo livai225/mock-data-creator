@@ -5,11 +5,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/auth/AuthContext";
-import { adminCompaniesApi, adminUpdateCompanyStatusApi, adminDocumentsApi } from "@/lib/api";
+import { adminCompaniesApi, adminUpdateCompanyStatusApi, adminDocumentsApi, adminDeleteCompanyApi } from "@/lib/api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { SearchInput } from "@/components/admin/SearchInput";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { Building2, Eye, Download, FileText, Calendar, User, FolderOpen } from "lucide-react";
+import { Building2, Eye, Download, FileText, Calendar, User, FolderOpen, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { companyTypes } from "@/lib/mock-data";
 
@@ -34,6 +35,7 @@ export default function AdminCompanies() {
   const [companyDocuments, setCompanyDocuments] = useState<any[]>([]);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [deletingCompanyId, setDeletingCompanyId] = useState<string | null>(null);
 
   const refresh = () => {
     if (!token) return;
@@ -69,6 +71,20 @@ export default function AdminCompanies() {
       refresh();
     } catch {
       toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
+  const handleDeleteCompany = async (companyId: string, companyName: string) => {
+    if (!token) return;
+    setDeletingCompanyId(companyId);
+    try {
+      await adminDeleteCompanyApi(token, companyId);
+      toast.success(`Entreprise "${companyName}" et ses documents supprimés avec succès`);
+      refresh();
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors de la suppression");
+    } finally {
+      setDeletingCompanyId(null);
     }
   };
 
@@ -278,6 +294,39 @@ export default function AdminCompanies() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              disabled={deletingCompanyId === c.id}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Supprimer l'entreprise ?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Êtes-vous sûr de vouloir supprimer <strong>{c.company_name}</strong> ?
+                                <br /><br />
+                                <span className="text-destructive font-medium">
+                                  Cette action est irréversible et supprimera également tous les documents associés à cette entreprise.
+                                </span>
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteCompany(c.id, c.company_name)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Supprimer
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
