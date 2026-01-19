@@ -63,6 +63,18 @@ export interface SARLUFormData {
   declarantAdresse: string;
   declarantContact: string;
   declarantEmail: string;
+  declarantNumeroCompte: string;
+  declarantTelephone: string;
+  declarantFax: string;
+  declarantMobile: string;
+  
+  // Projections sur 3 ans (pour formulaire CEPICI)
+  investissementAnnee1: number;
+  investissementAnnee2: number;
+  investissementAnnee3: number;
+  emploisAnnee1: number;
+  emploisAnnee2: number;
+  emploisAnnee3: number;
   
   // Durée du mandat du gérant
   gerantDureeMandat: number;
@@ -126,6 +138,17 @@ export const defaultSARLUFormData: SARLUFormData = {
   declarantAdresse: '',
   declarantContact: '',
   declarantEmail: '',
+  declarantNumeroCompte: '',
+  declarantTelephone: '',
+  declarantFax: '',
+  declarantMobile: '',
+  
+  investissementAnnee1: 0,
+  investissementAnnee2: 0,
+  investissementAnnee3: 0,
+  emploisAnnee1: 0,
+  emploisAnnee2: 0,
+  emploisAnnee3: 0,
   
   gerantDureeMandat: 99,
 };

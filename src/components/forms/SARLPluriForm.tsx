@@ -203,6 +203,26 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         cautionMois: formData.cautionMois,
         dureeBailAnnees: formData.dureeBailAnnees
       },
+      // Informations du déclarant
+      declarant: {
+        nom: formData.declarantNom,
+        qualite: formData.declarantQualite,
+        adresse: formData.declarantAdresse,
+        numeroCompte: formData.declarantNumeroCompte,
+        telephone: formData.declarantTelephone,
+        fax: formData.declarantFax,
+        mobile: formData.declarantMobile,
+        email: formData.declarantEmail
+      },
+      // Projections sur 3 ans
+      projections: {
+        investissementAnnee1: formData.investissementAnnee1,
+        investissementAnnee2: formData.investissementAnnee2,
+        investissementAnnee3: formData.investissementAnnee3,
+        emploisAnnee1: formData.emploisAnnee1,
+        emploisAnnee2: formData.emploisAnnee2,
+        emploisAnnee3: formData.emploisAnnee3
+      },
       associates: formData.associes.map(a => ({
         name: `${a.nom} ${a.prenoms}`,
         nom: a.nom,
@@ -1097,7 +1117,189 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         </Card>
       )}
 
-      {/* Step 5: Récapitulatif */}
+      {/* Step 5: CEPICI - Déclarant & Projections */}
+      {step === 'cepici' && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2 text-secondary mb-2">
+              <FileText className="h-5 w-5" />
+              <span className="text-sm font-medium">Étape 5/6</span>
+            </div>
+            <CardTitle>Formulaire CEPICI</CardTitle>
+            <CardDescription>
+              Informations pour le déclarant et projections sur 3 ans.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="border-b pb-4 mb-4">
+              <h3 className="font-semibold mb-4">Déclarant responsable</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="declarantNom">Nom complet *</Label>
+                  <Input
+                    id="declarantNom"
+                    placeholder="Ex: KOUACOU HARRISON"
+                    value={formData.declarantNom}
+                    onChange={(e) => updateField('declarantNom', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="declarantQualite">Qualité *</Label>
+                  <Input
+                    id="declarantQualite"
+                    placeholder="Ex: CONSULTANT COMPTABLE"
+                    value={formData.declarantQualite}
+                    onChange={(e) => updateField('declarantQualite', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="declarantAdresse">Adresse personnelle *</Label>
+                  <Input
+                    id="declarantAdresse"
+                    placeholder="Ex: COCODY RIVIERA (ABIDJAN)"
+                    value={formData.declarantAdresse}
+                    onChange={(e) => updateField('declarantAdresse', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="declarantNumeroCompte">Numéro de compte contribuable</Label>
+                  <Input
+                    id="declarantNumeroCompte"
+                    placeholder="Ex: 1234567890"
+                    value={formData.declarantNumeroCompte}
+                    onChange={(e) => updateField('declarantNumeroCompte', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="declarantTelephone">Téléphone</Label>
+                  <Input
+                    id="declarantTelephone"
+                    placeholder="Ex: 20 21 22 23"
+                    value={formData.declarantTelephone}
+                    onChange={(e) => updateField('declarantTelephone', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="declarantMobile">Mobile *</Label>
+                  <Input
+                    id="declarantMobile"
+                    placeholder="Ex: +225 01 51 25 29 99"
+                    value={formData.declarantMobile}
+                    onChange={(e) => updateField('declarantMobile', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="declarantFax">Fax</Label>
+                  <Input
+                    id="declarantFax"
+                    placeholder="Ex: 20 21 22 24"
+                    value={formData.declarantFax}
+                    onChange={(e) => updateField('declarantFax', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="declarantEmail">E-mail *</Label>
+                  <Input
+                    id="declarantEmail"
+                    type="email"
+                    placeholder="Ex: archexcellence18@gmail.com"
+                    value={formData.declarantEmail}
+                    onChange={(e) => updateField('declarantEmail', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-b pb-4 mb-4">
+              <h3 className="font-semibold mb-4">Projections sur 3 ans</h3>
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium text-muted-foreground">Montant d'Investissement (projeté)</h4>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="investissementAnnee1">Année 1 (FCFA)</Label>
+                    <Input
+                      id="investissementAnnee1"
+                      type="number"
+                      placeholder="0"
+                      value={formData.investissementAnnee1}
+                      onChange={(e) => updateField('investissementAnnee1', Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="investissementAnnee2">Année 2 (FCFA)</Label>
+                    <Input
+                      id="investissementAnnee2"
+                      type="number"
+                      placeholder="0"
+                      value={formData.investissementAnnee2}
+                      onChange={(e) => updateField('investissementAnnee2', Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="investissementAnnee3">Année 3 (FCFA)</Label>
+                    <Input
+                      id="investissementAnnee3"
+                      type="number"
+                      placeholder="0"
+                      value={formData.investissementAnnee3}
+                      onChange={(e) => updateField('investissementAnnee3', Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 mt-6">
+                <h4 className="text-sm font-medium text-muted-foreground">Nombre d'Emplois (projetés)</h4>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="emploisAnnee1">Année 1</Label>
+                    <Input
+                      id="emploisAnnee1"
+                      type="number"
+                      placeholder="0"
+                      value={formData.emploisAnnee1}
+                      onChange={(e) => updateField('emploisAnnee1', Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emploisAnnee2">Année 2</Label>
+                    <Input
+                      id="emploisAnnee2"
+                      type="number"
+                      placeholder="0"
+                      value={formData.emploisAnnee2}
+                      onChange={(e) => updateField('emploisAnnee2', Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emploisAnnee3">Année 3</Label>
+                    <Input
+                      id="emploisAnnee3"
+                      type="number"
+                      placeholder="0"
+                      value={formData.emploisAnnee3}
+                      onChange={(e) => updateField('emploisAnnee3', Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between pt-4">
+              <Button variant="ghost" onClick={prevStep}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Retour
+              </Button>
+              <Button variant="gold" onClick={nextStep}>
+                Voir le récapitulatif
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 6: Récapitulatif */}
       {step === 'recap' && (
         <Card variant="gold">
           <CardHeader>

@@ -52,6 +52,24 @@ export interface SARLPluriFormData {
   cautionMois: number;
   dureeBailAnnees: number;
   
+  // Déclarant (consultant comptable)
+  declarantNom: string;
+  declarantQualite: string;
+  declarantAdresse: string;
+  declarantNumeroCompte: string;
+  declarantTelephone: string;
+  declarantFax: string;
+  declarantMobile: string;
+  declarantEmail: string;
+  
+  // Projections sur 3 ans (pour formulaire CEPICI)
+  investissementAnnee1: number;
+  investissementAnnee2: number;
+  investissementAnnee3: number;
+  emploisAnnee1: number;
+  emploisAnnee2: number;
+  emploisAnnee3: number;
+  
   // Associés (tableau - minimum 2)
   associes: AssocieInfo[];
   
@@ -152,6 +170,22 @@ export const defaultSARLPluriFormData: SARLPluriFormData = {
   cautionMois: 2,
   dureeBailAnnees: 3,
   
+  declarantNom: '',
+  declarantQualite: 'CONSULTANT COMPTABLE',
+  declarantAdresse: '',
+  declarantNumeroCompte: '',
+  declarantTelephone: '',
+  declarantFax: '',
+  declarantMobile: '',
+  declarantEmail: '',
+  
+  investissementAnnee1: 0,
+  investissementAnnee2: 0,
+  investissementAnnee3: 0,
+  emploisAnnee1: 0,
+  emploisAnnee2: 0,
+  emploisAnnee3: 0,
+  
   associes: [
     { ...defaultAssocieInfo, id: '1' },
     { ...defaultAssocieInfo, id: '2' },
@@ -162,12 +196,13 @@ export const defaultSARLPluriFormData: SARLPluriFormData = {
   ],
 };
 
-export type SARLPluriStep = 'societe' | 'siege' | 'associes' | 'gerant' | 'recap';
+export type SARLPluriStep = 'societe' | 'siege' | 'associes' | 'gerant' | 'cepici' | 'recap';
 
 export const sarlPluriSteps: { id: SARLPluriStep; label: string }[] = [
   { id: 'societe', label: 'Société' },
   { id: 'siege', label: 'Siège & Bail' },
   { id: 'associes', label: 'Associés' },
   { id: 'gerant', label: 'Gérant' },
+  { id: 'cepici', label: 'CEPICI' },
   { id: 'recap', label: 'Récapitulatif' },
 ];
