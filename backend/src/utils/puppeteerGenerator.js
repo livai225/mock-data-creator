@@ -1510,37 +1510,47 @@ const generateDSVHTML = (company, associates, managers) => {
 };
 
 /**
- * Template HTML: Formulaire CEPICI
+ * Template HTML: Formulaire CEPICI - Format officiel
  */
 const generateFormulaireCEPICIHTML = (company, managers, associates, additionalData = {}) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
   
-  // Debug: Afficher les données du gérant
-  if (gerant) {
-    console.log('🔍 [CEPICI HTML] Données gérant:', {
-      nom: gerant.nom,
-      prenoms: gerant.prenoms,
-      nationalite: gerant.nationalite,
-      lieu_naissance: gerant.lieu_naissance,
-      lieuNaissance: gerant.lieuNaissance,
-      adresse: gerant.adresse,
-      address: gerant.address,
-      profession: gerant.profession,
-      date_naissance: gerant.date_naissance,
-      dateNaissance: gerant.dateNaissance
-    });
-  }
-  
   const capital = parseFloat(company.capital) || 0;
+  const capitalNumeraire = capital;
+  const apportsNature = 0;
   const dureeSociete = company.duree_societe || 99;
   
   const dateActuelle = formatDate(new Date().toISOString());
   
-  // Récupérer les champs du gérant avec toutes les variantes
+  // Récupérer les champs du gérant
+  const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : '';
   const gerantAdresse = gerant?.adresse || gerant?.address || '';
   const gerantNationalite = gerant?.nationalite || gerant?.nationality || '';
   const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '';
   const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '';
+  const gerantTypeId = gerant?.type_identite || gerant?.typeIdentite || 'passeport';
+  const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '';
+  const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '';
+  const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '';
+  
+  // Récupérer les données du déclarant
+  const declarant = additionalData.declarant || company.declarant || {};
+  const declarantNom = declarant.nom || gerantNom || '';
+  const declarantQualite = declarant.qualite || 'CONSULTANT COMPTABLE';
+  const declarantAdresse = declarant.adresse || gerantAdresse || '';
+  const declarantTel = declarant.telephone || company.telephone || '';
+  const declarantFax = declarant.fax || '';
+  const declarantMobile = declarant.mobile || '';
+  const declarantEmail = declarant.email || company.email || '';
+  
+  // Récupérer les projections sur 3 ans
+  const projections = additionalData.projections || company.projections || {};
+  const investAnnee1 = projections.investissement_annee1 || projections.investissementAnnee1 || '';
+  const investAnnee2 = projections.investissement_annee2 || projections.investissementAnnee2 || '';
+  const investAnnee3 = projections.investissement_annee3 || projections.investissementAnnee3 || '';
+  const emploisAnnee1 = projections.emplois_annee1 || projections.emploisAnnee1 || '';
+  const emploisAnnee2 = projections.emplois_annee2 || projections.emploisAnnee2 || '';
+  const emploisAnnee3 = projections.emplois_annee3 || projections.emploisAnnee3 || '';
 
   return `
     <!DOCTYPE html>
@@ -1549,200 +1559,323 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
       <meta charset="UTF-8">
       <style>
         ${getCommonStyles()}
-        .cepici-header {
-          text-align: center;
-          margin-bottom: 30px;
+        
+        .cepici-page {
+          font-family: 'Times New Roman', serif;
+          font-size: 10pt;
+          line-height: 1.4;
         }
-        .cepici-header h1 {
+        
+        .header-section {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 20px;
+        }
+        
+        .header-left {
+          text-align: center;
+          width: 30%;
+        }
+        
+        .header-center {
+          text-align: center;
+          width: 40%;
+        }
+        
+        .header-right {
+          text-align: center;
+          width: 30%;
+        }
+        
+        .armoiries {
+          font-size: 9pt;
+          margin-bottom: 10px;
+        }
+        
+        .armoiries-title {
+          font-weight: bold;
+          font-size: 10pt;
+        }
+        
+        .cepici-logo {
+          font-weight: bold;
           font-size: 14pt;
+        }
+        
+        .main-title-box {
+          text-align: center;
+          margin: 20px 0;
+        }
+        
+        .main-title-box h1 {
+          font-size: 12pt;
+          font-weight: bold;
+          text-decoration: underline;
           margin-bottom: 5px;
         }
-        .cepici-header p {
-          font-size: 10pt;
-          color: #666;
+        
+        .main-title-box h2 {
+          font-size: 11pt;
+          font-weight: normal;
         }
-        .form-section {
-          border: 1px solid #333;
-          padding: 15px;
+        
+        .cadre-reserve {
+          border: 1px solid #000;
+          padding: 10px;
+          margin: 15px 0;
+          font-size: 9pt;
+        }
+        
+        .cadre-reserve-title {
+          text-align: center;
+          font-weight: bold;
+          margin-bottom: 10px;
+          font-size: 9pt;
+        }
+        
+        .cadre-row {
+          margin: 5px 0;
+        }
+        
+        .declarant-box {
+          border: 1px solid #000;
+          padding: 10px;
           margin: 15px 0;
         }
-        .form-section h3 {
-          background: #f0f0f0;
-          padding: 8px;
-          margin: -15px -15px 15px -15px;
-          border-bottom: 1px solid #333;
-        }
-        .form-row {
-          display: flex;
-          margin: 10px 0;
-          align-items: flex-start;
-        }
-        .form-label {
-          min-width: 180px;
+        
+        .declarant-title {
           font-weight: bold;
-          padding-right: 10px;
+          text-decoration: underline;
+          margin-bottom: 10px;
+          font-size: 9pt;
         }
-        .form-value {
-          flex: 1;
-          border-bottom: 1px dotted #999;
-          min-height: 20px;
-          padding-left: 5px;
+        
+        .declarant-row {
+          margin: 3px 0;
+          font-size: 9pt;
+        }
+        
+        .section-title {
+          font-weight: bold;
+          text-decoration: underline;
+          margin: 15px 0 10px 0;
+          font-size: 10pt;
+        }
+        
+        .projection-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 10px 0;
+          font-size: 9pt;
+        }
+        
+        .projection-table th,
+        .projection-table td {
+          border: 1px solid #000;
+          padding: 5px 8px;
+          text-align: center;
+        }
+        
+        .projection-table th {
+          background-color: #f5f5f5;
+          font-weight: bold;
+        }
+        
+        .projection-table td:first-child {
+          text-align: left;
+          font-weight: bold;
+        }
+        
+        .form-line {
+          margin: 5px 0;
+          font-size: 10pt;
+        }
+        
+        .dotted-line {
+          border-bottom: 1px dotted #000;
+          display: inline-block;
+          min-width: 150px;
+        }
+        
+        .page-footer {
+          font-size: 8pt;
+          text-align: center;
+          margin-top: 20px;
+          padding-top: 10px;
+          border-top: 1px solid #000;
+        }
+        
+        .signature-table {
+          width: 100%;
+          margin-top: 30px;
+        }
+        
+        .signature-table td {
+          width: 50%;
+          text-align: center;
+          vertical-align: top;
+          padding: 20px;
         }
       </style>
     </head>
     <body>
-      <div class="document">
-        <div class="cepici-header">
-          <h1>RÉPUBLIQUE DE CÔTE D'IVOIRE</h1>
-          <p>Union - Discipline - Travail</p>
-          <h2 style="margin-top: 15px; color: #1a365d;">CEPICI</h2>
-          <p>Centre de Promotion des Investissements en Côte d'Ivoire</p>
-          <h3 style="margin-top: 15px;">GUICHET UNIQUE - Création d'Entreprise</h3>
-        </div>
+      <div class="cepici-page">
         
-        <h1 class="main-title" style="font-size: 14pt;">FORMULAIRE UNIQUE DE DEMANDE DE CRÉATION D'ENTREPRISE</h1>
-        
-        <div class="form-section">
-          <h3>SECTION A : IDENTIFICATION DE L'ENTREPRISE</h3>
-          
-          <div class="form-row">
-            <span class="form-label">Dénomination sociale :</span>
-            <span class="form-value">${escapeHtml(company.company_name || '')}</span>
+        <!-- EN-TÊTE -->
+        <div class="header-section">
+          <div class="header-left">
+            <div class="armoiries">
+              <p class="armoiries-title">RÉPUBLIQUE DE CÔTE D'IVOIRE</p>
+              <p style="font-style: italic;">Union - Discipline - Travail</p>
+            </div>
           </div>
-          
-          <div class="form-row">
-            <span class="form-label">Nom commercial :</span>
-            <span class="form-value">${escapeHtml(company.company_name || '')}</span>
+          <div class="header-center">
+            <!-- Espace pour logo armoiries -->
           </div>
-          
-          <div class="form-row">
-            <span class="form-label">Sigle :</span>
-            <span class="form-value">${escapeHtml(company.sigle || '')}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Durée :</span>
-            <span class="form-value">${dureeSociete} ANS</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Forme juridique :</span>
-            <span class="form-value">${escapeHtml(company.company_type || 'SARL')}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Montant du capital :</span>
-            <span class="form-value">${capital.toLocaleString('fr-FR')} FCFA</span>
+          <div class="header-right">
+            <p style="font-size: 9pt;">Présidence de la République</p>
+            <p class="cepici-logo">CEPICI</p>
+            <p style="font-size: 8pt;">CENTRE DE PROMOTION DES INVESTISSEMENTS<br>EN CÔTE D'IVOIRE</p>
           </div>
         </div>
         
-        <div class="form-section">
-          <h3>SECTION B : ACTIVITÉ</h3>
-          
-          <div class="form-row">
-            <span class="form-label">Activité principale :</span>
-            <span class="form-value">${escapeHtml(company.activity || '')}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Activités secondaires :</span>
-            <span class="form-value"></span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">CA prévisionnel :</span>
-            <span class="form-value">${company.chiffre_affaires_prev ? company.chiffre_affaires_prev.toLocaleString('fr-FR') + ' FCFA' : '-'}</span>
-          </div>
+        <!-- TITRE PRINCIPAL -->
+        <div class="main-title-box">
+          <h1>FORMULAIRE UNIQUE</h1>
+          <h2>D'IMMATRICULATION DES ENTREPRISES</h2>
+          <p>(PERSONNES MORALES)</p>
         </div>
         
-        <div class="form-section">
-          <h3>SECTION C : LOCALISATION DU SIÈGE SOCIAL</h3>
-          
-          <div class="form-row">
-            <span class="form-label">Ville :</span>
-            <span class="form-value">${escapeHtml(company.city || 'ABIDJAN')}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Commune :</span>
-            <span class="form-value">${escapeHtml(additionalData.commune || company.commune || '')}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Quartier :</span>
-            <span class="form-value">${escapeHtml(additionalData.quartier || company.quartier || '')}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Adresse :</span>
-            <span class="form-value">${escapeHtml(company.address || '')}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Lot n° :</span>
-            <span class="form-value" style="max-width: 100px;">${escapeHtml(additionalData.lot || company.lot || '')}</span>
-            <span class="form-label" style="min-width: 80px; margin-left: 20px;">Îlot n° :</span>
-            <span class="form-value" style="max-width: 100px;">${escapeHtml(additionalData.ilot || company.ilot || '')}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Téléphone :</span>
-            <span class="form-value">${escapeHtml(additionalData.telephone || company.telephone || '')}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Email :</span>
-            <span class="form-value">${escapeHtml(additionalData.email || company.email || '')}</span>
-          </div>
+        <!-- CADRE RÉSERVÉ AU CEPICI -->
+        <div class="cadre-reserve">
+          <p class="cadre-reserve-title">CADRE RÉSERVÉ AU CEPICI</p>
+          <div class="cadre-row">DOSSIER N° ………………………………………………</div>
+          <div class="cadre-row">DATE DE RÉCEPTION ………………………………………………</div>
+          <div class="cadre-row">NUMÉRO REGISTRE DE COMMERCE : <span style="margin-left: 20px;">/ / / / / / /</span></div>
+          <div class="cadre-row">NUMÉRO COMPTE CONTRIBUABLE : <span style="margin-left: 20px;">/ / / / / / /</span></div>
+          <div class="cadre-row">NUMÉRO CNPS ENTREPRISE : <span style="margin-left: 20px;">/ / / / / / /</span></div>
+          <div class="cadre-row">CODE IMPORT-EXPORT : <span style="margin-left: 20px;">/ / / / / / /</span></div>
         </div>
         
-        <div class="form-section">
-          <h3>SECTION D : INFORMATIONS SUR LES DIRIGEANTS</h3>
-          
-          <p class="text-bold mb-10">DIRIGEANT SOCIAL</p>
-          
-          <div class="form-row">
-            <span class="form-label">Nom et Prénoms :</span>
-            <span class="form-value">${gerant ? escapeHtml(`${gerant.nom || ''} ${gerant.prenoms || ''}`.trim()) : ''}</span>
+        <!-- DÉCLARANT RESPONSABLE -->
+        <div class="declarant-box">
+          <p class="declarant-title">DÉCLARANT RESPONSABLE POUR L'ACCOMPLISSEMENT DES FORMALITÉS</p>
+          <div class="declarant-row">DÉCLARATION ÉTABLIE PAR : <strong>M. ${escapeHtml(declarantNom.toUpperCase())}</strong></div>
+          <div class="declarant-row">AGISSANT EN QUALITÉ DE : <strong>${escapeHtml(declarantQualite.toUpperCase())}</strong></div>
+          <div class="declarant-row">NUMÉRO DE COMPTE CONTRIBUABLE : ………………………………………………</div>
+          <div class="declarant-row">ADRESSE PERSONNELLE : ${escapeHtml(declarantAdresse.toUpperCase())}</div>
+          <div class="declarant-row" style="margin-top: 8px;">
+            TEL : ……………………………… FAX : ${escapeHtml(declarantFax)} MOBILE : ${escapeHtml(declarantMobile)}
           </div>
-          
-          <div class="form-row">
-            <span class="form-label">Adresse :</span>
-            <span class="form-value">${escapeHtml(gerantAdresse)}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Nationalité :</span>
-            <span class="form-value">${escapeHtml(gerantNationalite)}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Date de naissance :</span>
-            <span class="form-value">${gerantDateNaissance}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Lieu de naissance :</span>
-            <span class="form-value">${escapeHtml(gerantLieuNaissance)}</span>
-          </div>
-          
-          <div class="form-row">
-            <span class="form-label">Fonction :</span>
-            <span class="form-value">GÉRANT</span>
-          </div>
+          <div class="declarant-row">E-MAIL : ${escapeHtml(declarantEmail)}</div>
         </div>
         
-        <div class="signature-section">
-          <p>Fait à Abidjan, le ${dateActuelle}</p>
-          <p class="mt-20"><strong>Signature</strong></p>
-          <p class="text-center mt-20">_____________________</p>
-        </div>
+        <!-- I- IDENTIFICATION -->
+        <p class="section-title">I- IDENTIFICATION</p>
         
-        <div class="separator mt-20"></div>
-        <p class="text-center" style="font-size: 9pt; color: #666;">
-          CEPICI : BP V152 ABIDJAN 01 - ABIDJAN PLATEAU 2ème étage immeuble DJEKANOU<br>
-          Tél : (225) 20 30 23 85 - Fax : (225) 20 21 40 71 - Site web : www.cepici.gouv.ci
+        <table class="projection-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>ANNÉE 1</th>
+              <th>ANNÉE 2</th>
+              <th>ANNÉE 3</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Montant d'Investissement (projeté)</td>
+              <td>${investAnnee1 ? parseInt(investAnnee1).toLocaleString('fr-FR') : ''}</td>
+              <td>${investAnnee2 ? parseInt(investAnnee2).toLocaleString('fr-FR') : ''}</td>
+              <td>${investAnnee3 ? parseInt(investAnnee3).toLocaleString('fr-FR') : ''}</td>
+            </tr>
+            <tr>
+              <td>Nombre d'Emplois (projetés)</td>
+              <td>${emploisAnnee1}</td>
+              <td>${emploisAnnee2}</td>
+              <td>${emploisAnnee3}</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <p class="page-footer">
+          CEPICI : BP V152 ABIDJAN 01 - ABIDJAN PLATEAU 2ème étage immeuble DJEKANOU Tel : (225) 20 30 23 85 - Fax : (225) 20 21 40 71 - Site web : www.cepici.gouv.ci
         </p>
+        
+        <!-- PAGE 2 -->
+        <div class="page-break"></div>
+        
+        <div class="form-line">Dénomination sociale : ………… <strong>${escapeHtml(company.company_name || '')} SARL</strong> …………………………</div>
+        <div class="form-line">Nom commercial : ………………………………………………………………………………………</div>
+        <div class="form-line">Sigle : ………………………………</div>
+        <div class="form-line">Durée : ……………………………… <strong>${dureeSociete}</strong> ANS………………………………………………</div>
+        <div class="form-line">Forme juridique : ……………………………… <strong>SARL U</strong>………………………………………………</div>
+        <div class="form-line">Montant du capital : ………… <strong>${capital.toLocaleString('fr-FR')}</strong> FCFA…… Dont : Montant en numéraire ………… <strong>${capitalNumeraire.toLocaleString('fr-FR')}</strong></div>
+        <div class="form-line" style="margin-left: 200px;">Évaluation des apports en nature …………… <strong>${apportsNature}</strong>……………………</div>
+        
+        <!-- II- ACTIVITÉ -->
+        <p class="section-title">II- ACTIVITÉ (renseignements sur la personne morale)</p>
+        
+        <div class="form-line">Activité principale : ${escapeHtml(company.activity || '')}</div>
+        <div class="form-line">• L'installation de pompes hydrauliques, suppresseurs et équipements connexes</div>
+        <div class="form-line">• L'étude, la conception et la réalisation de forages domestiques, agricoles ou industriels ;</div>
+        <div class="form-line">• Les travaux de géotechnique, de sondage, d'essai de sol et d'analyse de terrain</div>
+        <div class="form-line">Activités secondaires : ………………………………</div>
+        <div class="form-line">Chiffre d'affaires prévisionnel …………… ${company.chiffre_affaires_prev ? company.chiffre_affaires_prev.toLocaleString('fr-FR') : '5 000 000'} FCFA / TAXE D'ÉTAT DE L'ENTREPRENEUR</div>
+        <div class="form-line">Nombre d'employés : ………… 1 (UN)………… Date embauche 1er employé : ${dateActuelle}</div>
+        <div class="form-line">Date de début d'activité : ………… ${dateActuelle}……………</div>
+        
+        <!-- III- LOCALISATION -->
+        <p class="section-title">III- LOCALISATION DU SIÈGE SOCIAL / DE LA SUCCURSALE</p>
+        
+        <div class="form-line">Ville : … <strong>${escapeHtml(company.city || 'ABIDJAN')}</strong>…… Commune : … <strong>${escapeHtml(company.commune || '')}</strong>…… Quartier : …… <strong>${escapeHtml(company.quartier || '')}</strong></div>
+        <div class="form-line">Rue : …… <strong>${escapeHtml(company.address || '')}</strong>…… Lot n° : … <strong>${escapeHtml(company.lot || '')}</strong>…… Ilot n° : …… <strong>${escapeHtml(company.ilot || '')}</strong>……</div>
+        <div class="form-line">Nom immeuble : ……………………… Numéro étage : ……… Numéro porte : ……… …B1………</div>
+        <div class="form-line">Section : ……………………………………… Parcelle : ………………………………</div>
+        <div class="form-line">TF n° : ……………………………………… Tél. : ${escapeHtml(company.telephone || '')} ………</div>
+        <div class="form-line">Fax : ………………………………</div>
+        <div class="form-line">Adresse postale : ……………………… Email : ……… ${escapeHtml(company.email || '')}………………</div>
+        
+        <!-- PAGE 3 - DIRIGEANTS -->
+        <div class="page-break"></div>
+        
+        <p class="section-title">IV- INFORMATIONS SUR LES DIRIGEANTS</p>
+        
+        <p style="font-weight: bold; margin: 10px 0;">DIRIGEANT SOCIAL</p>
+        
+        <div class="form-line">Nom et Prénoms : <strong>${escapeHtml(gerantNom.toUpperCase())}</strong></div>
+        <div class="form-line">Adresse : <strong>${escapeHtml(gerantAdresse.toUpperCase())}</strong></div>
+        <div class="form-line">Nationalité : <strong>${escapeHtml(gerantNationalite)}</strong></div>
+        <div class="form-line">Date de naissance : <strong>${gerantDateNaissance}</strong></div>
+        <div class="form-line">Lieu de naissance : <strong>${escapeHtml(gerantLieuNaissance.toUpperCase())}</strong></div>
+        <div class="form-line">Fonction : <strong>GÉRANT</strong></div>
+        
+        ${gerantTypeId && gerantNumId ? `
+        <div class="form-line" style="margin-top: 15px;">
+          Titulaire du ${escapeHtml(gerantTypeId)} N°${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId}
+        </div>
+        ` : ''}
+        
+        <!-- SIGNATURE -->
+        <div style="margin-top: 40px;">
+          <p>Fait en deux exemplaires et de bonne foi.</p>
+          <p style="margin-top: 20px;">À Abidjan, le ${dateActuelle}</p>
+        </div>
+        
+        <table class="signature-table">
+          <tr>
+            <td>
+              <p><u>Le Déclarant</u></p>
+              <p style="margin-top: 50px;">………………………………</p>
+            </td>
+            <td>
+              <p><u>Le Gérant</u></p>
+              <p style="margin-top: 50px;">………………………………</p>
+            </td>
+          </tr>
+        </table>
+        
       </div>
     </body>
     </html>
