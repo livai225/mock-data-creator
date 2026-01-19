@@ -803,6 +803,10 @@ export const generateDSV = (company, associates) => {
   const objetSocial = company.activity || '[OBJET SOCIAL]';
   const objetSocialComplet = `${objetSocial}
 
+et généralement, toutes opérations industrielles, commerciales, financières, civiles, mobilières ou immobilières pouvant se rattacher directement ou indirectement à l'objet social ou à tous objets similaires ou connexes ou susceptibles d'en faciliter l'extension ou le développement.
+
+En outre, la Société peut également participer par tous moyens, directement ou indirectement, dans toutes opérations pouvant se rattacher à son objet.
+
 - l'acquisition, la location et la vente de tous biens meubles et immeubles.
 
 - l'emprunt de toutes sommes auprès de tous établissements financiers avec possibilité de donner en garantie tout ou partie des biens sociaux.
@@ -811,7 +815,7 @@ export const generateDSV = (company, associates) => {
 
 - la prise de participation dans toute société existante ou devant être créée
 
-- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
+- et généralement, toutes opérations financières, commerciales, industrielles, mobilières et immobilières, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
   
   // Construire le tableau des associés
   let tableauAssocies = '';

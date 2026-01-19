@@ -433,11 +433,13 @@ const generateStatutsHTML = (company, associates, managers) => {
         <h3 class="article-title">ARTICLE 3 - OBJET</h3>
         <p class="article-content">La société a pour objet en CÔTE D'IVOIRE :</p>
         <p class="article-content">${escapeHtml(objetSocial)}</p>
+        <p class="article-content">et généralement, toutes opérations industrielles, commerciales, financières, civiles, mobilières ou immobilières pouvant se rattacher directement ou indirectement à l'objet social ou à tous objets similaires ou connexes ou susceptibles d'en faciliter l'extension ou le développement.</p>
+        <p class="article-content">En outre, la Société peut également participer par tous moyens, directement ou indirectement, dans toutes opérations pouvant se rattacher à son objet.</p>
         <p class="article-content">- l'acquisition, la location et la vente de tous biens meubles et immeubles.</p>
         <p class="article-content">- l'emprunt de toutes sommes auprès de tous établissements financiers avec possibilité de donner en garantie tout ou partie des biens sociaux.</p>
         <p class="article-content">- la prise en location gérance de tous fonds de commerce.</p>
         <p class="article-content">- la prise de participation dans toute société existante ou devant être créée</p>
-        <p class="article-content">- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.</p>
+        <p class="article-content">- et généralement, toutes opérations financières, commerciales, industrielles, mobilières et immobilières, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.</p>
         
         <h3 class="article-title">ARTICLE 4 - SIÈGE SOCIAL</h3>
         <p class="article-content">
