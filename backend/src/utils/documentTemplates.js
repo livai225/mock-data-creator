@@ -1159,8 +1159,6 @@ DÉCLARATION ÉTABLIE PAR : ${declarantNom}
 
 AGISSANT EN QUALITÉ DE : ${declarantQualite}
 
-NUMÉRO DE COMPTE CONTRIBUABLE ………………………………………………………………………………………
-
 ADRESSE PERSONNELLE : ${declarantAdresse}
 
 ………………………………………………………………………………………………………………………………………………

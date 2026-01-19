@@ -208,7 +208,6 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         nom: formData.declarantNom,
         qualite: formData.declarantQualite,
         adresse: formData.declarantAdresse,
-        numeroCompte: formData.declarantNumeroCompte,
         telephone: formData.declarantTelephone,
         fax: formData.declarantFax,
         mobile: formData.declarantMobile,
@@ -1159,15 +1158,6 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     placeholder="Ex: COCODY RIVIERA (ABIDJAN)"
                     value={formData.declarantAdresse}
                     onChange={(e) => updateField('declarantAdresse', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="declarantNumeroCompte">Numéro de compte contribuable</Label>
-                  <Input
-                    id="declarantNumeroCompte"
-                    placeholder="Ex: 1234567890"
-                    value={formData.declarantNumeroCompte}
-                    onChange={(e) => updateField('declarantNumeroCompte', e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
