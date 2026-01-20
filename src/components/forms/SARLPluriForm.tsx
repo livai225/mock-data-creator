@@ -186,8 +186,16 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
       quartier: formData.quartier,
       lot: formData.lot,
       ilot: formData.ilot,
+      nomImmeuble: formData.nomImmeuble,
+      numeroEtage: formData.numeroEtage,
+      numeroPorte: formData.numeroPorte,
+      section: formData.section,
+      parcelle: formData.parcelle,
+      tfNumero: formData.tfNumero,
       city: formData.ville,
       telephone: formData.telephone,
+      fax: formData.fax,
+      adressePostale: formData.adressePostale,
       email: formData.email,
       boitePostale: formData.boitePostale,
       gerant: gerantName,
@@ -527,6 +535,60 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="nomImmeuble">Nom immeuble</Label>
+                  <Input
+                    id="nomImmeuble"
+                    placeholder="Ex: Immeuble ABC"
+                    value={formData.nomImmeuble}
+                    onChange={(e) => updateField('nomImmeuble', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="numeroEtage">Numéro étage</Label>
+                  <Input
+                    id="numeroEtage"
+                    placeholder="Ex: 2ème"
+                    value={formData.numeroEtage}
+                    onChange={(e) => updateField('numeroEtage', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="numeroPorte">Numéro porte</Label>
+                  <Input
+                    id="numeroPorte"
+                    placeholder="Ex: 12"
+                    value={formData.numeroPorte}
+                    onChange={(e) => updateField('numeroPorte', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="section">Section</Label>
+                  <Input
+                    id="section"
+                    placeholder="Ex: A"
+                    value={formData.section}
+                    onChange={(e) => updateField('section', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="parcelle">Parcelle</Label>
+                  <Input
+                    id="parcelle"
+                    placeholder="Ex: 123"
+                    value={formData.parcelle}
+                    onChange={(e) => updateField('parcelle', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tfNumero">TF n°</Label>
+                  <Input
+                    id="tfNumero"
+                    placeholder="Ex: 12345"
+                    value={formData.tfNumero}
+                    onChange={(e) => updateField('tfNumero', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="ville">Ville *</Label>
                   <Input
                     id="ville"
@@ -550,6 +612,24 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     placeholder="Ex: 0707070707"
                     value={formData.telephone}
                     onChange={(e) => updateField('telephone', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fax">Fax</Label>
+                  <Input
+                    id="fax"
+                    placeholder="Ex: 0707070708"
+                    value={formData.fax}
+                    onChange={(e) => updateField('fax', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="adressePostale">Adresse postale</Label>
+                  <Input
+                    id="adressePostale"
+                    placeholder="Ex: 01 BP 1234 Abidjan 01"
+                    value={formData.adressePostale}
+                    onChange={(e) => updateField('adressePostale', e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">

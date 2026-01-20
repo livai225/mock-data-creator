@@ -1698,19 +1698,19 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
   const emploisAnnee2 = projections.emplois_annee2 || projections.emploisAnnee2 || additionalData.emplois_annee2 || '';
   const emploisAnnee3 = projections.emplois_annee3 || projections.emploisAnnee3 || additionalData.emplois_annee3 || '';
   
-  // Récupérer les champs de localisation - vérifier plusieurs sources
+  // Récupérer les champs de localisation - vérifier plusieurs sources (camelCase et snake_case)
   const commune = additionalData.commune || company.commune || '';
   const quartier = additionalData.quartier || company.quartier || '';
   const lot = additionalData.lot || company.lot || '';
   const ilot = additionalData.ilot || company.ilot || '';
-  const nomImmeuble = additionalData.nom_immeuble || company.nom_immeuble || '';
-  const numeroEtage = additionalData.numero_etage || company.numero_etage || '';
-  const numeroPorte = additionalData.numero_porte || company.numero_porte || '';
+  const nomImmeuble = additionalData.nomImmeuble || additionalData.nom_immeuble || company.nomImmeuble || company.nom_immeuble || '';
+  const numeroEtage = additionalData.numeroEtage || additionalData.numero_etage || company.numeroEtage || company.numero_etage || '';
+  const numeroPorte = additionalData.numeroPorte || additionalData.numero_porte || company.numeroPorte || company.numero_porte || '';
   const section = additionalData.section || company.section || '';
   const parcelle = additionalData.parcelle || company.parcelle || '';
-  const tfNumero = additionalData.tf_numero || company.tf_numero || '';
+  const tfNumero = additionalData.tfNumero || additionalData.tf_numero || company.tfNumero || company.tf_numero || '';
   const fax = additionalData.fax || company.fax || '';
-  const adressePostale = additionalData.adresse_postale || company.adresse_postale || '';
+  const adressePostale = additionalData.adressePostale || additionalData.adresse_postale || company.adressePostale || company.adresse_postale || '';
   
   console.log('🔍 [CEPICI] Projections:', { investAnnee1, investAnnee2, investAnnee3, emploisAnnee1, emploisAnnee2, emploisAnnee3 });
   console.log('🔍 [CEPICI] Declarant:', { declarantNom, declarantQualite, declarantAdresse });

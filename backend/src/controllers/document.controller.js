@@ -193,9 +193,41 @@ export const generateDocuments = async (req, res, next) => {
       additionalData.ilot = req.body.ilot;
       company.ilot = req.body.ilot;
     }
+    if (req.body.nomImmeuble) {
+      additionalData.nomImmeuble = req.body.nomImmeuble;
+      company.nomImmeuble = req.body.nomImmeuble;
+    }
+    if (req.body.numeroEtage) {
+      additionalData.numeroEtage = req.body.numeroEtage;
+      company.numeroEtage = req.body.numeroEtage;
+    }
+    if (req.body.numeroPorte) {
+      additionalData.numeroPorte = req.body.numeroPorte;
+      company.numeroPorte = req.body.numeroPorte;
+    }
+    if (req.body.section) {
+      additionalData.section = req.body.section;
+      company.section = req.body.section;
+    }
+    if (req.body.parcelle) {
+      additionalData.parcelle = req.body.parcelle;
+      company.parcelle = req.body.parcelle;
+    }
+    if (req.body.tfNumero) {
+      additionalData.tfNumero = req.body.tfNumero;
+      company.tfNumero = req.body.tfNumero;
+    }
     if (req.body.telephone) {
       additionalData.telephone = req.body.telephone;
       company.telephone = req.body.telephone;
+    }
+    if (req.body.fax) {
+      additionalData.fax = req.body.fax;
+      company.fax = req.body.fax;
+    }
+    if (req.body.adressePostale) {
+      additionalData.adressePostale = req.body.adressePostale;
+      company.adressePostale = req.body.adressePostale;
     }
     if (req.body.email) {
       additionalData.email = req.body.email;

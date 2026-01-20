@@ -38,9 +38,17 @@ export interface SARLPluriFormData {
   quartier: string;
   lot: string;
   ilot: string;
+  nomImmeuble: string;
+  numeroEtage: string;
+  numeroPorte: string;
+  section: string;
+  parcelle: string;
+  tfNumero: string;
   ville: string;
   boitePostale: string;
   telephone: string;
+  fax: string;
+  adressePostale: string;
   email: string;
   
   // Bailleur (contrat de bail)
@@ -157,9 +165,17 @@ export const defaultSARLPluriFormData: SARLPluriFormData = {
   quartier: '',
   lot: '',
   ilot: '',
+  nomImmeuble: '',
+  numeroEtage: '',
+  numeroPorte: '',
+  section: '',
+  parcelle: '',
+  tfNumero: '',
   ville: 'Abidjan',
   boitePostale: '',
   telephone: '',
+  fax: '',
+  adressePostale: '',
   email: '',
   
   bailleurNom: '',
