@@ -99,6 +99,7 @@ export const companyTypes: CompanyTypeInfo[] = [
     requiresNotary: false,
     documentsGenerated: [
       'Statuts SARL',
+      'Déclaration de Souscription et Versement (DSV)',
       'Contrat de bail commercial',
       'Formulaire unique CEPICI',
       'Liste des dirigeants/gérants',
