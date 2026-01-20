@@ -435,12 +435,13 @@ export const getAllDocuments = async (req, res, next) => {
         d.*,
         c.company_name,
         c.company_type,
-        u.email as user_email,
-        u.first_name as user_first_name,
-        u.last_name as user_last_name
+        COALESCE(u.email, u2.email) as user_email,
+        COALESCE(u.first_name, u2.first_name) as user_first_name,
+        COALESCE(u.last_name, u2.last_name) as user_last_name
       FROM documents d
       LEFT JOIN companies c ON d.company_id = c.id
       LEFT JOIN users u ON c.user_id = u.id
+      LEFT JOIN users u2 ON d.user_id = u2.id
       ORDER BY d.created_at DESC
     `);
 
