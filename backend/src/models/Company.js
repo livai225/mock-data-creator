@@ -70,7 +70,7 @@ class Company {
 
       const companyId = result.insertId;
 
-      // Insérer les associés
+      // Insérer les associés avec tous les détails
       if (associates.length > 0) {
         const totalParts = associates.reduce((sum, a) => sum + parseInt(a.parts), 0);
         
@@ -80,10 +80,23 @@ class Company {
             companyId, 
             associate.name, 
             associate.parts, 
-            percentage.toFixed(2)
+            percentage.toFixed(2),
+            associate.profession,
+            associate.nationalite,
+            associate.dateNaissance,
+            associate.lieuNaissance,
+            associate.adresse || associate.adresseDomicile,
+            associate.typeIdentite,
+            associate.numeroIdentite,
+            associate.dateDelivranceId,
+            associate.dateValiditeId,
+            associate.lieuDelivranceId
           ];
           await connection.execute(
-            'INSERT INTO associates (company_id, name, parts, percentage) VALUES (?, ?, ?, ?)',
+            `INSERT INTO associates 
+            (company_id, name, parts, percentage, profession, nationalite, date_naissance, lieu_naissance, 
+             adresse, type_identite, numero_identite, date_delivrance_id, date_validite_id, lieu_delivrance_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             cleanParams(associateParams)
           );
         }
@@ -144,9 +157,12 @@ class Company {
 
     const company = companies[0];
 
-    // Récupérer les associés
+    // Récupérer les associés avec tous les détails
     const associates = await query(
-      'SELECT id, name, parts, percentage FROM associates WHERE company_id = ?',
+      `SELECT id, name, parts, percentage, profession, nationalite, 
+       date_naissance, lieu_naissance, adresse, type_identite, numero_identite,
+       date_delivrance_id, date_validite_id, lieu_delivrance_id 
+       FROM associates WHERE company_id = ?`,
       [id]
     );
 
