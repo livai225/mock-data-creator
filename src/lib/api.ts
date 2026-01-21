@@ -38,6 +38,16 @@ export type PricingSetting = {
   companyTypePrices: Record<string, number>;
 };
 
+// Fonction pour gérer la déconnexion automatique en cas de token expiré
+const handleTokenExpired = () => {
+  console.warn('🔐 Token expiré - Déconnexion automatique');
+  localStorage.removeItem('arch_excellence_token');
+  // Rediriger vers la page de login
+  if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+    window.location.href = '/login?expired=true';
+  }
+};
+
 export async function apiRequest<T>(
   path: string,
   options: RequestInit & { token?: string } = {},
@@ -60,6 +70,12 @@ export async function apiRequest<T>(
   if (!res.ok) {
     const message = json?.message ?? `HTTP ${res.status}`;
     console.error(`❌ API Error ${res.status}:`, message, json);
+    
+    // Si erreur 401 (token invalide/expiré), déconnecter automatiquement
+    if (res.status === 401 && token) {
+      handleTokenExpired();
+    }
+    
     throw new Error(message);
   }
 
@@ -84,6 +100,12 @@ export async function apiRequestBlob(
   if (!res.ok) {
     const json = (await res.json().catch(() => null)) as any;
     const message = json?.message ?? `HTTP ${res.status}`;
+    
+    // Si erreur 401 (token invalide/expiré), déconnecter automatiquement
+    if (res.status === 401 && token) {
+      handleTokenExpired();
+    }
+    
     throw new Error(message);
   }
 

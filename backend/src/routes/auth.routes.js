@@ -9,7 +9,8 @@ import {
   getMe,
   updateProfile,
   changePassword,
-  updatePreferences
+  updatePreferences,
+  refreshToken
 } from '../controllers/auth.controller.js';
 
 const router = express.Router();
@@ -56,5 +57,6 @@ router.get('/me', protect, getMe);
 router.put('/profile', protect, profileValidation, validate, updateProfile);
 router.put('/change-password', protect, changePasswordValidation, validate, changePassword);
 router.put('/preferences', protect, updatePreferences);
+router.post('/refresh', protect, refreshToken);
 
 export default router;

@@ -2,10 +2,10 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { AppError } from '../middleware/errorHandler.js';
 
-// Générer un token JWT
+// Générer un token JWT (30 jours par défaut)
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d'
+    expiresIn: process.env.JWT_EXPIRE || '30d'
   });
 };
 
@@ -217,6 +217,37 @@ export const updatePreferences = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Préférences mises à jour avec succès'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Rafraîchir le token JWT
+// @route   POST /api/auth/refresh
+// @access  Private
+export const refreshToken = async (req, res, next) => {
+  try {
+    // L'utilisateur est déjà authentifié via le middleware protect
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return next(new AppError('Utilisateur non trouvé', 404));
+    }
+
+    if (!user.is_active) {
+      return next(new AppError('Votre compte a été désactivé', 403));
+    }
+
+    // Générer un nouveau token
+    const token = generateToken(user.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Token rafraîchi avec succès',
+      data: {
+        token
+      }
     });
   } catch (error) {
     next(error);
