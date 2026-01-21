@@ -25,7 +25,22 @@ class Company {
         chiffreAffairesPrev,
         managers = [], // New array of managers
         declarant = {}, // Informations du déclarant
-        projections = {} // Projections sur 3 ans
+        projections = {}, // Projections sur 3 ans
+        // Champs de localisation
+        commune,
+        quartier,
+        lot,
+        ilot,
+        nomImmeuble,
+        numeroEtage,
+        numeroPorte,
+        section,
+        parcelle,
+        tfNumero,
+        fax,
+        adressePostale,
+        telephone,
+        email
       } = companyData;
 
       // Insérer l'entreprise
@@ -53,7 +68,22 @@ class Company {
         projections.investissementAnnee3,
         projections.emploisAnnee1,
         projections.emploisAnnee2,
-        projections.emploisAnnee3
+        projections.emploisAnnee3,
+        // Champs de localisation
+        commune,
+        quartier,
+        lot,
+        ilot,
+        nomImmeuble,
+        numeroEtage,
+        numeroPorte,
+        section,
+        parcelle,
+        tfNumero,
+        fax,
+        adressePostale,
+        telephone,
+        email
       ];
       
       // Nettoyer tous les paramètres pour s'assurer qu'aucun undefined ne passe
@@ -63,8 +93,9 @@ class Company {
         `INSERT INTO companies 
         (user_id, company_type, company_name, activity, capital, address, city, gerant, payment_amount, chiffre_affaires_prev, 
          declarant_nom, declarant_qualite, declarant_adresse, declarant_telephone, declarant_fax, declarant_mobile, declarant_email,
-         investissement_annee1, investissement_annee2, investissement_annee3, emplois_annee1, emplois_annee2, emplois_annee3, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
+         investissement_annee1, investissement_annee2, investissement_annee3, emplois_annee1, emplois_annee2, emplois_annee3,
+         commune, quartier, lot, ilot, nom_immeuble, numero_etage, numero_porte, section, parcelle, tf_numero, fax, adresse_postale, telephone, email, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
         cleanParamsArray
       );
 

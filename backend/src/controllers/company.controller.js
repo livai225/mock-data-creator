@@ -26,7 +26,22 @@ export const createCompany = async (req, res, next) => {
       chiffreAffairesPrev,
       paymentAmount,
       declarant,
-      projections
+      projections,
+      // Champs de localisation
+      commune,
+      quartier,
+      lot,
+      ilot,
+      nomImmeuble,
+      numeroEtage,
+      numeroPorte,
+      section,
+      parcelle,
+      tfNumero,
+      fax,
+      adressePostale,
+      telephone,
+      email
     } = req.body;
 
     const companyData = {
@@ -42,7 +57,22 @@ export const createCompany = async (req, res, next) => {
       managers: managers || [],
       paymentAmount,
       declarant: declarant || {},
-      projections: projections || {}
+      projections: projections || {},
+      // Champs de localisation
+      commune,
+      quartier,
+      lot,
+      ilot,
+      nomImmeuble,
+      numeroEtage,
+      numeroPorte,
+      section,
+      parcelle,
+      tfNumero,
+      fax,
+      adressePostale,
+      telephone,
+      email
     };
 
     const companyId = await Company.create(companyData, associates || []);

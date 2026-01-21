@@ -1,0 +1,18 @@
+-- Migration: Ajouter les champs lot et ilot à la table companies
+-- Date: 2026-01-21
+
+-- Ajouter le champ lot
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS lot VARCHAR(50) DEFAULT NULL;
+
+-- Ajouter le champ ilot
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS ilot VARCHAR(50) DEFAULT NULL;
+
+-- Ajouter les autres champs de localisation manquants
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS nom_immeuble VARCHAR(100) DEFAULT NULL;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS numero_etage VARCHAR(20) DEFAULT NULL;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS numero_porte VARCHAR(20) DEFAULT NULL;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS section VARCHAR(50) DEFAULT NULL;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS parcelle VARCHAR(50) DEFAULT NULL;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS tf_numero VARCHAR(50) DEFAULT NULL;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS fax VARCHAR(30) DEFAULT NULL;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS adresse_postale VARCHAR(100) DEFAULT NULL;
