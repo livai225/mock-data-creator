@@ -1205,21 +1205,23 @@ Activités secondaires : ${company.activite_secondaire || ''}
 Chiffre d'affaires prévisionnel : ${company.chiffre_affaires_prev || '[CA PREV]'} FCFA
 
 
-IV- LOCALISATION DU SIÈGE SOCIAL
+IV- LOCALISATION DU SIÈGE SOCIAL / DE LA SUCCURSALE
 
-Ville : ${company.city || 'ABIDJAN'}
+Ville : ${company.city || 'ABIDJAN'}      Commune : ${company.commune || ''}      Quartier : ${company.quartier || ''}
 
-Commune : ${company.commune || '[COMMUNE]'}
+Rue : ${company.address || '[RUE]'}      Lot n° : ${company.lot || ''}      Ilot n° : ${company.ilot || ''}
 
-Quartier : ${company.quartier || '[QUARTIER]'}
+Nom immeuble : ${company.nomImmeuble || ''}      Numéro étage : ${company.numeroEtage || ''}      Numéro porte : ${company.numeroPorte || ''}
 
-Rue : ${company.address || '[RUE]'}
+Section : ${company.section || ''}      Parcelle : ${company.parcelle || ''}
 
-Lot n° : ${company.lot || ''}      Ilot n° : ${company.ilot || ''}
+TF n° : ${company.tfNumero || ''}
 
-Téléphone : ${company.telephone || '[TELEPHONE]'}
+Tél. : ${company.telephone || ''}
 
-E-mail : ${company.email || '[EMAIL]'}
+Fax : ${company.fax || ''}
+
+Adresse postale : ${company.adressePostale || ''}      Email : ${company.email || ''}
 
 
 V- INFORMATIONS SUR LES DIRIGEANTS
