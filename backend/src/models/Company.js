@@ -188,6 +188,24 @@ class Company {
 
     const company = companies[0];
 
+    // Normaliser les champs de localisation (DB en snake_case vs templates en camelCase)
+    // Ne pas écraser si déjà présents.
+    if (company.nomImmeuble === undefined && company.nom_immeuble !== undefined) {
+      company.nomImmeuble = company.nom_immeuble;
+    }
+    if (company.numeroEtage === undefined && company.numero_etage !== undefined) {
+      company.numeroEtage = company.numero_etage;
+    }
+    if (company.numeroPorte === undefined && company.numero_porte !== undefined) {
+      company.numeroPorte = company.numero_porte;
+    }
+    if (company.tfNumero === undefined && company.tf_numero !== undefined) {
+      company.tfNumero = company.tf_numero;
+    }
+    if (company.adressePostale === undefined && company.adresse_postale !== undefined) {
+      company.adressePostale = company.adresse_postale;
+    }
+
     // Récupérer les associés avec tous les détails
     const associates = await query(
       `SELECT id, name, parts, percentage, profession, nationalite, 
