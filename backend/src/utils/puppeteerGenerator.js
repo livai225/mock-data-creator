@@ -419,6 +419,9 @@ const generateStatutsHTML = (company, associates, managers) => {
   // Construire l'objet social
   const objetSocial = company.activity || '[OBJET SOCIAL]';
   
+  // Récupérer le nom de la banque
+  const banque = company.banque || '[NOM DE LA BANQUE]';
+  
   // Construire l'adresse complète
   const adresseComplete = `${(company.address || '[ADRESSE]').toUpperCase()}${company.commune ? ' COMMUNE DE ' + company.commune.toUpperCase() : ''}${company.quartier ? ', ' + company.quartier.toUpperCase() : ''}, ${(company.city || 'ABIDJAN').toUpperCase()}${company.lot ? ' LOT ' + company.lot : ''}${company.ilot ? ', ILOT ' + company.ilot : ''}`;
   
@@ -1761,8 +1764,8 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
   // Récupérer les champs de localisation - vérifier plusieurs sources (camelCase et snake_case)
   const commune = additionalData.commune || company.commune || '';
   const quartier = additionalData.quartier || company.quartier || '';
-  const lot = additionalData.lot || company.lot || '';
-  const ilot = additionalData.ilot || company.ilot || '';
+  const lotNumero = additionalData.lot || company.lot || '';
+  const ilotNumero = additionalData.ilot || company.ilot || '';
   const nomImmeuble = additionalData.nomImmeuble || additionalData.nom_immeuble || company.nomImmeuble || company.nom_immeuble || '';
   const numeroEtage = additionalData.numeroEtage || additionalData.numero_etage || company.numeroEtage || company.numero_etage || '';
   const numeroPorte = additionalData.numeroPorte || additionalData.numero_porte || company.numeroPorte || company.numero_porte || '';
