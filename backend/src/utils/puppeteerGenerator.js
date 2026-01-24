@@ -1189,7 +1189,14 @@ const generateDeclarationHonneurHTML = (company, managers) => {
   const gerantFonction = 'Gérant'; // Fonction dans la société
   const societeNom = company.company_name || '[NOM SOCIÉTÉ]';
   const societeForme = company.company_type === 'SARLU' ? 'SARL U' : 'SARL';
-  const societeSiege = company.address ? `${company.address}, ${company.city || 'Abidjan'}` : '[SIÈGE]';
+  // Construire l'adresse du siège avec lot/ilot si disponibles
+  const lotNumero = company.lot || '';
+  const ilotNumero = company.ilot || '';
+  let siegeParts = [company.address || '[ADRESSE]'];
+  if (lotNumero) siegeParts.push(`Lot ${lotNumero}`);
+  if (ilotNumero) siegeParts.push(`Îlot ${ilotNumero}`);
+  siegeParts.push(company.city || 'Abidjan');
+  const societeSiege = siegeParts.join(', ');
   const dateActuelle = formatDate(new Date().toISOString());
   const lieu = company.city || 'Abidjan';
 
