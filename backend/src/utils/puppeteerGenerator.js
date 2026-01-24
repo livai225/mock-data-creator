@@ -1293,7 +1293,7 @@ const generateDeclarationHonneurHTML = (company, managers) => {
 /**
  * Template HTML: DSV - Format officiel avec page de garde (sans couleurs)
  */
-const generateDSVHTML = (company, associates, managers) => {
+const generateDSVHTML = (company, associates, managers, additionalData = {}) => {
   const capital = parseFloat(company.capital) || 0;
   const capitalWords = numberToWords(Math.floor(capital));
   
@@ -1307,8 +1307,17 @@ const generateDSVHTML = (company, associates, managers) => {
   const dateActuelle = formatDate(new Date().toISOString());
   const annee = new Date().getFullYear();
   const sigle = company.sigle || '';
-  const banque = company.banque || '[NOM DE LA BANQUE]';
+  const banque = company.banque || additionalData.banque || additionalData.bank || '[NOM DE LA BANQUE]';
   const dureeSociete = company.duree_societe || company.dureeSociete || 99;
+  const lotNumero = additionalData.lot || company.lot || '';
+  const ilotNumero = additionalData.ilot || company.ilot || '';
+  const siegeAdresseParts = [
+    escapeHtml(company.address || '[ADRESSE]'),
+    lotNumero ? `LOT ${escapeHtml(lotNumero)}` : '',
+    ilotNumero ? `ILOT ${escapeHtml(ilotNumero)}` : '',
+    escapeHtml(company.city || 'Abidjan')
+  ].filter(Boolean);
+  const siegeAdresse = siegeAdresseParts.join(', ');
   
   // Récupérer les infos du gérant
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
@@ -1585,7 +1594,7 @@ const generateDSVHTML = (company, associates, managers) => {
           <p style="margin-left: 20px;">- la prise de participation dans toute société existante ou devant être créée</p>
           <p style="margin-left: 20px;">- et généralement, toute opérations financières, commerciales, industrielles, mobilières et immobilière, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.</p>
           
-          <p style="margin: 15px 0;"><strong>4 - SIÈGE SOCIAL :</strong> Le siège social est fixé à : ${escapeHtml(company.address || '[ADRESSE]')}, ${escapeHtml(company.city || 'Abidjan')}</p>
+          <p style="margin: 15px 0;"><strong>4 - SIÈGE SOCIAL :</strong> Le siège social est fixé à : ${siegeAdresse}</p>
           
           <p style="margin: 15px 0;"><strong>5 - DURÉE :</strong> La durée de la société est de ${numberToWords(dureeSociete)} (${dureeSociete}) années, sauf dissolution anticipée ou prorogation.</p>
           
@@ -2094,9 +2103,9 @@ const htmlGenerators = {
   'Liste des gérants': (company, associates, managers, additionalData) => generateListeGerantsHTML(company, managers, additionalData),
   "Déclaration sur l'honneur (greffe)": (company, associates, managers, additionalData) => generateDeclarationHonneurHTML(company, managers),
   "Déclaration sur l'honneur": (company, associates, managers, additionalData) => generateDeclarationHonneurHTML(company, managers),
-  'Déclaration de Souscription et Versement (DSV)': (company, associates, managers, additionalData) => generateDSVHTML(company, associates, managers),
-  'DSV': (company, associates, managers, additionalData) => generateDSVHTML(company, associates, managers),
-  'Déclaration Souscription/Versement': (company, associates, managers, additionalData) => generateDSVHTML(company, associates, managers),
+  'Déclaration de Souscription et Versement (DSV)': (company, associates, managers, additionalData) => generateDSVHTML(company, associates, managers, additionalData),
+  'DSV': (company, associates, managers, additionalData) => generateDSVHTML(company, associates, managers, additionalData),
+  'Déclaration Souscription/Versement': (company, associates, managers, additionalData) => generateDSVHTML(company, associates, managers, additionalData),
 };
 
 /**

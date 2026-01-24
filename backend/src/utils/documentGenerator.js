@@ -601,7 +601,7 @@ export const generateDocument = async (docName, company, associates = [], manage
       content = generateContratBail(company, additionalData);
     } else if (docName.includes('DSV') || docName.includes('Souscription')) {
       console.log(`   📝 Utilisation: generateDSV`);
-      content = generateDSV(company, associates);
+      content = generateDSV(company, associates, additionalData);
     } else if (docName.includes('Gérant') || docName.includes('gérant') || docName.includes('dirigeant')) {
       console.log(`   📝 Utilisation: generateListeGerants`);
       content = generateListeGerants(company, managers);

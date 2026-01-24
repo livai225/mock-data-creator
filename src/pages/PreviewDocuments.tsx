@@ -354,7 +354,10 @@ export default function PreviewDocuments() {
           gerant: payload.gerant || (formData.associeNom ? `${formData.associeNom} ${formData.associePrenoms}` : ''),
           duree_societe: formData.dureeAnnees || 99,
           chiffre_affaires_prev: payload.chiffreAffairesPrev || formData.chiffreAffairesPrev || null,
-          company_type: payload.companyType || companyType
+          company_type: payload.companyType || companyType,
+          banque: payload.banque || formData.banque,
+          lot: payload.lot || formData.lot,
+          ilot: payload.ilot || formData.ilot
         };
 
         // Préparer les associés
@@ -505,7 +508,12 @@ export default function PreviewDocuments() {
       await generateDocumentsApi(token!, { 
         companyId: newCompanyId,
         docs,
-        formats: ['pdf', 'docx'] // Générer les deux formats
+        formats: ['pdf', 'docx'], // Générer les deux formats
+        additionalData: {
+          banque: payload.banque,
+          lot: payload.lot,
+          ilot: payload.ilot
+        }
       });
       
       setDocumentsGenerated(true);

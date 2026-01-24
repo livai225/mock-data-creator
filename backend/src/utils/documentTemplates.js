@@ -754,7 +754,7 @@ _____________________                          _____________________
 /**
  * Template: Déclaration Souscription/Versement (DSV)
  */
-export const generateDSV = (company, associates) => {
+export const generateDSV = (company, associates, additionalData = {}) => {
   const capital = parseFloat(company.capital) || 0;
   const capitalWords = numberToWords(Math.floor(capital));
   const dateSignature = formatDate(new Date().toISOString());
@@ -762,6 +762,16 @@ export const generateDSV = (company, associates) => {
   const dateJour = dateParts[0] || '';
   const annee = new Date().getFullYear();
   const anneeWords = numberToWords(annee);
+  const banque = company.banque || additionalData.banque || '[NOM BANQUE]';
+  const lotNumero = additionalData.lot || company.lot || '';
+  const ilotNumero = additionalData.ilot || company.ilot || '';
+  const siegeAdresseParts = [
+    company.address || '[ADRESSE]',
+    lotNumero ? `LOT ${lotNumero}` : '',
+    ilotNumero ? `ILOT ${ilotNumero}` : '',
+    company.city || 'Abidjan'
+  ].filter(Boolean);
+  const siegeAdresse = siegeAdresseParts.join(', ');
   
   // Calculer le nombre de parts et la valeur nominale
   const totalParts = associates && associates.length > 0 
@@ -894,7 +904,7 @@ ${objetSocialComplet}
 
 4- SIEGE SOCIAL
 
-Le siège social est fixé à : ${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}
+Le siège social est fixé à : ${siegeAdresse}
 
 5- DUREE
 
@@ -930,7 +940,7 @@ ${totalSouscrit.toLocaleString('fr-FR')} CFA
 
 ${totalVerse.toLocaleString('fr-FR')} CFA
 
-La somme correspondante à l'ensemble des souscriptions et versements effectué à ce jour, de ${numberToWords(Math.floor(totalVerse)).toLowerCase()} (${totalVerse.toLocaleString('fr-FR')} FCFA) a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à [NOM BANQUE]
+La somme correspondante à l'ensemble des souscriptions et versements effectué à ce jour, de ${numberToWords(Math.floor(totalVerse)).toLowerCase()} (${totalVerse.toLocaleString('fr-FR')} FCFA) a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${banque}
 
 En Foi de quoi, ils ont dressé la présente, pour servir et valoir ce que de droit
 

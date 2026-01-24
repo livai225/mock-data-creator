@@ -142,6 +142,7 @@ export async function previewDocumentsApi(
     docs: string[];
     formats?: ('pdf' | 'docx')[];
     additionalData?: any;
+    additionalData?: any;
   }
 ) {
   return apiRequest<ApiResult<Array<{ docName: string; pdf?: { data: string; mimeType: string; fileName: string }; error?: string }>>>(

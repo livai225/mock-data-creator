@@ -105,6 +105,9 @@ const replacePlaceholders = (template, company, associates, managers, additional
   result = result.replace(/\[QUARTIER\]/g, additionalData.quartier || company.quartier || '[QUARTIER]');
   result = result.replace(/\[LOT\]/g, additionalData.lot || company.lot || '[LOT]');
   result = result.replace(/\[ILOT\]/g, additionalData.ilot || company.ilot || '[ILOT]');
+  result = result.replace(/\[NOM DE LA BANQUE\]/g, additionalData.banque || company.banque || '[NOM DE LA BANQUE]');
+  result = result.replace(/\[NOM_BANQUE\]/g, additionalData.banque || company.banque || '[NOM DE LA BANQUE]');
+  result = result.replace(/\[BANQUE\]/g, additionalData.banque || company.banque || '[NOM DE LA BANQUE]');
   
   // Gérant
   if (managers && managers.length > 0) {

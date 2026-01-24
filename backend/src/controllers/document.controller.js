@@ -177,6 +177,10 @@ export const generateDocuments = async (req, res, next) => {
     }
     
     // Ajouter les détails de l'adresse si fournis
+    if (req.body.banque) {
+      additionalData.banque = req.body.banque;
+      company.banque = req.body.banque;
+    }
     if (req.body.commune) {
       additionalData.commune = req.body.commune;
       company.commune = req.body.commune;
@@ -232,6 +236,15 @@ export const generateDocuments = async (req, res, next) => {
     if (req.body.email) {
       additionalData.email = req.body.email;
       company.email = req.body.email;
+    }
+    if (additionalData.banque && !company.banque) {
+      company.banque = additionalData.banque;
+    }
+    if (additionalData.lot && !company.lot) {
+      company.lot = additionalData.lot;
+    }
+    if (additionalData.ilot && !company.ilot) {
+      company.ilot = additionalData.ilot;
     }
     
     // Ajouter les données du déclarant si fournies
