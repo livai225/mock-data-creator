@@ -2013,13 +2013,13 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
         <!-- III- LOCALISATION -->
         <p class="section-title">III- LOCALISATION DU SIÈGE SOCIAL / DE LA SUCCURSALE</p>
         
-        <div class="form-line">Ville : … <strong>${escapeHtml(company.city || 'ABIDJAN')}</strong>…… Commune : … <strong>${escapeHtml(commune)}</strong>…… Quartier : …… <strong>${escapeHtml(quartier)}</strong></div>
-        <div class="form-line">Rue : …… <strong>${escapeHtml(company.address || '')}</strong>…… Lot n° : … <strong>${escapeHtml(lotNumero)}</strong>…… Ilot n° : …… <strong>${escapeHtml(ilotNumero)}</strong>……</div>
-        <div class="form-line">Nom immeuble : …… <strong>${escapeHtml(nomImmeuble)}</strong>…… Numéro étage : …… <strong>${escapeHtml(numeroEtage)}</strong>…… Numéro porte : …… <strong>${escapeHtml(numeroPorte)}</strong>……</div>
-        <div class="form-line">Section : …… <strong>${escapeHtml(section)}</strong>…… Parcelle : …… <strong>${escapeHtml(parcelle)}</strong>……</div>
-        <div class="form-line">TF n° : …… <strong>${escapeHtml(tfNumero)}</strong>…… Tél. : <strong>${escapeHtml(company.telephone || '')}</strong> ………</div>
-        <div class="form-line">Fax : …… <strong>${escapeHtml(fax)}</strong>……</div>
-        <div class="form-line">Adresse postale : …… <strong>${escapeHtml(adressePostale)}</strong>…… Email : …… <strong>${escapeHtml(company.email || '')}</strong>……</div>
+        <div class="form-line">Ville : ……<strong>${escapeHtml(company.city || 'ABIDJAN')}</strong>…… Commune : ……<strong>${escapeHtml(commune)}</strong>…… Quartier : ……<strong>${escapeHtml(quartier)}</strong>……</div>
+        <div class="form-line">Rue : ……<strong>${escapeHtml(company.address || '')}</strong>…… Lot n° : ……<strong>${escapeHtml(lotNumero)}</strong>…… Ilot n° : ……<strong>${escapeHtml(ilotNumero)}</strong>……</div>
+        <div class="form-line">Nom immeuble : ……<strong>${escapeHtml(nomImmeuble)}</strong>…… Numéro étage : ……<strong>${escapeHtml(numeroEtage)}</strong>…… Numéro porte : ……<strong>${escapeHtml(numeroPorte)}</strong>……</div>
+        <div class="form-line">Section : ……<strong>${escapeHtml(section)}</strong>…… Parcelle : ……<strong>${escapeHtml(parcelle)}</strong>……</div>
+        <div class="form-line">TF n° : ……<strong>${escapeHtml(tfNumero)}</strong>…… Tél. : ……<strong>${escapeHtml(company.telephone || '')}</strong>……</div>
+        <div class="form-line">Fax : ……<strong>${escapeHtml(fax)}</strong>……</div>
+        <div class="form-line">Adresse postale : ……<strong>${escapeHtml(adressePostale)}</strong>…… Email : ……<strong>${escapeHtml(company.email || '')}</strong>……</div>
         
         <!-- PAGE 3 - DIRIGEANTS -->
         <div class="page-break"></div>
@@ -2047,18 +2047,20 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
           <p style="margin-top: 20px;">À Abidjan, le ${dateActuelle}</p>
         </div>
         
-        <table class="signature-table">
-          <tr>
-            <td>
-              <p><u>Le Déclarant</u></p>
-              <p style="margin-top: 50px;">………………………………</p>
-            </td>
-            <td>
-              <p><u>Le Gérant</u></p>
-              <p style="margin-top: 50px;">………………………………</p>
-            </td>
-          </tr>
-        </table>
+        <div style="border: 1px solid #000; padding: 20px; margin-top: 30px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="width: 50%; text-align: center; padding: 20px; vertical-align: top;">
+                <p style="text-decoration: underline; margin-bottom: 60px;">Le Déclarant</p>
+                <p>………………………………</p>
+              </td>
+              <td style="width: 50%; text-align: center; padding: 20px; vertical-align: top;">
+                <p style="text-decoration: underline; margin-bottom: 60px;">Le Gérant</p>
+                <p>………………………………</p>
+              </td>
+            </tr>
+          </table>
+        </div>
         
       </div>
     </body>
