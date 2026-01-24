@@ -510,46 +510,107 @@ const generateStatutsHTML = (company, associates, managers) => {
     <html lang="fr">
     <head>
       <meta charset="UTF-8">
-      <style>${getCommonStyles()}</style>
+      <style>
+        ${getCommonStyles()}
+        
+        /* Styles spécifiques pour Statuts SARL */
+        .statuts-cover {
+          text-align: center;
+          padding-top: 150px;
+        }
+        .statuts-cover h1 {
+          font-size: 28px;
+          font-weight: bold;
+          margin-bottom: 50px;
+        }
+        .statuts-cover .company-name {
+          font-size: 24px;
+          font-weight: bold;
+          color: #c00000;
+          margin-bottom: 30px;
+        }
+        .statuts-cover .capital {
+          font-size: 20px;
+          font-weight: bold;
+          color: #c00000;
+        }
+        .ohada-box {
+          border: 1px solid #000;
+          padding: 15px 20px;
+          margin: 40px auto;
+          max-width: 85%;
+          text-align: center;
+          font-size: 11pt;
+        }
+        .ohada-box p {
+          margin: 5px 0;
+        }
+        .ohada-box .title-underline {
+          font-weight: bold;
+          text-decoration: underline;
+          margin: 15px 0;
+        }
+        .nb-section {
+          text-align: left;
+          margin: 30px 20px;
+          font-size: 10pt;
+        }
+        .nb-section .nb-title {
+          text-decoration: underline;
+          margin-bottom: 10px;
+        }
+        .nb-section p.italic {
+          font-style: italic;
+          margin-bottom: 10px;
+        }
+        .nb-section ol {
+          margin-left: 30px;
+        }
+        .nb-section ol li {
+          margin-bottom: 5px;
+        }
+      </style>
     </head>
     <body>
       <div class="document">
-        <!-- PAGE 1 : PAGE DE GARDE -->
-        <div class="cover-box">
+        <!-- PAGE 1 : PAGE DE COUVERTURE -->
+        <div class="statuts-cover">
+          <h1>STATUTS DE LA SOCIETE</h1>
+          <p class="company-name">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())} SARL »</p>
+          <p class="capital">AU CAPITAL DE ${capital.toLocaleString('fr-FR').replace(/\s/g, '.')} FCFA</p>
+        </div>
+        
+        <!-- PAGE 2 : INFORMATIONS OHADA -->
+        <div class="page-break"></div>
+        
+        <div class="ohada-box">
           <p>Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur</p>
           <p>de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au</p>
           <p>Droit des Sociétés commerciales et du Groupement d'Intérêt Économique</p>
-          <p class="title">STATUT TYPE SOUS SEING PRIVÉ</p>
+          <p class="title-underline">STATUT TYPE SOUS SEING PRIVE</p>
           <p>Cas d'une Société à Responsabilité Limitée comportant plusieurs</p>
           <p>associés et constituée exclusivement par apports en numéraire</p>
         </div>
         
         <div class="nb-section">
           <p class="nb-title"><u>N.B : Indications d'utilisation</u></p>
-          <p style="font-style: italic; margin-bottom: 10px;">Ce cas de figure courant a été conçu pour faciliter et encadrer le processus de création d'entreprise pour une meilleure sécurisation des opérateurs économiques.</p>
+          <p class="italic">Ce cas de figure courant a été conçu pour faciliter et encadrer le processus de création d'entreprise pour une meilleure sécurisation des opérateurs économiques.</p>
           <ol>
             <li>les espaces en pointillé sont des champs à remplir et à adapter à partir des informations décrites dans les parenthèses qui suivent ;</li>
             <li>établir les statuts en nombre suffisant pour la remise d'un exemplaire original à chaque associé, le dépôt d'un exemplaire au siège social, et l'accomplissement des formalités de constitution.</li>
           </ol>
         </div>
         
-        <div class="type-societe">
-          <p>SARL ${isUnipersonnelle ? 'unipersonnelle' : 'pluripersonnelle'} constituée exclusivement</p>
-          <p>Par apports en numéraire</p>
-        </div>
-        
-        <div class="page-number">1</div>
-        
-        <!-- PAGE 2 : STATUTS -->
+        <!-- PAGE 3 : STATUTS -->
         <div class="page-break"></div>
         
-        <div class="main-header">
-          <h1>STATUTS DE LA SOCIÉTÉ A RESPONSABILITÉ LIMITÉE DÉNOMMÉE</h1>
-          <p class="company-name">«${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')}${company.sigle ? ' ' + company.sigle : ''} SARL»</p>
-          <p class="capital-info">Au capital de ${capital.toLocaleString('fr-FR')} FCFA, située à ${adresseComplete}</p>
+        <div class="main-header" style="text-align: center; margin-bottom: 30px;">
+          <h1 style="font-size: 14pt; font-weight: bold;">STATUTS DE LA SOCIÉTÉ A RESPONSABILITÉ LIMITÉE DÉNOMMÉE</h1>
+          <p style="font-size: 14pt; font-weight: bold; margin: 15px 0;">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ' ' + company.sigle : ''} SARL»</p>
+          <p style="font-size: 11pt;">Au capital de ${capital.toLocaleString('fr-FR')} FCFA, située à ${adresseComplete}</p>
         </div>
         
-        <div class="date-section">
+        <div style="margin-bottom: 20px;">
           <p>L'An Deux Mil ${numberToWords(annee % 100).charAt(0).toUpperCase() + numberToWords(annee % 100).slice(1)},</p>
           <p>Le ${dateActuelle}</p>
         </div>
@@ -1201,37 +1262,13 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
 const generateDeclarationHonneurHTML = (company, managers) => {
   const gerant = managers && managers.length > 0 ? managers[0] : null;
   
-  // Debug: Afficher les données du gérant
-  if (gerant) {
-    console.log('🔍 [Déclaration Honneur] Données gérant:', {
-      nom: gerant.nom,
-      prenoms: gerant.prenoms,
-      nationalite: gerant.nationalite,
-      lieu_naissance: gerant.lieu_naissance,
-      lieuNaissance: gerant.lieuNaissance,
-      adresse: gerant.adresse,
-      profession: gerant.profession,
-      date_naissance: gerant.date_naissance
-    });
-  }
-  
-  const gerantNomComplet = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM]';
+  const gerantNom = gerant?.nom || '[NOM]';
+  const gerantPrenoms = gerant?.prenoms || '[PRÉNOMS]';
+  const gerantPereNom = gerant?.pere_nom || gerant?.pereNom || '[NOM DU PÈRE]';
+  const gerantMereNom = gerant?.mere_nom || gerant?.mereNom || '[NOM DE LA MÈRE]';
   const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
   const gerantDateNaissance = gerant?.date_naissance || gerant?.dateNaissance ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
-  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
   const gerantDomicile = gerant?.adresse || gerant?.address || '[DOMICILE]';
-  const gerantProfession = gerant?.profession || '[PROFESSION]';
-  const gerantFonction = 'Gérant'; // Fonction dans la société
-  const societeNom = company.company_name || '[NOM SOCIÉTÉ]';
-  const societeForme = company.company_type === 'SARLU' ? 'SARL U' : 'SARL';
-  // Construire l'adresse du siège avec lot/ilot si disponibles
-  const lotNumero = company.lot || '';
-  const ilotNumero = company.ilot || '';
-  let siegeParts = [company.address || '[ADRESSE]'];
-  if (lotNumero) siegeParts.push(`Lot ${lotNumero}`);
-  if (ilotNumero) siegeParts.push(`Îlot ${ilotNumero}`);
-  siegeParts.push(company.city || 'Abidjan');
-  const societeSiege = siegeParts.join(', ');
   const dateActuelle = formatDate(new Date().toISOString());
   const lieu = company.city || 'Abidjan';
 
@@ -1240,92 +1277,89 @@ const generateDeclarationHonneurHTML = (company, managers) => {
     <html lang="fr">
     <head>
       <meta charset="UTF-8">
-      <style>${getCommonStyles()}</style>
+      <style>
+        ${getCommonStyles()}
+        
+        .declaration-title {
+          font-size: 18px;
+          font-weight: bold;
+          text-align: center;
+          text-decoration: underline;
+          margin: 40px 0 30px 0;
+        }
+        .declaration-subtitle {
+          font-size: 12px;
+          text-align: center;
+          margin-bottom: 40px;
+        }
+        .declaration-field {
+          font-size: 12px;
+          margin: 15px 0;
+          line-height: 1.6;
+        }
+        .declaration-field strong {
+          font-weight: bold;
+        }
+        .declaration-text {
+          font-size: 12px;
+          text-align: justify;
+          margin: 20px 0;
+          line-height: 1.6;
+        }
+        .declaration-footer {
+          font-size: 12px;
+          text-align: center;
+          margin-top: 50px;
+        }
+        .declaration-signature {
+          font-size: 12px;
+          text-align: right;
+          margin-top: 30px;
+        }
+      </style>
     </head>
     <body>
       <div class="document">
-        <p class="text-center mb-10">RÉPUBLIQUE DE CÔTE D'IVOIRE</p>
-        <p class="text-center mb-10">Union - Discipline - Travail</p>
+        <h1 class="declaration-title">DECLARATION SUR L'HONNEUR</h1>
         
-        <div class="separator"></div>
+        <p class="declaration-subtitle">(Article 47 de l'Acte Uniforme relatif au Droit commercial général adopté le 15 décembre 2010)</p>
         
-        <h1 class="main-title">DÉCLARATION SUR L'HONNEUR</h1>
+        <p class="declaration-field"><strong>NOM :</strong> ${escapeHtml(gerantNom.toUpperCase())}</p>
         
-        <div class="separator"></div>
+        <p class="declaration-field"><strong>PRENOMS :</strong> ${escapeHtml(gerantPrenoms.toUpperCase())}</p>
         
-        <p class="article-content mt-20">Je soussigné(e),</p>
+        <p class="declaration-field"><strong>DE :</strong> ${escapeHtml(gerantPereNom.toUpperCase())}</p>
         
-        <p class="article-content mt-10">
-          <strong>${escapeHtml(gerantNomComplet)}</strong>
+        <p class="declaration-field"><strong>Et DE :</strong> ${escapeHtml(gerantMereNom.toUpperCase())}</p>
+        
+        <p class="declaration-field"><strong>DATE DE NAISSANCE :</strong> ${gerantDateNaissance}</p>
+        
+        <p class="declaration-field"><strong>NATIONALITE :</strong> ${escapeHtml(gerantNationalite.toUpperCase())}</p>
+        
+        <p class="declaration-field"><strong>DOMICILE :</strong> ${escapeHtml(gerantDomicile.toUpperCase())}</p>
+        
+        <p class="declaration-field"><strong>QUALITE :</strong> GERANT</p>
+        
+        <p class="declaration-text">
+          Déclare, conformément à l'article 47 de l'Acte Uniforme relatif au Droit Commercial Général adopté le 15 décembre 2010, au titre du Registre de commerce et du Crédit Mobilier,
         </p>
         
-        <p class="article-content mt-10">
-          De nationalité ${escapeHtml(gerantNationalite)}
+        <p class="declaration-text">
+          N'avoir fait l'objet d'aucune condamnation pénale, ni de sanction professionnelle ou administrative de nature à m'interdire de gérer, administrer ou diriger une société ou l'exercice d'une activité commerciale.
         </p>
         
-        <p class="article-content mt-10">
-          Né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance)}
+        <p class="declaration-text">
+          M'engage dans un délai de 75 jours à compter de l'immatriculation à fournir mon casier judiciaire ou tout autre document en tenant lieu.
         </p>
         
-        <p class="article-content mt-10">
-          Domicilié(e) à ${escapeHtml(gerantDomicile)}
+        <p class="declaration-text">
+          Je prends acte de ce qu'à défaut de produire l'extrait du casier judiciaire ou tout document en tenant lieu dans le délai de soixante-quinze (75) jours, il sera procédé au retrait de mon immatriculation et à ma radiation.
         </p>
         
-        <p class="article-content mt-10">
-          De profession ${escapeHtml(gerantProfession)}
-        </p>
+        <p class="declaration-footer">Fait à ${escapeHtml(lieu)}, le ${dateActuelle}</p>
         
-        <p class="article-content mt-10">
-          Agissant en qualité de ${gerantFonction} de la société :
-        </p>
+        <p class="declaration-signature">Lu et approuvé</p>
         
-        <p class="article-content mt-10">
-          « ${escapeHtml(societeNom)} »
-        </p>
-        
-        <p class="article-content mt-10">
-          ${societeForme}
-        </p>
-        
-        <p class="article-content mt-10">
-          Siège social : ${escapeHtml(societeSiege)}
-        </p>
-        
-        <div class="separator"></div>
-        
-        <p class="article-content mt-20 text-bold">DÉCLARE SUR L'HONNEUR :</p>
-        
-        <p class="article-content mt-10">
-          1. N'avoir fait l'objet d'aucune condamnation pénale pour crime ou délit ;
-        </p>
-        
-        <p class="article-content mt-10">
-          2. N'avoir fait l'objet d'aucune mesure d'interdiction, de déchéance ou d'incapacité prévue par les textes en vigueur ;
-        </p>
-        
-        <p class="article-content mt-10">
-          3. Ne pas exercer de fonction incompatible avec l'exercice d'une activité commerciale ;
-        </p>
-        
-        <p class="article-content mt-10">
-          4. Que les informations fournies dans le cadre de cette déclaration sont exactes et sincères.
-        </p>
-        
-        <div class="separator"></div>
-        
-        <p class="article-content mt-20">
-          Je reconnais avoir été informé(e) des sanctions pénales encourues en cas de fausse déclaration.
-        </p>
-        
-        <p class="article-content mt-10">
-          Fait pour servir et valoir ce que de droit.
-        </p>
-        
-        <div class="signature-section">
-          <p class="mt-20">À ${escapeHtml(lieu)}, le ${dateActuelle}</p>
-          <p class="mt-20">Signature précédée de la mention « Lu et approuvé »</p>
-          <p class="text-center mt-20">_____________________</p>
-        </div>
       </div>
     </body>
     </html>
