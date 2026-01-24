@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -133,7 +132,6 @@ export default function AdminPayments() {
 
   if (!user || user.role !== 'admin') {
     return (
-      <Layout>
         <div className="container mx-auto py-8 px-4">
           <Card className="border-red-200">
             <CardHeader>
@@ -142,12 +140,10 @@ export default function AdminPayments() {
             </CardHeader>
           </Card>
         </div>
-      </Layout>
     );
   }
 
   return (
-    <Layout>
       <div className="container mx-auto py-8 px-4">
         <div className="mb-6">
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -393,6 +389,5 @@ export default function AdminPayments() {
           </DialogContent>
         </Dialog>
       </div>
-    </Layout>
   );
 }
