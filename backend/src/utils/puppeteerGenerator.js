@@ -625,7 +625,7 @@ const generateStatutsHTML = (company, associates, managers) => {
           </tfoot>
         </table>
         <p class="article-content">
-          Les apports en numéraire de ${capitalWords} de francs CFA (${capital.toLocaleString('fr-FR')} FCFA) correspondent à ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA entièrement souscrites et libérées intégralement. La somme correspondante a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${escapeHtml(company.banque || '[NOM BANQUE]')}.
+          Les apports en numéraire de ${capitalWords} de francs CFA (${capital.toLocaleString('fr-FR')} FCFA) correspondent à ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA entièrement souscrites et libérées intégralement. La somme correspondante a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${escapeHtml(banque)}.
         </p>
         
         <h3 class="article-title">ARTICLE 8 - CAPITAL SOCIAL</h3>
@@ -1319,6 +1319,18 @@ const generateDSVHTML = (company, associates, managers, additionalData = {}) => 
   ].filter(Boolean);
   const siegeAdresse = siegeAdresseParts.join(', ');
   
+  // Variables pour la localisation
+  const commune = additionalData.commune || company.commune || '';
+  const quartier = additionalData.quartier || company.quartier || '';
+  const nomImmeuble = additionalData.nomImmeuble || company.nomImmeuble || '';
+  const numeroEtage = additionalData.numeroEtage || company.numeroEtage || '';
+  const numeroPorte = additionalData.numeroPorte || company.numeroPorte || '';
+  const section = additionalData.section || company.section || '';
+  const parcelle = additionalData.parcelle || company.parcelle || '';
+  const tfNumero = additionalData.tfNumero || company.tfNumero || '';
+  const fax = additionalData.fax || company.fax || '';
+  const adressePostale = additionalData.adressePostale || company.adressePostale || '';
+  
   // Récupérer les infos du gérant
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   const gerantProfession = gerant?.profession || '[PROFESSION]';
@@ -2002,7 +2014,7 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
         <p class="section-title">III- LOCALISATION DU SIÈGE SOCIAL / DE LA SUCCURSALE</p>
         
         <div class="form-line">Ville : … <strong>${escapeHtml(company.city || 'ABIDJAN')}</strong>…… Commune : … <strong>${escapeHtml(commune)}</strong>…… Quartier : …… <strong>${escapeHtml(quartier)}</strong></div>
-        <div class="form-line">Rue : …… <strong>${escapeHtml(company.address || '')}</strong>…… Lot n° : … <strong>${escapeHtml(lot)}</strong>…… Ilot n° : …… <strong>${escapeHtml(ilot)}</strong>……</div>
+        <div class="form-line">Rue : …… <strong>${escapeHtml(company.address || '')}</strong>…… Lot n° : … <strong>${escapeHtml(lotNumero)}</strong>…… Ilot n° : …… <strong>${escapeHtml(ilotNumero)}</strong>……</div>
         <div class="form-line">Nom immeuble : …… <strong>${escapeHtml(nomImmeuble)}</strong>…… Numéro étage : …… <strong>${escapeHtml(numeroEtage)}</strong>…… Numéro porte : …… <strong>${escapeHtml(numeroPorte)}</strong>……</div>
         <div class="form-line">Section : …… <strong>${escapeHtml(section)}</strong>…… Parcelle : …… <strong>${escapeHtml(parcelle)}</strong>……</div>
         <div class="form-line">TF n° : …… <strong>${escapeHtml(tfNumero)}</strong>…… Tél. : <strong>${escapeHtml(company.telephone || '')}</strong> ………</div>
