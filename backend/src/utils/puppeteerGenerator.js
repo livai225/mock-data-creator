@@ -1104,17 +1104,15 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
   const lotNumero = additionalData.lot || company.lot || '';
   const ilotNumero = additionalData.ilot || company.ilot || '';
   
-  // Construire l'adresse complète avec lot et îlot si disponibles
-  let adresseComplete = company.address || '[ADRESSE]';
-  if (lotNumero || ilotNumero) {
-    const parts = [];
-    if (lotNumero) parts.push(`Lot ${lotNumero}`);
-    if (ilotNumero) parts.push(`Îlot ${ilotNumero}`);
-    adresseComplete = `${adresseComplete}${parts.length > 0 ? `, ${parts.join(', ')}` : ''}`;
-  }
+  // Construire l'adresse complète en majuscules avec commune, quartier, lot et îlot
+  const communeText = company.commune ? ` COMMUNE DE ${company.commune.toUpperCase()}` : '';
+  const quartierText = company.quartier ? ` ${company.quartier.toUpperCase()}` : '';
+  const lotText = lotNumero ? ` LOT ${lotNumero}` : '';
+  const ilotText = ilotNumero ? `, ILOT ${ilotNumero}` : '';
+  const adresseComplete = `${(company.city || 'ABIDJAN').toUpperCase()}${communeText}${quartierText}, ${(company.address || '[ADRESSE]').toUpperCase()}${lotText}${ilotText}`;
 
-  // Format selon le générateur : "Est nommé Gérant pour une durée de X ans (X ans)"
-  const dureeText = dureeMandatAnnees ? `${dureeMandatAnnees} ans (${dureeMandatAnnees} ans)` : dureeMandatText;
+  // Format selon le générateur : "quatre ans (4 ans)" en gras
+  const dureeTextGras = dureeMandatAnnees ? `<strong>${numberToWords(dureeMandatAnnees)} ans (${dureeMandatAnnees} ans)</strong>` : dureeMandatText;
   
   // Format selon le générateur : une seule ligne avec toutes les infos
   const gerantInfoLine = `M. ${escapeHtml(gerantNom)}, ${escapeHtml(gerantProfession)} résidant à ${escapeHtml(gerantAdresse)} de nationalité ${escapeHtml(gerantNationalite)}, né le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance)} et titulaire du ${gerantTypeId} N° ${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}`;
@@ -1124,36 +1122,70 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
     <html lang="fr">
     <head>
       <meta charset="UTF-8">
-      <style>${getCommonStyles()}</style>
+      <style>
+        ${getCommonStyles()}
+        .company-title {
+          font-size: 24px;
+          font-weight: bold;
+          text-align: center;
+          margin: 40px 0 30px 0;
+        }
+        .company-subtitle {
+          font-size: 14px;
+          font-weight: bold;
+          text-align: center;
+          margin: 0 20px 20px 20px;
+          line-height: 1.5;
+        }
+        .dashed-separator {
+          text-align: center;
+          margin: 20px 0;
+          letter-spacing: 2px;
+        }
+        .section-title-underlined {
+          font-size: 16px;
+          font-weight: bold;
+          text-align: center;
+          text-decoration: underline;
+          margin: 40px 0 30px 0;
+        }
+        .gerant-paragraph {
+          font-size: 14px;
+          text-align: justify;
+          margin: 20px 40px;
+          line-height: 1.6;
+        }
+        .signature-underlined {
+          font-size: 14px;
+          font-weight: bold;
+          text-align: center;
+          text-decoration: underline;
+          margin-top: 60px;
+        }
+      </style>
     </head>
     <body>
       <div class="document">
-        <p class="article-content">« ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} »</p>
+        <p class="company-title">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}»</p>
         
-        <p class="article-content mt-10">
-          Au capital de ${(company.capital || 0).toLocaleString('fr-FR')} FCFA, située à ${escapeHtml(adresseComplete)}
+        <p class="company-subtitle">
+          Au capital de ${(company.capital || 0).toLocaleString('fr-FR')} FCFA, située à ${adresseComplete}
         </p>
         
-        <div class="separator"></div>
+        <p class="dashed-separator">------------------------------------------------------------------------</p>
         
-        <h1 class="main-title">LISTE DE DIRIGEANT</h1>
+        <p class="section-title-underlined">LISTE DE DIRIGEANT</p>
         
-        <div class="separator"></div>
-        
-        <p class="article-content mt-20">
-          Est nommé Gérant pour une durée de ${dureeText}
+        <p class="gerant-paragraph">
+          Est nommé Gérant pour une durée de ${dureeTextGras}
         </p>
         
-        <p class="article-content mt-20">
-          ${gerantInfoLine}
+        <p class="gerant-paragraph">
+          <strong>M. ${escapeHtml(gerantNom.toUpperCase())},</strong> ${escapeHtml(gerantProfession)} résidant à ${escapeHtml(gerantAdresse.toUpperCase())} de nationalité ${escapeHtml(gerantNationalite)}, né le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance.toUpperCase())} et titulaire du ${gerantTypeId.toLowerCase()} N°${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}
         </p>
         
-        <div class="separator"></div>
+        <p class="signature-underlined">Signature</p>
         
-        <div class="signature-section">
-          <p class="text-center mt-20"><strong>Signature</strong></p>
-          <p class="text-center mt-20">_____________________</p>
-        </div>
       </div>
     </body>
     </html>
