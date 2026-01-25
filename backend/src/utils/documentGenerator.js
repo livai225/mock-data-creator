@@ -37,8 +37,7 @@ const safeFilePart = (value) => {
  * Convertir le contenu texte en document Word (.docx)
  */
 const generateWordDocument = async (content, templateName, outputPath) => {
-  const lines = content.split('
-');
+  const lines = content.split('\n');
   const paragraphs = [];
 
   lines.forEach((line) => {
