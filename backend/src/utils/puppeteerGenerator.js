@@ -1812,6 +1812,32 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
   console.log('🔍 [CEPICI] Projections:', { investAnnee1, investAnnee2, investAnnee3, emploisAnnee1, emploisAnnee2, emploisAnnee3 });
   console.log('🔍 [CEPICI] Declarant:', { declarantNom, declarantQualite, declarantAdresse });
 
+  // Construire la liste des associés/actionnaires pour la section V
+  let associesHTML = '';
+  if (associates && associates.length > 0) {
+    associates.forEach((associe, index) => {
+      const assocNom = `${associe.nom || ''} ${associe.prenoms || ''}`.trim();
+      const assocAdresse = associe.adresse || associe.address || '';
+      const assocNationalite = associe.nationalite || associe.nationality || '';
+      const assocDateNaissance = (associe.date_naissance || associe.dateNaissance) ? formatDate(associe.date_naissance || associe.dateNaissance) : '';
+      const assocLieuNaissance = associe.lieu_naissance || associe.lieuNaissance || '';
+      const assocProfession = associe.profession || '';
+      const parts = parseInt(associe.parts) || 0;
+      
+      associesHTML += `
+        <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc;">
+          <p><strong>ASSOCIÉ/ACTIONNAIRE ${index + 1}</strong></p>
+          <div class="form-line">Nom et Prénoms : <strong>${escapeHtml(assocNom.toUpperCase())}</strong></div>
+          <div class="form-line">Nationalité : <strong>${escapeHtml(assocNationalite)}</strong></div>
+          <div class="form-line">Date de naissance : <strong>${assocDateNaissance}</strong> Lieu : <strong>${escapeHtml(assocLieuNaissance.toUpperCase())}</strong></div>
+          <div class="form-line">Profession : <strong>${escapeHtml(assocProfession.toUpperCase())}</strong></div>
+          <div class="form-line">Adresse : <strong>${escapeHtml(assocAdresse.toUpperCase())}</strong></div>
+          <div class="form-line">Nombre de parts : <strong>${parts}</strong></div>
+        </div>
+      `;
+    });
+  }
+
   return `
     <!DOCTYPE html>
     <html lang="fr">
@@ -1838,19 +1864,9 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
           width: 30%;
         }
         
-        .header-center {
-          text-align: center;
-          width: 40%;
-        }
-        
         .header-right {
           text-align: center;
           width: 30%;
-        }
-        
-        .armoiries {
-          font-size: 9pt;
-          margin-bottom: 10px;
         }
         
         .armoiries-title {
@@ -1952,30 +1968,12 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
           font-size: 10pt;
         }
         
-        .dotted-line {
-          border-bottom: 1px dotted #000;
-          display: inline-block;
-          min-width: 150px;
-        }
-        
         .page-footer {
           font-size: 8pt;
           text-align: center;
           margin-top: 20px;
           padding-top: 10px;
           border-top: 1px solid #000;
-        }
-        
-        .signature-table {
-          width: 100%;
-          margin-top: 30px;
-        }
-        
-        .signature-table td {
-          width: 50%;
-          text-align: center;
-          vertical-align: top;
-          padding: 20px;
         }
       </style>
     </head>
@@ -1985,13 +1983,11 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
         <!-- EN-TÊTE -->
         <div class="header-section">
           <div class="header-left">
-            <div class="armoiries">
-              <p class="armoiries-title">RÉPUBLIQUE DE CÔTE D'IVOIRE</p>
-              <p style="font-style: italic;">Union - Discipline - Travail</p>
-            </div>
+            <p class="armoiries-title">RÉPUBLIQUE DE CÔTE D'IVOIRE</p>
+            <p style="font-style: italic; font-size: 9pt;">Union - Discipline - Travail</p>
           </div>
-          <div class="header-center">
-            <!-- Espace pour logo armoiries -->
+          <div style="text-align: center; width: 40%;">
+            <!-- Logo armoiries -->
           </div>
           <div class="header-right">
             <p style="font-size: 9pt;">Présidence de la République</p>
@@ -2012,10 +2008,10 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
           <p class="cadre-reserve-title">CADRE RÉSERVÉ AU CEPICI</p>
           <div class="cadre-row">DOSSIER N° ………………………………………………</div>
           <div class="cadre-row">DATE DE RÉCEPTION ………………………………………………</div>
-          <div class="cadre-row">NUMÉRO REGISTRE DE COMMERCE : <span style="margin-left: 20px;">/ / / / / / /</span></div>
-          <div class="cadre-row">NUMÉRO COMPTE CONTRIBUABLE : <span style="margin-left: 20px;">/ / / / / / /</span></div>
-          <div class="cadre-row">NUMÉRO CNPS ENTREPRISE : <span style="margin-left: 20px;">/ / / / / / /</span></div>
-          <div class="cadre-row">CODE IMPORT-EXPORT : <span style="margin-left: 20px;">/ / / / / / /</span></div>
+          <div class="cadre-row">NUMÉRO REGISTRE DE COMMERCE : ………………………………………………</div>
+          <div class="cadre-row">NUMÉRO COMPTE CONTRIBUABLE : ………………………………………………</div>
+          <div class="cadre-row">NUMÉRO CNPS ENTREPRISE : ………………………………………………</div>
+          <div class="cadre-row">CODE IMPORT-EXPORT : ………………………………………………</div>
         </div>
         
         <!-- DÉCLARANT RESPONSABLE -->
@@ -2024,11 +2020,11 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
           <div class="declarant-row">DÉCLARATION ÉTABLIE PAR : <strong>M. ${escapeHtml(declarantNom.toUpperCase())}</strong></div>
           <div class="declarant-row">AGISSANT EN QUALITÉ DE : <strong>${escapeHtml(declarantQualite.toUpperCase())}</strong></div>
           <div class="declarant-row">NUMÉRO DE COMPTE CONTRIBUABLE : ………………………………………………</div>
-          <div class="declarant-row">ADRESSE PERSONNELLE : ${escapeHtml(declarantAdresse.toUpperCase())}</div>
+          <div class="declarant-row">ADRESSE PERSONNELLE : <strong>${escapeHtml(declarantAdresse.toUpperCase())}</strong></div>
           <div class="declarant-row" style="margin-top: 8px;">
-            TEL : ……………………………… FAX : ${escapeHtml(declarantFax)} MOBILE : ${escapeHtml(declarantMobile)}
+            TEL : <strong>${escapeHtml(declarantTel)}</strong> FAX : <strong>${escapeHtml(declarantFax)}</strong> MOBILE : <strong>${escapeHtml(declarantMobile)}</strong>
           </div>
-          <div class="declarant-row">E-MAIL : ${escapeHtml(declarantEmail)}</div>
+          <div class="declarant-row">E-MAIL : <strong>${escapeHtml(declarantEmail)}</strong></div>
         </div>
         
         <!-- I- IDENTIFICATION -->
@@ -2066,61 +2062,68 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
         <!-- PAGE 2 -->
         <div class="page-break"></div>
         
-        <div class="form-line">Dénomination sociale : ………… <strong>${escapeHtml(company.company_name || '')} SARL</strong> …………………………</div>
+        <div class="form-line">Dénomination sociale : ………… <strong>${escapeHtml((company.company_name || '').toUpperCase())} SARL</strong> …………………………</div>
         <div class="form-line">Nom commercial : ………………………………………………………………………………………</div>
         <div class="form-line">Sigle : ………………………………</div>
-        <div class="form-line">Durée : ……………………………… <strong>${dureeSociete}</strong> ANS………………………………………………</div>
-        <div class="form-line">Forme juridique : ……………………………… <strong>SARL U</strong>………………………………………………</div>
-        <div class="form-line">Montant du capital : ………… <strong>${capital.toLocaleString('fr-FR')}</strong> FCFA…… Dont : Montant en numéraire ………… <strong>${capitalNumeraire.toLocaleString('fr-FR')}</strong></div>
-        <div class="form-line" style="margin-left: 200px;">Évaluation des apports en nature …………… <strong>${apportsNature}</strong>……………………</div>
+        <div class="form-line">Durée : ………… <strong>${dureeSociete} ANS</strong> …………………………………………………………</div>
+        <div class="form-line">Forme juridique : ………… <strong>SARL U</strong> ……………………………………………………………</div>
+        <div class="form-line">Montant du capital : ………… <strong>${capital.toLocaleString('fr-FR')} FCFA</strong> …… Dont : Montant en numéraire ………… <strong>${capitalNumeraire.toLocaleString('fr-FR')}</strong></div>
+        <div class="form-line" style="margin-left: 200px;">Évaluation des apports en nature ………… <strong>${apportsNature}</strong> ……………………</div>
         
         <!-- II- ACTIVITÉ -->
         <p class="section-title">II- ACTIVITÉ (renseignements sur la personne morale)</p>
         
-        <div class="form-line">Activité principale : ${escapeHtml(company.activity || '')}</div>
-        <div class="form-line">• L'installation de pompes hydrauliques, suppresseurs et équipements connexes</div>
-        <div class="form-line">• L'étude, la conception et la réalisation de forages domestiques, agricoles ou industriels ;</div>
-        <div class="form-line">• Les travaux de géotechnique, de sondage, d'essai de sol et d'analyse de terrain</div>
+        <div class="form-line">Activité principale : <strong>${escapeHtml(company.activity || '')}</strong></div>
         <div class="form-line">Activités secondaires : ………………………………</div>
-        <div class="form-line">Chiffre d'affaires prévisionnel …………… ${company.chiffre_affaires_prev ? company.chiffre_affaires_prev.toLocaleString('fr-FR') : '5 000 000'} FCFA / TAXE D'ÉTAT DE L'ENTREPRENEUR</div>
-        <div class="form-line">Nombre d'employés : ………… 1 (UN)………… Date embauche 1er employé : ${dateActuelle}</div>
-        <div class="form-line">Date de début d'activité : ………… ${dateActuelle}……………</div>
+        <div class="form-line">Chiffre d'affaires prévisionnel : ………… <strong>${company.chiffre_affaires_prev ? parseInt(company.chiffre_affaires_prev).toLocaleString('fr-FR') : '5 000 001'} FCFA</strong> / TAXE D'ÉTAT DE L'ENTREPRENEUR</div>
+        <div class="form-line">Nombre d'employés : ………… <strong>1 (UN)</strong> ………… Date embauche 1er employé : <strong>${dateActuelle}</strong></div>
+        <div class="form-line">Date de début d'activité : ………… <strong>${dateActuelle}</strong> ……………</div>
         
         <!-- III- LOCALISATION -->
         <p class="section-title">III- LOCALISATION DU SIÈGE SOCIAL / DE LA SUCCURSALE</p>
         
-        <div class="form-line">Ville : ……<strong>${escapeHtml(company.city || 'ABIDJAN')}</strong>…… Commune : ……<strong>${escapeHtml(commune)}</strong>…… Quartier : ……<strong>${escapeHtml(quartier)}</strong>……</div>
-        <div class="form-line">Rue : ……<strong>${escapeHtml(company.address || '')}</strong>…… Lot n° : ……<strong>${escapeHtml(lotNumero)}</strong>…… Ilot n° : ……<strong>${escapeHtml(ilotNumero)}</strong>……</div>
-        <div class="form-line">Nom immeuble : ……<strong>${escapeHtml(nomImmeuble)}</strong>…… Numéro étage : ……<strong>${escapeHtml(numeroEtage)}</strong>…… Numéro porte : ……<strong>${escapeHtml(numeroPorte)}</strong>……</div>
-        <div class="form-line">Section : ……<strong>${escapeHtml(section)}</strong>…… Parcelle : ……<strong>${escapeHtml(parcelle)}</strong>……</div>
-        <div class="form-line">TF n° : ……<strong>${escapeHtml(tfNumero)}</strong>…… Tél. : ……<strong>${escapeHtml(company.telephone || '')}</strong>……</div>
-        <div class="form-line">Fax : ……<strong>${escapeHtml(fax)}</strong>……</div>
-        <div class="form-line">Adresse postale : ……<strong>${escapeHtml(adressePostale)}</strong>…… Email : ……<strong>${escapeHtml(company.email || '')}</strong>……</div>
+        <div class="form-line">Ville : …<strong>${escapeHtml((company.city || 'ABIDJAN').toUpperCase())}</strong>… Commune : …<strong>${escapeHtml(commune.toUpperCase())}</strong>… Quartier : …<strong>${escapeHtml(quartier.toUpperCase())}</strong>…</div>
+        <div class="form-line">Rue : …<strong>${escapeHtml((company.address || '').toUpperCase())}</strong>… Lot n° : …<strong>${escapeHtml(lotNumero)}</strong>… Ilot n° : …<strong>${escapeHtml(ilotNumero)}</strong>…</div>
+        <div class="form-line">Nom immeuble : …<strong>${escapeHtml(nomImmeuble.toUpperCase())}</strong>… Numéro étage : …<strong>${escapeHtml(numeroEtage)}</strong>… Numéro porte : …<strong>${escapeHtml(numeroPorte)}</strong>…</div>
+        <div class="form-line">Section : …<strong>${escapeHtml(section)}</strong>… Parcelle : …<strong>${escapeHtml(parcelle)}</strong>…</div>
+        <div class="form-line">TF n° : …<strong>${escapeHtml(tfNumero)}</strong>… Tél. : …<strong>${escapeHtml(company.telephone || '')}</strong>…</div>
+        <div class="form-line">Fax : …<strong>${escapeHtml(fax)}</strong>…</div>
+        <div class="form-line">Adresse postale : …<strong>${escapeHtml(adressePostale)}</strong>… Email : …<strong>${escapeHtml(company.email || '')}</strong>…</div>
         
-        <!-- PAGE 3 - DIRIGEANTS -->
+        <!-- IV- ÉTABLISSEMENTS SECONDAIRES -->
+        <p class="section-title">IV- ÉTABLISSEMENTS SECONDAIRES</p>
+        <div class="form-line">Néant</div>
+        
+        <!-- PAGE 3 - DIRIGEANTS, ACTIONNAIRES, COMMISSAIRES -->
         <div class="page-break"></div>
         
-        <p class="section-title">IV- INFORMATIONS SUR LES DIRIGEANTS</p>
+        <p class="section-title">V- INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ET COMMISSAIRES AUX COMPTES</p>
         
-        <p style="font-weight: bold; margin: 10px 0;">DIRIGEANT SOCIAL</p>
+        <p style="font-weight: bold; margin: 15px 0; text-decoration: underline;">A- DIRIGEANT SOCIAL</p>
         
         <div class="form-line">Nom et Prénoms : <strong>${escapeHtml(gerantNom.toUpperCase())}</strong></div>
-        <div class="form-line">Adresse : <strong>${escapeHtml(gerantAdresse.toUpperCase())}</strong></div>
         <div class="form-line">Nationalité : <strong>${escapeHtml(gerantNationalite)}</strong></div>
-        <div class="form-line">Date de naissance : <strong>${gerantDateNaissance}</strong></div>
-        <div class="form-line">Lieu de naissance : <strong>${escapeHtml(gerantLieuNaissance.toUpperCase())}</strong></div>
+        <div class="form-line">Date de naissance : <strong>${gerantDateNaissance}</strong> Lieu de naissance : <strong>${escapeHtml(gerantLieuNaissance.toUpperCase())}</strong></div>
+        <div class="form-line">Adresse : <strong>${escapeHtml(gerantAdresse.toUpperCase())}</strong></div>
         <div class="form-line">Fonction : <strong>GÉRANT</strong></div>
         
         ${gerantTypeId && gerantNumId ? `
-        <div class="form-line" style="margin-top: 15px;">
-          Titulaire du ${escapeHtml(gerantTypeId)} N°${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId}
+        <div class="form-line" style="margin-top: 10px;">
+          Titulaire du ${escapeHtml(gerantTypeId.toUpperCase())} N°${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId}
         </div>
         ` : ''}
+        
+        <p style="font-weight: bold; margin: 20px 0 15px 0; text-decoration: underline;">B- ASSOCIÉS / ACTIONNAIRES</p>
+        
+        ${associesHTML || '<div class="form-line">Voir liste des associés ci-jointe</div>'}
+        
+        <p style="font-weight: bold; margin: 20px 0 15px 0; text-decoration: underline;">C- COMMISSAIRE AUX COMPTES</p>
+        <div class="form-line">Néant (Capital inférieur à 100 000 000 FCFA)</div>
         
         <!-- SIGNATURE -->
         <div style="margin-top: 40px;">
           <p>Fait en deux exemplaires et de bonne foi.</p>
-          <p style="margin-top: 20px;">À Abidjan, le ${dateActuelle}</p>
+          <p style="margin-top: 20px;">À ${escapeHtml((company.city || 'Abidjan'))}, le ${dateActuelle}</p>
         </div>
         
         <div style="border: 1px solid #000; padding: 20px; margin-top: 30px;">
