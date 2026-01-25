@@ -2121,24 +2121,9 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
         <div class="form-line">Néant (Capital inférieur à 100 000 000 FCFA)</div>
         
         <!-- SIGNATURE -->
-        <div style="margin-top: 40px;">
-          <p>Fait en deux exemplaires et de bonne foi.</p>
-          <p style="margin-top: 20px;">À ${escapeHtml((company.city || 'Abidjan'))}, le ${dateActuelle}</p>
-        </div>
-        
-        <div style="border: 1px solid #000; padding: 20px; margin-top: 30px;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="width: 50%; text-align: center; padding: 20px; vertical-align: top;">
-                <p style="text-decoration: underline; margin-bottom: 60px;">Le Déclarant</p>
-                <p>………………………………</p>
-              </td>
-              <td style="width: 50%; text-align: center; padding: 20px; vertical-align: top;">
-                <p style="text-decoration: underline; margin-bottom: 60px;">Le Gérant</p>
-                <p>………………………………</p>
-              </td>
-            </tr>
-          </table>
+        <div style="border: 1px solid #000; padding: 20px; margin-top: 30px; min-height: 100px;">
+          <p style="text-align: right; margin-bottom: 10px;">Fait à ${escapeHtml((company.city || 'Abidjan'))}, le ${dateActuelle}</p>
+          <p style="text-align: center; font-weight: bold; font-size: 12pt;">Signature</p>
         </div>
         
       </div>
