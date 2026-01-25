@@ -1,5 +1,7 @@
 const env = (import.meta as any).env;
-const API_URL = env?.VITE_API_URL ?? (env?.DEV ? "http://localhost:5000" : "");
+// En production, utiliser des URLs relatives (même serveur)
+// En dev, utiliser localhost:5000
+const API_URL = env?.VITE_API_URL !== undefined ? env.VITE_API_URL : (env?.DEV ? "http://localhost:5000" : "");
 
 export type ApiResult<T> = {
   success: boolean;
@@ -403,7 +405,7 @@ export async function adminUpdatePricingApi(token: string, payload: PricingSetti
 
 // ===== Paiement Manuel =====
 export async function submitManualPaymentApi(token: string, formData: FormData) {
-  const response = await fetch(`${API_BASE_URL}/api/payments/submit-manual`, {
+  const response = await fetch(`${API_URL}/api/payments/submit-manual`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
