@@ -642,11 +642,14 @@ export const generateDocument = async (docName, company, associates = [], manage
       }
 
       if (htmlContent) {
-        const docxBuffer = await htmlToDocx(htmlContent, null, {
+        const docxBlob = await htmlToDocx(htmlContent, null, {
           table: { row: { cantSplit: true } },
           footer: false,
           pageNumber: false,
         });
+        // Convertir Blob en Buffer pour Node.js
+        const arrayBuffer = await docxBlob.arrayBuffer();
+        const docxBuffer = Buffer.from(arrayBuffer);
         fs.writeFileSync(docxPath, docxBuffer);
       } else {
         await generateWordDocument(content, docName, docxPath);
