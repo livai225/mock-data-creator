@@ -449,12 +449,12 @@ const generateStatutsHTML = (company, associates, managers) => {
       const assocNumId = associe.numero_identite || associe.numeroIdentite || '[N°]';
       const assocDateDelivrance = associe.date_delivrance_id || associe.dateDelivranceId ? formatDate(associe.date_delivrance_id || associe.dateDelivranceId) : '[DATE]';
       const assocDateValidite = associe.date_validite_id || associe.dateValiditeId ? formatDate(associe.date_validite_id || associe.dateValiditeId) : '[DATE]';
-      const assocLieuDelivrance = associe.lieu_delivrance_id || associe.lieuDelivranceId || 'la République de Côte d\'Ivoire';
+      const assocPays = associe.pays || associe.country || 'la République de Côte d\'Ivoire';
       
       // Liste numérotée des associés pour la page 2
       associesListHTML += `
         <div class="associe-item">
-          <span class="associe-number">${index + 1}- M. ${escapeHtml(assocNom.toUpperCase())}</span>, ${escapeHtml(assocProfession)} résidant à ${escapeHtml(assocAdresse.toUpperCase())} de nationalité ${escapeHtml(assocNationalite)}, né le ${assocDateNaissance} à ${escapeHtml(assocLieuNaissance.toUpperCase())} et titulaire du ${assocTypeId} N°${escapeHtml(assocNumId)} délivrée le ${assocDateDelivrance} et valable jusqu'au ${assocDateValidite} par ${escapeHtml(assocLieuDelivrance)}.
+          <span class="associe-number">${index + 1}- M. ${escapeHtml(assocNom.toUpperCase())}</span>, ${escapeHtml(assocProfession)} résidant à ${escapeHtml(assocAdresse.toUpperCase())} de nationalité ${escapeHtml(assocNationalite)}, né le ${assocDateNaissance} à ${escapeHtml(assocLieuNaissance.toUpperCase())} et titulaire du ${assocTypeId} N°${escapeHtml(assocNumId)} délivrée le ${assocDateDelivrance} et valable jusqu'au ${assocDateValidite} par ${escapeHtml(assocPays)}.
         </div>
       `;
       
