@@ -1812,7 +1812,7 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
   console.log('🔍 [CEPICI] Projections:', { investAnnee1, investAnnee2, investAnnee3, emploisAnnee1, emploisAnnee2, emploisAnnee3 });
   console.log('🔍 [CEPICI] Declarant:', { declarantNom, declarantQualite, declarantAdresse });
 
-  // Construire la liste des associés/actionnaires pour la section V
+  // Construire la liste des associés/actionnaires pour la section V (format texte numéroté)
   let associesHTML = '';
   if (associates && associates.length > 0) {
     associates.forEach((associe, index) => {
@@ -1822,18 +1822,16 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
       const assocDateNaissance = (associe.date_naissance || associe.dateNaissance) ? formatDate(associe.date_naissance || associe.dateNaissance) : '';
       const assocLieuNaissance = associe.lieu_naissance || associe.lieuNaissance || '';
       const assocProfession = associe.profession || '';
-      const parts = parseInt(associe.parts) || 0;
+      const assocTypeId = associe.type_identite || associe.typeIdentite || 'CNI';
+      const assocNumId = associe.numero_identite || associe.numeroIdentite || '';
+      const assocDateDelivrance = (associe.date_delivrance_id || associe.dateDelivranceId) ? formatDate(associe.date_delivrance_id || associe.dateDelivranceId) : '';
+      const assocDateValidite = (associe.date_validite_id || associe.dateValiditeId) ? formatDate(associe.date_validite_id || associe.dateValiditeId) : '';
+      const assocPays = associe.pays || associe.country || 'la République de Côte d\'Ivoire';
       
       associesHTML += `
-        <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc;">
-          <p><strong>ASSOCIÉ/ACTIONNAIRE ${index + 1}</strong></p>
-          <div class="form-line">Nom et Prénoms : <strong>${escapeHtml(assocNom.toUpperCase())}</strong></div>
-          <div class="form-line">Nationalité : <strong>${escapeHtml(assocNationalite)}</strong></div>
-          <div class="form-line">Date de naissance : <strong>${assocDateNaissance}</strong> Lieu : <strong>${escapeHtml(assocLieuNaissance.toUpperCase())}</strong></div>
-          <div class="form-line">Profession : <strong>${escapeHtml(assocProfession.toUpperCase())}</strong></div>
-          <div class="form-line">Adresse : <strong>${escapeHtml(assocAdresse.toUpperCase())}</strong></div>
-          <div class="form-line">Nombre de parts : <strong>${parts}</strong></div>
-        </div>
+        <p style="margin-bottom: 15px; text-align: justify;">
+          <strong>${index + 1}- M. ${escapeHtml(assocNom.toUpperCase())}</strong>, ${escapeHtml(assocProfession)} résidant à ${escapeHtml(assocAdresse.toUpperCase())} de nationalité ${escapeHtml(assocNationalite)}, né le ${assocDateNaissance} à ${escapeHtml(assocLieuNaissance.toUpperCase())}${assocNumId ? ` et titulaire du ${escapeHtml(assocTypeId)} N°${escapeHtml(assocNumId)} délivrée le ${assocDateDelivrance} et valable jusqu'au ${assocDateValidite} par ${escapeHtml(assocPays)}` : ''}.
+        </p>
       `;
     });
   }
