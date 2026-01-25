@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx';
+import htmlToDocx from 'html-to-docx';
 import {
   documentGenerators,
   generateStatutsSARL,
@@ -36,98 +37,48 @@ const safeFilePart = (value) => {
  * Convertir le contenu texte en document Word (.docx)
  */
 const generateWordDocument = async (content, templateName, outputPath) => {
-  const lines = content.split('\n');
+  const lines = content.split('
+');
   const paragraphs = [];
 
-  // Header
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: 'DOCUMENT JURIDIQUE',
-          bold: true,
-          size: 32,
-          color: '1E293B',
-        }),
-      ],
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 100 },
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: templateName.toUpperCase(),
-          bold: true,
-          size: 24,
-          color: 'D4AF37',
-        }),
-      ],
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 200 },
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `Date: ${new Date().toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-          })}`,
-          size: 20,
-          color: '666666',
-        }),
-      ],
-      alignment: AlignmentType.RIGHT,
-      spacing: { after: 400 },
-    }),
-    new Paragraph({
-      border: {
-        bottom: { color: 'D4AF37', size: 6, style: BorderStyle.SINGLE },
-      },
-      spacing: { after: 400 },
-    })
-  );
-
-  // Content
   lines.forEach((line) => {
-    const trimmedLine = line.trim();
-    
+    const trimmedLine = line.trimEnd();
+
     if (trimmedLine === '') {
-      paragraphs.push(new Paragraph({ spacing: { after: 200 } }));
-    } else if (trimmedLine.match(/^[A-ZÉÈÊËÀÂÄÎÏÔÖÛÜÇ\s\-:]+$/) && trimmedLine.length > 3) {
-      // Title (all caps)
+      paragraphs.push(new Paragraph({ spacing: { after: 120 } }));
+      return;
+    }
+
+    const isAllCaps = trimmedLine.match(/^[A-Z??????????????0-9\s\-:()'".,]+$/);
+    const isArticle = trimmedLine.toLowerCase().startsWith('article');
+    const hasLabel = trimmedLine.includes(':') && trimmedLine.indexOf(':') < 35;
+
+    if (isAllCaps && trimmedLine.length > 3) {
       paragraphs.push(
         new Paragraph({
           children: [
             new TextRun({
               text: trimmedLine,
               bold: true,
-              size: 26,
-              color: '1E293B',
             }),
           ],
-          heading: HeadingLevel.HEADING_1,
-          spacing: { before: 300, after: 200 },
+          spacing: { before: 120, after: 80 },
+          alignment: trimmedLine.length < 40 ? AlignmentType.CENTER : AlignmentType.LEFT,
         })
       );
-    } else if (trimmedLine.toLowerCase().startsWith('article')) {
-      // Article heading
+    } else if (isArticle) {
       paragraphs.push(
         new Paragraph({
           children: [
             new TextRun({
               text: trimmedLine,
               bold: true,
-              size: 24,
-              color: 'D4AF37',
             }),
           ],
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 300, after: 150 },
+          spacing: { before: 120, after: 80 },
         })
       );
-    } else if (trimmedLine.includes(':') && trimmedLine.indexOf(':') < 30) {
-      // Label with value
+    } else if (hasLabel) {
       const colonIndex = trimmedLine.indexOf(':');
       const label = trimmedLine.substring(0, colonIndex + 1);
       const value = trimmedLine.substring(colonIndex + 1);
@@ -137,55 +88,43 @@ const generateWordDocument = async (content, templateName, outputPath) => {
             new TextRun({
               text: label,
               bold: true,
-              size: 22,
             }),
             new TextRun({
               text: value,
-              size: 22,
             }),
           ],
-          spacing: { after: 100 },
+          spacing: { after: 80 },
         })
       );
     } else {
-      // Normal paragraph
       paragraphs.push(
         new Paragraph({
           children: [
             new TextRun({
               text: trimmedLine,
-              size: 22,
             }),
           ],
-          spacing: { after: 100 },
+          spacing: { after: 80 },
         })
       );
     }
   });
 
-  // Footer
-  paragraphs.push(
-    new Paragraph({
-      border: {
-        top: { color: 'D4AF37', size: 6, style: BorderStyle.SINGLE },
-      },
-      spacing: { before: 400 },
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: 'Document généré automatiquement par ARCH EXCELLENCE - Usage professionnel',
-          italics: true,
-          size: 18,
-          color: '888888',
-        }),
-      ],
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 200 },
-    })
-  );
-
   const doc = new Document({
+    styles: {
+      default: {
+        document: {
+          run: {
+            font: 'Times New Roman',
+            size: 22,
+            color: '000000',
+          },
+          paragraph: {
+            spacing: { line: 276 },
+          },
+        },
+      },
+    },
     sections: [
       {
         properties: {
@@ -206,6 +145,7 @@ const generateWordDocument = async (content, templateName, outputPath) => {
   const buffer = await Packer.toBuffer(doc);
   fs.writeFileSync(outputPath, buffer);
 };
+
 
 /**
  * Convertir le contenu texte en document PDF avec PDFKit
@@ -628,92 +568,114 @@ export const generateDocument = async (docName, company, associates = [], manage
   const timestamp = Date.now();
   const result = {};
 
+
   // Générer PDF avec Puppeteer (méthode professionnelle)
   if (options.formats.includes('pdf')) {
     try {
-      console.log(`   📄 Génération PDF avec Puppeteer...`);
+      console.log(`   [PDF] Generation avec Puppeteer...`);
       const pdfFileName = `${baseFileName}_${timestamp}.pdf`;
       const pdfPath = path.join(GENERATED_DIR, pdfFileName);
-      
-      // Importer puppeteerGenerator dynamiquement si ce n'est pas déjà fait
+
+      // Importer puppeteerGenerator dynamiquement si ce n'est pas deja fait
       if (!puppeteerGenerator) {
         try {
-          console.log(`   🔍 [generateDocument] Import dynamique de puppeteerGenerator...`);
+          console.log(`   [generateDocument] Import dynamique de puppeteerGenerator...`);
           puppeteerGenerator = await import('./puppeteerGenerator.js');
-          console.log(`   ✅ [generateDocument] Import de puppeteerGenerator réussi`);
+          console.log(`   [generateDocument] Import de puppeteerGenerator reussi`);
         } catch (importError) {
-          console.error(`   ❌ [generateDocument] Erreur import puppeteerGenerator:`, importError.message);
-          console.error(`   ❌ Stack:`, importError.stack);
+          console.error(`   [generateDocument] Erreur import puppeteerGenerator:`, importError.message);
+          console.error(`   Stack:`, importError.stack);
           puppeteerGenerator = null;
         }
       }
-      
-      // Utiliser Puppeteer pour un rendu PDF parfait
+
       if (puppeteerGenerator && puppeteerGenerator.generateDocumentPDF) {
-        console.log(`   🚀 Génération PDF avec Puppeteer (rendu Chrome)...`);
-        try {
-          await puppeteerGenerator.generateDocumentPDF(docName, company, associates, managers, additionalData, pdfPath);
-          console.log(`   ✅ PDF généré avec Puppeteer (rendu professionnel)`);
-          console.log(`   📊 Format: Puppeteer/Chrome - Rendu HTML parfait`);
-        } catch (puppeteerError) {
-          console.error(`   ❌ ERREUR Puppeteer:`, puppeteerError.message);
-          console.error(`   ❌ Stack:`, puppeteerError.stack);
-          throw new Error(`Génération PDF échouée: Puppeteer a échoué (${puppeteerError.message}). Veuillez vérifier l'installation.`);
-        }
+        await puppeteerGenerator.generateDocumentPDF(docName, company, associates, managers, additionalData, pdfPath);
       } else {
-        console.error(`   ❌ puppeteerGenerator n'est pas disponible`);
-        throw new Error(`Génération PDF échouée: puppeteerGenerator n'a pas pu être importé. Vérifiez l'installation de Puppeteer.`);
+        throw new Error(`Generation PDF echouee: puppeteerGenerator indisponible.`);
       }
-      
-      // Vérifier que le fichier existe
+
       if (!fs.existsSync(pdfPath)) {
-        throw new Error(`Fichier PDF non créé: ${pdfPath}`);
+        throw new Error(`Fichier PDF non cree: ${pdfPath}`);
       }
-      
+
       const stats = fs.statSync(pdfPath);
-      console.log(`   ✅ PDF créé: ${pdfFileName} (${stats.size} bytes)`);
-      
+      console.log(`   PDF cree: ${pdfFileName} (${stats.size} bytes)`);
+
       result.pdf = {
         fileName: pdfFileName,
         filePath: pdfPath,
         mimeType: 'application/pdf'
       };
     } catch (pdfError) {
-      console.error(`   ❌ Erreur génération PDF:`, pdfError);
+      console.error(`   Erreur generation PDF:`, pdfError);
       throw pdfError;
     }
   }
 
-  // Générer Word
+  // Generer Word
   if (options.formats.includes('docx')) {
     try {
-      console.log(`   📄 Génération DOCX...`);
+      console.log(`   [DOCX] Generation...`);
       const docxFileName = `${baseFileName}_${timestamp}.docx`;
       const docxPath = path.join(GENERATED_DIR, docxFileName);
-      await generateWordDocument(content, docName, docxPath);
-      
-      // Vérifier que le fichier existe
-      if (!fs.existsSync(docxPath)) {
-        throw new Error(`Fichier DOCX non créé: ${docxPath}`);
+
+      let htmlContent = null;
+
+      if (!puppeteerGenerator) {
+        try {
+          console.log(`   [generateDocument] Import dynamique de puppeteerGenerator...`);
+          puppeteerGenerator = await import('./puppeteerGenerator.js');
+          console.log(`   [generateDocument] Import de puppeteerGenerator reussi`);
+        } catch (importError) {
+          console.error(`   [generateDocument] Erreur import puppeteerGenerator:`, importError.message);
+          console.error(`   Stack:`, importError.stack);
+          puppeteerGenerator = null;
+        }
       }
-      
+
+      if (puppeteerGenerator && puppeteerGenerator.generateDocumentHTML) {
+        try {
+          htmlContent = puppeteerGenerator.generateDocumentHTML(docName, company, associates, managers, additionalData);
+        } catch (htmlError) {
+          console.warn(`   [DOCX] Generation HTML echouee, fallback contenu texte:`, htmlError.message);
+        }
+      }
+
+      if (htmlContent) {
+        const docxBuffer = await htmlToDocx(htmlContent, null, {
+          table: { row: { cantSplit: true } },
+          footer: false,
+          pageNumber: false,
+        });
+        fs.writeFileSync(docxPath, docxBuffer);
+      } else {
+        await generateWordDocument(content, docName, docxPath);
+      }
+
+      if (!fs.existsSync(docxPath)) {
+        throw new Error(`Fichier DOCX non cree: ${docxPath}`);
+      }
+
       const stats = fs.statSync(docxPath);
-      console.log(`   ✅ DOCX créé: ${docxFileName} (${stats.size} bytes)`);
-      
+      console.log(`   DOCX cree: ${docxFileName} (${stats.size} bytes)`);
+
       result.docx = {
         fileName: docxFileName,
         filePath: docxPath,
         mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       };
     } catch (docxError) {
-      console.error(`   ❌ Erreur génération DOCX:`, docxError);
+      console.error(`   Erreur generation DOCX:`, docxError);
       throw docxError;
     }
   }
 
-  console.log(`   ✅ [generateDocument] Terminé: ${Object.keys(result).length} format(s) généré(s)`);
+  console.log(`   [generateDocument] Termine: ${Object.keys(result).length} format(s) genere(s)`);
   return result;
 };
+
+
 
 /**
  * Générer plusieurs documents en une fois

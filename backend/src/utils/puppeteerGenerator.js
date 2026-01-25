@@ -2185,6 +2185,28 @@ const htmlGenerators = {
 };
 
 /**
+ * Générer le HTML d'un document sans produire de PDF
+ */
+export const generateDocumentHTML = (docName, company, associates = [], managers = [], additionalData = {}) => {
+  let generator = htmlGenerators[docName];
+
+  if (!generator) {
+    for (const [key, gen] of Object.entries(htmlGenerators)) {
+      if (docName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(docName.toLowerCase())) {
+        generator = gen;
+        break;
+      }
+    }
+  }
+
+  if (!generator) {
+    throw new Error(`Template HTML non trouvé pour: ${docName}`);
+  }
+
+  return generator(company, associates, managers, additionalData);
+};
+
+/**
  * Générer un document PDF avec Puppeteer
  */
 export const generateDocumentPDF = async (docName, company, associates = [], managers = [], additionalData = {}, outputPath) => {
@@ -2220,6 +2242,7 @@ export const generateDocumentPDF = async (docName, company, associates = [], man
 export default {
   generateDocumentPDF,
   generatePDFWithPuppeteer,
+  generateDocumentHTML,
   closeBrowser
 };
 
