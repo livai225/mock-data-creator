@@ -878,9 +878,6 @@ const generateStatutsHTML = (company, associates, managers) => {
         <p class="article-content">
           Un état des actes accomplis par les fondateurs pour le compte de la société en formation, avec indication de l'engagement qui en résulterait, sera présenté à la société qui s'engage à les reprendre.
         </p>
-        
-        <div class="page-break"></div>
-        
         <h3 class="article-title">ARTICLE 29 - MANDAT</h3>
         <p class="article-content">
           En outre, les soussignés donnent mandat à 1- M. <strong>${escapeHtml(gerantNom.toUpperCase())}</strong>, à l'effet de prendre les engagements suivants au nom et pour le compte de la société.
