@@ -3,18 +3,31 @@ const env = (import.meta as any).env;
 // En dev, utiliser localhost:5000
 let API_URL = env?.VITE_API_URL !== undefined ? env.VITE_API_URL : (env?.DEV ? "http://localhost:5000" : "");
 
-// Sécurité: S'assurer que l'URL ne contient pas de credentials (user:pass@host)
-// et utiliser une URL relative si nécessaire
-if (API_URL && API_URL.includes('@')) {
-  console.warn('⚠️ API_URL contient des credentials, utilisation d\'une URL relative');
-  API_URL = '';
-}
+// Normaliser l'URL de base et retirer tout credential éventuel (user:pass@host)
+const getNormalizedBaseUrl = () => {
+  const fallbackOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const rawBase = API_URL || fallbackOrigin;
+  if (!rawBase) return '';
 
-// Si API_URL est vide, utiliser des URLs relatives (même origine)
-if (!API_URL && typeof window !== 'undefined') {
-  // Ne rien faire, les URLs relatives fonctionneront
-  API_URL = '';
-}
+  try {
+    const baseUrl = new URL(rawBase, fallbackOrigin || undefined);
+    baseUrl.username = '';
+    baseUrl.password = '';
+    return baseUrl.origin;
+  } catch {
+    return '';
+  }
+};
+
+const buildApiUrl = (path: string) => {
+  const base = getNormalizedBaseUrl();
+  if (!base) return path;
+  try {
+    return new URL(path, base).toString();
+  } catch {
+    return `${base}${path}`;
+  }
+};
 
 export type ApiResult<T> = {
   success: boolean;
@@ -69,9 +82,9 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const { token, headers, ...rest } = options;
 
-  console.log(`🌐 API Request: ${rest.method || 'GET'} ${API_URL}${path}`);
+  console.log(`🌐 API Request: ${rest.method || 'GET'} ${buildApiUrl(path)}`);
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(buildApiUrl(path), {
     ...rest,
     headers: {
       "Content-Type": "application/json",
@@ -156,7 +169,6 @@ export async function previewDocumentsApi(
     managers?: any[];
     docs: string[];
     formats?: ('pdf' | 'docx')[];
-    additionalData?: any;
     additionalData?: any;
   }
 ) {
@@ -246,7 +258,7 @@ export async function downloadDocumentApi(token: string, id: number) {
 }
 
 export function viewDocumentUrl(id: number) {
-  return `${API_URL}/api/documents/${id}/view`;
+  return buildApiUrl(`/api/documents/${id}/view`);
 }
 
 // ============================================
@@ -257,7 +269,7 @@ export async function initiatePaymentApi(token: string, data: { company_id: numb
   return await apiRequest('/api/payments/initiate', {
     method: 'POST',
     token,
-    body: data
+    body: JSON.stringify(data)
   });
 }
 
@@ -290,7 +302,7 @@ export async function simulatePaymentApi(token: string, paymentId: number) {
 }
 
 export async function submitPaymentProofApi(token: string, formData: FormData) {
-  const response = await fetch(`${API_URL}/api/payments/submit-proof`, {
+  const response = await fetch(buildApiUrl('/api/payments/submit-proof'), {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`
@@ -326,7 +338,7 @@ export async function adminVerifyPaymentApi(token: string, paymentId: number, st
   return await apiRequest(`/api/payments/admin/${paymentId}/verify`, {
     method: 'PUT',
     token,
-    body: { status, adminNotes }
+    body: JSON.stringify({ status, adminNotes })
   });
 }
 
@@ -418,7 +430,7 @@ export async function adminUpdatePricingApi(token: string, payload: PricingSetti
 
 // ===== Paiement Manuel =====
 export async function submitManualPaymentApi(token: string, formData: FormData) {
-  const response = await fetch(`${API_URL}/api/payments/submit-manual`, {
+  const response = await fetch(buildApiUrl('/api/payments/submit-manual'), {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
