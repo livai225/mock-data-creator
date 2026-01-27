@@ -48,6 +48,18 @@ const getBrowser = async () => {
 };
 
 /**
+ * Fermer l'instance du navigateur
+ */
+const closeBrowser = async () => {
+  if (browserInstance) {
+    console.log('🔒 Fermeture de Puppeteer...');
+    await browserInstance.close();
+    browserInstance = null;
+    console.log('✅ Puppeteer fermé');
+  }
+};
+
+/**
  * Styles CSS communs pour tous les documents
  */
 const getCommonStyles = () => `
