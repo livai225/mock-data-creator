@@ -1,7 +1,20 @@
 const env = (import.meta as any).env;
 // En production, utiliser des URLs relatives (même serveur)
 // En dev, utiliser localhost:5000
-const API_URL = env?.VITE_API_URL !== undefined ? env.VITE_API_URL : (env?.DEV ? "http://localhost:5000" : "");
+let API_URL = env?.VITE_API_URL !== undefined ? env.VITE_API_URL : (env?.DEV ? "http://localhost:5000" : "");
+
+// Sécurité: S'assurer que l'URL ne contient pas de credentials (user:pass@host)
+// et utiliser une URL relative si nécessaire
+if (API_URL && API_URL.includes('@')) {
+  console.warn('⚠️ API_URL contient des credentials, utilisation d\'une URL relative');
+  API_URL = '';
+}
+
+// Si API_URL est vide, utiliser des URLs relatives (même origine)
+if (!API_URL && typeof window !== 'undefined') {
+  // Ne rien faire, les URLs relatives fonctionneront
+  API_URL = '';
+}
 
 export type ApiResult<T> = {
   success: boolean;
