@@ -732,8 +732,6 @@ const generateStatutsHTML = (company, associates, managers) => {
           </tfoot>
         </table>
         
-        <div class="page-break"></div>
-        
         <h3 class="article-title">ARTICLE 9 - AUGMENTATION ET RÉDUCTION DU CAPITAL</h3>
         <p class="article-content">
           Le capital social peut être augmenté ou réduit dans les conditions prévues par l'Acte Uniforme relatif au droit des sociétés commerciales et du groupement d'intérêt économique.
