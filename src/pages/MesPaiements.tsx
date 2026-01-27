@@ -48,7 +48,7 @@ export default function MesPaiements() {
       if (!token) return;
       
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payments/my`, {
+        const response = await fetch(`/api/payments/my`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -118,7 +118,7 @@ export default function MesPaiements() {
 
   const handleDownloadReceipt = async (paymentId: number) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payments/${paymentId}/receipt`, {
+      const response = await fetch(`/api/payments/${paymentId}/receipt`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

@@ -111,7 +111,7 @@ export default function AdminCompanies() {
     if (!token) return;
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/documents/${doc.id}/download`, {
+      const response = await fetch(`/api/documents/${doc.id}/download`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
