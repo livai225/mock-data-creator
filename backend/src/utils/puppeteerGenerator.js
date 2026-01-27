@@ -6,9 +6,26 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
+import { generateCepiciPdfFromTemplate } from './cepiciPdfOverlay.js';
 
 // Instance du navigateur (réutilisée pour de meilleures performances)
 let browserInstance = null;
+
+const readImageAsDataUri = (fileName) => {
+  try {
+    const imagePath = path.resolve(process.cwd(), 'public', 'images', fileName);
+    if (!fs.existsSync(imagePath)) return '';
+
+    const ext = path.extname(fileName).toLowerCase();
+    const mimeType = ext === '.png' ? 'image/png' : ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : '';
+    if (!mimeType) return '';
+
+    const base64 = fs.readFileSync(imagePath).toString('base64');
+    return `data:${mimeType};base64,${base64}`;
+  } catch {
+    return '';
+  }
+};
 
 /**
  * Obtenir ou créer une instance de navigateur
@@ -28,17 +45,6 @@ const getBrowser = async () => {
     console.log('✅ Puppeteer lancé avec succès');
   }
   return browserInstance;
-};
-
-/**
- * Fermer le navigateur (à appeler lors de l'arrêt du serveur)
- */
-export const closeBrowser = async () => {
-  if (browserInstance) {
-    await browserInstance.close();
-    browserInstance = null;
-    console.log('🔒 Navigateur Puppeteer fermé');
-  }
 };
 
 /**
@@ -767,16 +773,14 @@ const generateStatutsHTML = (company, associates, managers) => {
         <p class="article-content">
           Les parts sociales peuvent faire l'objet d'un nantissement constaté par acte authentique ou par acte sous seing privé signifié à la société ou accepté par elle dans un acte authentique.
         </p>
-        
-        <div class="page-break"></div>
-        
+
         <h3 class="article-title">ARTICLE 17 - GÉRANCE</h3>
         <p class="article-content">
           La société est gérée par une ou plusieurs personnes physiques, associées ou non. Le gérant est nommé par les associés pour une durée indéterminée.
         </p>
         <p class="article-content"><strong>Est nommé gérant de la société :</strong></p>
         <p class="article-content">
-          M. <strong>${escapeHtml(gerantNom.toUpperCase())}</strong>, ${escapeHtml(gerantProfession)}, résidant à ${escapeHtml(gerantAdresse.toUpperCase())} de nationalité ${escapeHtml(gerantNationalite)}, né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance.toUpperCase())} et titulaire de la ${gerantTypeId} N°${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}, qui accepte.
+          M. <strong>${escapeHtml(gerantNom.toUpperCase())}</strong>, ${escapeHtml(gerantProfession)}, résidant à ${escapeHtml(gerantAdresse.toUpperCase())} de nationalité ${escapeHtml(gerantNationalite)}, né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance.toUpperCase())} et titulaire du ${gerantTypeId} N°${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}, qui accepte.
         </p>
         
         <h3 class="article-title">ARTICLE 18 - POUVOIRS DU GÉRANT</h3>
@@ -817,9 +821,7 @@ const generateStatutsHTML = (company, associates, managers) => {
         <p class="article-content">
           L'exercice social commence le premier janvier et se termine le trente et un décembre de chaque année. Par exception, le premier exercice sera clos le trente et un décembre de l'année suivante si la société commence ses activités au-delà des six premiers mois de l'année en cours.
         </p>
-        
-        <div class="page-break"></div>
-        
+
         <h3 class="article-title">ARTICLE 24 - INVENTAIRE - COMPTES ANNUELS</h3>
         <p class="article-content">
           À la clôture de chaque exercice, le gérant dresse l'inventaire des divers éléments de l'actif et du passif existant à cette date. Il dresse également le bilan, le compte de résultat et l'annexe, en se conformant aux dispositions légales.
@@ -904,8 +906,6 @@ const generateStatutsHTML = (company, associates, managers) => {
             }).join('') : `<tr><td>M. ${escapeHtml(gerantNom.toUpperCase())}</td><td style="height: 50px;"></td></tr>`}
           </tbody>
         </table>
-        
-        <div class="page-number" style="margin-top: 30px;">16</div>
       </div>
     </body>
     </html>
@@ -920,12 +920,14 @@ const generateContratBailHTML = (company, additionalData = {}) => {
   const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
   
   // Récupérer les données du bailleur - vérifier plusieurs sources
-  let bailleurNom = additionalData.bailleur_nom || '[NOM DU BAILLEUR]';
-  let bailleurTel = additionalData.bailleur_telephone || additionalData.bailleur_contact || '[TÉLÉPHONE]';
+  const bailData = additionalData.bailleurData || additionalData.bailleur_data || additionalData.contrat_bail || additionalData.contratBail || additionalData;
+
+  let bailleurNom = bailData.bailleur_nom || bailData.nom_bailleur || bailData.bailleurNom || '[NOM DU BAILLEUR]';
+  let bailleurTel = bailData.bailleur_telephone || bailData.bailleur_contact || bailData.telephone_bailleur || bailData.bailleurTelephone || '[TÉLÉPHONE]';
   
   // Si bailleur est un objet dans additionalData
-  if (additionalData.bailleur && typeof additionalData.bailleur === 'object') {
-    const b = additionalData.bailleur;
+  if (bailData.bailleur && typeof bailData.bailleur === 'object') {
+    const b = bailData.bailleur;
     if (b.nom && b.prenom) {
       bailleurNom = `${b.nom} ${b.prenom}`.trim();
     } else if (b.nom) {
@@ -938,22 +940,22 @@ const generateContratBailHTML = (company, additionalData = {}) => {
     }
   }
   
-  const loyerMensuel = additionalData.loyer_mensuel || 0;
-  const cautionMois = additionalData.caution_mois || 2;
-  const avanceMois = additionalData.avance_mois || 2;
-  const dureeBail = additionalData.duree_bail || 1;
+  const loyerMensuel = bailData.loyer_mensuel || bailData.loyerMensuel || bailData.montant_loyer || 0;
+  const cautionMois = bailData.caution_mois || bailData.cautionMois || 2;
+  const avanceMois = bailData.avance_mois || bailData.avanceMois || 2;
+  const dureeBail = bailData.duree_bail || bailData.dureeBail || 1;
   const garantieTotale = loyerMensuel * (cautionMois + avanceMois);
   
-  const lotNumero = additionalData.lot || company.lot || '';
-  const ilotNumero = additionalData.ilot || company.ilot || '';
+  const lotNumero = bailData.lot || bailData.lotNumero || company.lot || '';
+  const ilotNumero = bailData.ilot || bailData.ilotNumero || company.ilot || '';
   
   // Calculer les dates de début et fin du bail
-  const dateDebut = additionalData.date_debut ? formatDate(additionalData.date_debut) : formatDate(new Date().toISOString());
-  let dateFin = additionalData.date_fin ? formatDate(additionalData.date_fin) : null;
+  const dateDebut = bailData.date_debut ? formatDate(bailData.date_debut) : formatDate(new Date().toISOString());
+  let dateFin = bailData.date_fin ? formatDate(bailData.date_fin) : null;
   
   // Si pas de date de fin fournie, calculer à partir de la durée
   if (!dateFin && dureeBail) {
-    const dateDebutObj = additionalData.date_debut ? new Date(additionalData.date_debut) : new Date();
+    const dateDebutObj = bailData.date_debut ? new Date(bailData.date_debut) : new Date();
     const dateFinObj = new Date(dateDebutObj);
     dateFinObj.setFullYear(dateFinObj.getFullYear() + dureeBail);
     dateFin = formatDate(dateFinObj.toISOString());
@@ -1188,59 +1190,75 @@ const generateListeGerantsHTML = (company, managers, additionalData = {}) => {
       <meta charset="UTF-8">
       <style>
         ${getCommonStyles()}
+        
+        body {
+          font-family: 'Times New Roman', Georgia, serif;
+          font-size: 12pt;
+          line-height: 1.6;
+          color: #000;
+          padding: 15mm 20mm;
+        }
+        
         .company-title {
-          font-size: 24px;
+          font-size: 22pt;
           font-weight: bold;
           text-align: center;
-          margin: 40px 0 30px 0;
+          margin: 50px 0 30px 0;
         }
         .company-subtitle {
-          font-size: 14px;
+          font-size: 12pt;
           font-weight: bold;
           text-align: center;
-          margin: 0 20px 20px 20px;
-          line-height: 1.5;
+          margin: 0 15px 30px 15px;
+          line-height: 1.6;
         }
         .dashed-separator {
           text-align: center;
-          margin: 20px 0;
-          letter-spacing: 2px;
+          margin: 30px 0;
+          font-size: 10pt;
+          letter-spacing: 1px;
         }
         .section-title-underlined {
-          font-size: 16px;
+          font-size: 14pt;
           font-weight: bold;
           text-align: center;
           text-decoration: underline;
-          margin: 40px 0 30px 0;
+          margin: 50px 0 40px 0;
+        }
+        .gerant-intro {
+          font-size: 12pt;
+          text-align: left;
+          margin: 30px 0;
+          line-height: 1.8;
         }
         .gerant-paragraph {
-          font-size: 14px;
+          font-size: 12pt;
           text-align: justify;
-          margin: 20px 40px;
-          line-height: 1.6;
+          margin: 20px 0;
+          line-height: 1.8;
         }
         .signature-underlined {
-          font-size: 14px;
+          font-size: 12pt;
           font-weight: bold;
           text-align: center;
           text-decoration: underline;
-          margin-top: 60px;
+          margin-top: 100px;
         }
       </style>
     </head>
     <body>
       <div class="document">
-        <p class="company-title">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}»</p>
+        <p class="company-title">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())} SARL»</p>
         
         <p class="company-subtitle">
           Au capital de ${(company.capital || 0).toLocaleString('fr-FR')} FCFA, située à ${adresseComplete}
         </p>
         
-        <p class="dashed-separator">------------------------------------------------------------------------</p>
+        <p class="dashed-separator">------------------------------------------------------------------------------</p>
         
         <p class="section-title-underlined">LISTE DE DIRIGEANT</p>
         
-        <p class="gerant-paragraph">
+        <p class="gerant-intro">
           Est nommé Gérant pour une durée de ${dureeTextGras}
         </p>
         
@@ -1268,7 +1286,7 @@ const generateDeclarationHonneurHTML = (company, managers) => {
   const gerantMereNom = gerant?.mere_nom || gerant?.mereNom || '[NOM DE LA MÈRE]';
   const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
   const gerantDateNaissance = gerant?.date_naissance || gerant?.dateNaissance ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
-  const gerantDomicile = gerant?.adresse || gerant?.address || '[DOMICILE]';
+  const gerantDomicile = gerant?.ville_residence || gerant?.villeResidence || gerant?.adresse || gerant?.address || '[DOMICILE]';
   const dateActuelle = formatDate(new Date().toISOString());
   const lieu = company.city || 'Abidjan';
 
@@ -1280,41 +1298,56 @@ const generateDeclarationHonneurHTML = (company, managers) => {
       <style>
         ${getCommonStyles()}
         
+        body {
+          font-family: 'Times New Roman', Georgia, serif;
+          font-size: 12pt;
+          line-height: 1.6;
+          color: #000;
+          padding: 20mm;
+        }
+        
         .declaration-title {
-          font-size: 18px;
+          font-size: 20pt;
           font-weight: bold;
           text-align: center;
           text-decoration: underline;
-          margin: 40px 0 30px 0;
+          margin: 30px 0 40px 0;
         }
         .declaration-subtitle {
-          font-size: 12px;
-          text-align: center;
+          font-size: 11pt;
+          text-align: left;
           margin-bottom: 40px;
         }
         .declaration-field {
-          font-size: 12px;
-          margin: 15px 0;
-          line-height: 1.6;
+          font-size: 12pt;
+          margin: 20px 0;
+          line-height: 1.8;
         }
         .declaration-field strong {
           font-weight: bold;
         }
         .declaration-text {
-          font-size: 12px;
+          font-size: 12pt;
           text-align: justify;
-          margin: 20px 0;
-          line-height: 1.6;
+          margin: 25px 0;
+          line-height: 1.8;
         }
         .declaration-footer {
-          font-size: 12px;
+          font-size: 12pt;
           text-align: center;
-          margin-top: 50px;
+          margin-top: 60px;
         }
         .declaration-signature {
-          font-size: 12px;
+          font-size: 12pt;
           text-align: right;
-          margin-top: 30px;
+          margin-top: 40px;
+          margin-right: 50px;
+        }
+        .signature-label {
+          font-size: 12pt;
+          text-align: right;
+          margin-top: 80px;
+          margin-right: 50px;
         }
       </style>
     </head>
@@ -1322,7 +1355,7 @@ const generateDeclarationHonneurHTML = (company, managers) => {
       <div class="document">
         <h1 class="declaration-title">DECLARATION SUR L'HONNEUR</h1>
         
-        <p class="declaration-subtitle">(Article 47 de l'Acte Uniforme relatif au Droit commercial général adopté le 15 décembre 2010)</p>
+        <p class="declaration-subtitle">(Article  47 de l'Acte Uniforme relatif au Droit commercial  général adopté le   15 décembre 2010)</p>
         
         <p class="declaration-field"><strong>NOM :</strong> ${escapeHtml(gerantNom.toUpperCase())}</p>
         
@@ -1332,7 +1365,7 @@ const generateDeclarationHonneurHTML = (company, managers) => {
         
         <p class="declaration-field"><strong>Et DE :</strong> ${escapeHtml(gerantMereNom.toUpperCase())}</p>
         
-        <p class="declaration-field"><strong>DATE DE NAISSANCE :</strong> ${gerantDateNaissance}</p>
+        <p class="declaration-field"><strong>DATE DE NAISSANCE :</strong>     ${gerantDateNaissance}</p>
         
         <p class="declaration-field"><strong>NATIONALITE :</strong> ${escapeHtml(gerantNationalite.toUpperCase())}</p>
         
@@ -1341,7 +1374,7 @@ const generateDeclarationHonneurHTML = (company, managers) => {
         <p class="declaration-field"><strong>QUALITE :</strong> GERANT</p>
         
         <p class="declaration-text">
-          Déclare, conformément à l'article 47 de l'Acte Uniforme relatif au Droit Commercial Général adopté le 15 décembre 2010, au titre du Registre de commerce et du Crédit Mobilier,
+          Déclare, conformément à l'article 47 de l'Acte Uniforme relatif au Droit Commercial  Général adopté le 15 décembre 2010, au titre du Registre de commerce et du Crédit Mobilier,
         </p>
         
         <p class="declaration-text">
@@ -1359,6 +1392,8 @@ const generateDeclarationHonneurHTML = (company, managers) => {
         <p class="declaration-footer">Fait à ${escapeHtml(lieu)}, le ${dateActuelle}</p>
         
         <p class="declaration-signature">Lu et approuvé</p>
+        
+        <p class="signature-label">Signature</p>
         
       </div>
     </body>
@@ -1632,7 +1667,7 @@ const generateDSVHTML = (company, associates, managers, additionalData = {}) => 
         <div class="dsv-cover-decoration"></div>
         
         <h1 class="dsv-cover-title">DSV DE LA SOCIETE</h1>
-        <p class="dsv-cover-company">«${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')},<br>en Abrégée ${escapeHtml(sigle || company.company_name || '')}»</p>
+        <p class="dsv-cover-company">«${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')}${sigle ? `,<br>en Abrégée ${escapeHtml(sigle)}` : ''}»</p>
         
         <svg class="dsv-cover-grass" viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
           <path d="M20,150 Q25,100 30,50 Q32,30 28,10" stroke="#3B5998" stroke-width="1" fill="none"/>
@@ -1689,12 +1724,11 @@ const generateDSVHTML = (company, associates, managers, additionalData = {}) => 
           <p style="margin: 15px 0;"><strong>6 - CAPITAL SOCIAL :</strong> Le capital social est fixé à la somme de <strong>${capitalWords.toUpperCase()} FRANCS CFA (${capital.toLocaleString('fr-FR')} FCFA)</strong> divisé en ${totalParts} parts sociales de ${valeurPart.toLocaleString('fr-FR')} FCFA chacune, attribuées aux associés en proportion de leurs apports, à savoir :</p>
           
           ${repartitionParts}
-          
           <p style="margin: 15px 0;"><strong>TOTAL :</strong> ${totalParts} parts sociales</p>
         </div>
-        
+
         <div class="page-break"></div>
-        
+
         <div class="dsv-section">
           <p class="dsv-section-title">II- CONSTATATION DE LA LIBÉRATION ET DU DÉPÔT DES FONDS</p>
           
@@ -1757,6 +1791,9 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
   // Debug: Afficher les données reçues
   console.log('🔍 [CEPICI] company:', JSON.stringify(company, null, 2));
   console.log('🔍 [CEPICI] additionalData:', JSON.stringify(additionalData, null, 2));
+
+  const armoiriesDataUri = readImageAsDataUri('armoiries-ci.png');
+  const cepiciLogoDataUri = readImageAsDataUri('logo-cepici.png');
   
   const capital = parseFloat(company.capital) || 0;
   const capitalNumeraire = capital;
@@ -1985,10 +2022,11 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
             <p style="font-style: italic; font-size: 9pt;">Union - Discipline - Travail</p>
           </div>
           <div style="text-align: center; width: 40%;">
-            <!-- Logo armoiries -->
+            ${armoiriesDataUri ? `<img src="${armoiriesDataUri}" style="height: 55px; width: auto;" />` : ''}
           </div>
           <div class="header-right">
             <p style="font-size: 9pt;">Présidence de la République</p>
+            ${cepiciLogoDataUri ? `<img src="${cepiciLogoDataUri}" style="height: 32px; width: auto; display: block; margin: 0 auto 4px auto;" />` : ''}
             <p class="cepici-logo">CEPICI</p>
             <p style="font-size: 8pt;">CENTRE DE PROMOTION DES INVESTISSEMENTS<br>EN CÔTE D'IVOIRE</p>
           </div>
@@ -2146,10 +2184,19 @@ export const generatePDFWithPuppeteer = async (htmlContent, outputPath) => {
       path: outputPath,
       format: 'A4',
       printBackground: true,
+      displayHeaderFooter: true,
+      headerTemplate: '<div></div>',
+      footerTemplate: `
+        <div style="width: 100%; font-size: 9px; padding: 0 15mm; color: #000;">
+          <div style="width: 100%; text-align: right;">
+            <span class="pageNumber"></span>/<span class="totalPages"></span>
+          </div>
+        </div>
+      `,
       margin: {
         top: '15mm',
         right: '15mm',
-        bottom: '15mm',
+        bottom: '20mm',
         left: '15mm'
       }
     });
@@ -2211,6 +2258,13 @@ export const generateDocumentHTML = (docName, company, associates = [], managers
  */
 export const generateDocumentPDF = async (docName, company, associates = [], managers = [], additionalData = {}, outputPath) => {
   console.log(`\n🔧 [Puppeteer] Génération document: "${docName}"`);
+
+  // CEPICI: utiliser le gabarit PDF officiel + overlay (rendu identique)
+  if (docName.toLowerCase().includes('cepici')) {
+    console.log(`   🧾 [CEPICI] Génération via gabarit PDF + overlay: ${outputPath}`);
+    await generateCepiciPdfFromTemplate(company, managers, associates, additionalData, outputPath);
+    return outputPath;
+  }
   
   // Trouver le générateur HTML approprié
   let generator = htmlGenerators[docName];
