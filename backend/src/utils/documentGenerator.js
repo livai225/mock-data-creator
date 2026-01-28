@@ -612,8 +612,12 @@ export const generateDocument = async (docName, company, associates = [], manage
     }
   }
 
-  // Generer Word
-  if (options.formats.includes('docx')) {
+  // Generer Word (sauf CEPICI qui utilise un PDF overlay officiel)
+  const isCepici = docName.toLowerCase().includes('cepici');
+  if (isCepici && options.formats.includes('docx')) {
+    console.log(`   [DOCX] Skipped pour CEPICI (utilise PDF overlay officiel)`);
+  }
+  if (options.formats.includes('docx') && !isCepici) {
     try {
       console.log(`   [DOCX] Generation...`);
       const docxFileName = `${baseFileName}_${timestamp}.docx`;
