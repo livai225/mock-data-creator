@@ -865,6 +865,18 @@ export default function PreviewDocuments() {
                               );
                             } else {
                               // Aucun document chargé - fallback sur composant React
+                              if (activeTab === 'cepici') {
+                                return (
+                                  <div className="p-8 text-center">
+                                    <p className="text-muted-foreground mb-2">
+                                      Prévisualisation CEPICI en cours de génération...
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Le rendu CEPICI utilise le gabarit PDF officiel.
+                                    </p>
+                                  </div>
+                                );
+                              }
                               const DocComponent = documentTabs.find(t => t.id === activeTab)?.component;
                               if (DocComponent) {
                                 return (
