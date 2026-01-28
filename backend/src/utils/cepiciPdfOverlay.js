@@ -310,199 +310,181 @@ export const generateCepiciPdfFromTemplate = async (company, managers = [], asso
   console.log('   📋 Données normalisées:', JSON.stringify(d, null, 2));
 
   // ============================================================
-  // PAGE 1: Déclarant + Projections (I- IDENTIFICATION)
+  // PAGE 1: Déclarant + Projections
   // ============================================================
   const p1 = pages[0];
   
-  // --- DÉCLARANT RESPONSABLE ---
-  // "DÉCLARATION ÉTABLIE PAR :" → après les deux-points
-  drawTextTopLeftMm(p1, `M. ${asUpper(d.declarantNom)}`, 62, 84, { font: boldFont, size: 7, maxWidth: 120, singleLine: true });
+  // --- DÉCLARANT RESPONSABLE POUR L'ACCOMPLISSEMENT DES FORMALITÉS ---
+  // "DÉCLARATION ÉTABLIE PAR :" (ligne ~165mm depuis le haut)
+  drawTextTopLeftMm(p1, `M. ${asUpper(d.declarantNom)}`, 58, 168, { font: boldFont, size: 8, maxWidth: 130, singleLine: true });
   
   // "AGISSANT EN QUALITÉ DE :" 
-  drawTextTopLeftMm(p1, asUpper(d.declarantQualite), 58, 89, { font: boldFont, size: 7, maxWidth: 120, singleLine: true });
+  drawTextTopLeftMm(p1, asUpper(d.declarantQualite), 52, 174, { font: boldFont, size: 8, maxWidth: 140, singleLine: true });
   
   // "NUMÉRO DE COMPTE CONTRIBUABLE :"
-  drawTextTopLeftMm(p1, asText(d.declarantNumCC), 72, 94, { font: boldFont, size: 7, maxWidth: 100, singleLine: true });
+  drawTextTopLeftMm(p1, asText(d.declarantNumCC), 70, 180, { font: boldFont, size: 8, maxWidth: 100, singleLine: true });
   
   // "ADRESSE PERSONNELLE :"
-  drawTextTopLeftMm(p1, asUpper(d.declarantAdresse), 55, 99, { font: boldFont, size: 6, maxWidth: 140, singleLine: true });
+  drawTextTopLeftMm(p1, asUpper(d.declarantAdresse), 52, 186, { font: boldFont, size: 7, maxWidth: 145, singleLine: true });
   
-  // "TEL :" / "FAX :" / "MOBILE :"
-  drawTextTopLeftMm(p1, asText(d.declarantTel), 22, 106, { font: boldFont, size: 7, singleLine: true });
-  drawTextTopLeftMm(p1, asText(d.declarantFax), 62, 106, { font: boldFont, size: 7, singleLine: true });
-  drawTextTopLeftMm(p1, asText(d.declarantMobile), 105, 106, { font: boldFont, size: 7, singleLine: true });
+  // Ligne vide puis TEL / FAX 
+  drawTextTopLeftMm(p1, asText(d.declarantTel), 18, 198, { font: boldFont, size: 8, singleLine: true });
+  drawTextTopLeftMm(p1, asText(d.declarantFax), 90, 198, { font: boldFont, size: 8, singleLine: true });
   
-  // "E-MAIL :"
-  drawTextTopLeftMm(p1, asText(d.declarantEmail), 28, 111, { font: boldFont, size: 7, maxWidth: 160, singleLine: true });
+  // MOBILE / E-MAIL
+  drawTextTopLeftMm(p1, asText(d.declarantMobile), 25, 204, { font: boldFont, size: 8, singleLine: true });
+  drawTextTopLeftMm(p1, asText(d.declarantEmail), 90, 204, { font: boldFont, size: 8, maxWidth: 100, singleLine: true });
 
-  // --- I- IDENTIFICATION (tableau projections) ---
-  // Ligne "Montant d'Investissement" : ANNÉE 1 | ANNÉE 2 | ANNÉE 3
-  drawTextTopLeftMm(p1, d.investAnnee1, 82, 136, { font, size: 8 });
-  drawTextTopLeftMm(p1, d.investAnnee2, 115, 136, { font, size: 8 });
-  drawTextTopLeftMm(p1, d.investAnnee3, 150, 136, { font, size: 8 });
+  // --- Tableau projections (en bas de page 1) ---
+  // Colonnes: ANNÉE 1 (~95mm) | ANNÉE 2 (~130mm) | ANNÉE 3 (~165mm)
+  // Ligne "Montant d'Investissement (projeté)" (~223mm)
+  drawTextTopLeftMm(p1, d.investAnnee1, 95, 226, { font: boldFont, size: 9 });
+  drawTextTopLeftMm(p1, d.investAnnee2, 130, 226, { font: boldFont, size: 9 });
+  drawTextTopLeftMm(p1, d.investAnnee3, 165, 226, { font: boldFont, size: 9 });
   
-  // Ligne "Nombre d'Emplois"
-  drawTextTopLeftMm(p1, d.emploisAnnee1, 82, 145, { font, size: 8 });
-  drawTextTopLeftMm(p1, d.emploisAnnee2, 115, 145, { font, size: 8 });
-  drawTextTopLeftMm(p1, d.emploisAnnee3, 150, 145, { font, size: 8 });
+  // Ligne "Nombre d'Emplois (projetés)" (~238mm)
+  drawTextTopLeftMm(p1, d.emploisAnnee1, 95, 241, { font: boldFont, size: 9 });
+  drawTextTopLeftMm(p1, d.emploisAnnee2, 130, 241, { font: boldFont, size: 9 });
+  drawTextTopLeftMm(p1, d.emploisAnnee3, 165, 241, { font: boldFont, size: 9 });
 
   // ============================================================
-  // PAGE 2: Identification société + Activité + Localisation
+  // PAGE 2: I- Identification + II- Activité + III- Localisation + V- Infos dirigeants
   // ============================================================
   if (pages[1]) {
     const p2 = pages[1];
     
-    // --- Dénomination sociale ---
-    drawTextTopLeftMm(p2, `${asUpper(d.companyName)} SARL`, 55, 20, { font: boldFont, size: 8, maxWidth: 130, singleLine: true });
+    // --- I- IDENTIFICATION ---
+    // Dénomination sociale (~15mm)
+    drawTextTopLeftMm(p2, `${asUpper(d.companyName)} SARL`, 48, 15, { font: boldFont, size: 9, maxWidth: 150, singleLine: true });
     
-    // --- Nom commercial ---
-    // (souvent vide ou identique)
+    // Nom commercial (~22mm)
+    drawTextTopLeftMm(p2, asUpper(d.companyName), 42, 22, { font: boldFont, size: 9, maxWidth: 150, singleLine: true });
     
-    // --- Sigle ---
-    drawTextTopLeftMm(p2, asUpper(d.sigle), 22, 29, { font: boldFont, size: 8, maxWidth: 60, singleLine: true });
+    // Sigle (~29mm)
+    drawTextTopLeftMm(p2, asUpper(d.sigle), 18, 29, { font: boldFont, size: 9, maxWidth: 80, singleLine: true });
     
-    // --- Durée ---
-    drawTextTopLeftMm(p2, `${d.dureeSociete} ANS`, 22, 34, { font: boldFont, size: 8 });
+    // Durée (~36mm)
+    drawTextTopLeftMm(p2, `${d.dureeSociete} ANS`, 18, 36, { font: boldFont, size: 9 });
     
-    // --- Forme juridique ---
-    drawTextTopLeftMm(p2, d.formeJuridique, 42, 39, { font: boldFont, size: 8 });
+    // Forme juridique (~43mm)
+    drawTextTopLeftMm(p2, d.formeJuridique, 40, 43, { font: boldFont, size: 9 });
     
-    // --- Montant du capital ---
-    drawTextTopLeftMm(p2, `${d.capital} FCFA`, 45, 44, { font: boldFont, size: 8 });
+    // Montant du capital (~50mm) + Dont Montant en numéraire
+    drawTextTopLeftMm(p2, `${d.capital} FCFA`, 45, 50, { font: boldFont, size: 9 });
+    drawTextTopLeftMm(p2, `${d.capitalNumeraire} FCFA`, 130, 50, { font: boldFont, size: 9 });
     
-    // --- Dont : Montant en numéraire ---
-    drawTextTopLeftMm(p2, d.capitalNumeraire, 135, 44, { font: boldFont, size: 8 });
-    
-    // --- Évaluation des apports en nature ---
-    drawTextTopLeftMm(p2, d.apportsNature, 70, 49, { font: boldFont, size: 8 });
+    // Évaluation des apports en nature (~57mm)
+    drawTextTopLeftMm(p2, d.apportsNature, 70, 57, { font: boldFont, size: 9 });
 
     // --- II- ACTIVITÉ ---
-    // Activité principale
-    drawTextTopLeftMm(p2, asText(d.activitePrincipale), 42, 61, { font: boldFont, size: 6, maxWidth: 155, singleLine: true });
+    // Activité principale (~68mm)
+    drawTextTopLeftMm(p2, asText(d.activitePrincipale), 40, 68, { font: boldFont, size: 7, maxWidth: 160, singleLine: true });
     
-    // Activités secondaires (ligne suivante si besoin)
+    // Activités secondaires (~75mm)
     if (d.activitesSecondaires) {
-      drawTextTopLeftMm(p2, asText(d.activitesSecondaires), 45, 70, { font, size: 6, maxWidth: 150, singleLine: true });
+      drawTextTopLeftMm(p2, asText(d.activitesSecondaires), 45, 75, { font, size: 7, maxWidth: 155, singleLine: true });
     }
     
-    // Chiffre d'affaires prévisionnel
-    drawTextTopLeftMm(p2, d.chiffreAffairesPrev ? `${d.chiffreAffairesPrev} FCFA` : '', 55, 80, { font: boldFont, size: 8 });
+    // Chiffre d'affaires prévisionnel (~82mm)
+    drawTextTopLeftMm(p2, d.chiffreAffairesPrev ? `${d.chiffreAffairesPrev} FCFA` : '', 55, 82, { font: boldFont, size: 9 });
     
-    // Nombre d'employés
-    drawTextTopLeftMm(p2, d.nombreEmployes, 42, 85, { font: boldFont, size: 8 });
+    // Nombre d'employés (~89mm) + Date embauche 1er employé
+    drawTextTopLeftMm(p2, d.nombreEmployes, 42, 89, { font: boldFont, size: 9 });
+    drawTextTopLeftMm(p2, d.dateEmbauchePremier, 130, 89, { font: boldFont, size: 9 });
     
-    // Date embauche 1er employé
-    drawTextTopLeftMm(p2, d.dateEmbauchePremier, 115, 85, { font: boldFont, size: 8 });
-    
-    // Date de début d'activité
-    drawTextTopLeftMm(p2, d.dateDebutActivite, 50, 90, { font: boldFont, size: 8 });
+    // Date de début d'activité (~96mm)
+    drawTextTopLeftMm(p2, d.dateDebutActivite, 48, 96, { font: boldFont, size: 9 });
 
-    // --- III- LOCALISATION DU SIÈGE SOCIAL ---
-    // Ville / Commune / Quartier
-    drawTextTopLeftMm(p2, asUpper(d.ville), 22, 102, { font: boldFont, size: 8 });
-    drawTextTopLeftMm(p2, asUpper(d.commune), 62, 102, { font: boldFont, size: 8, maxWidth: 40, singleLine: true });
-    drawTextTopLeftMm(p2, asUpper(d.quartier), 115, 102, { font: boldFont, size: 8, maxWidth: 60, singleLine: true });
+    // --- III- LOCALISATION DU SIÈGE SOCIAL / DE LA SUCCURSALE ---
+    // Ville (~108mm) / Commune
+    drawTextTopLeftMm(p2, asUpper(d.ville), 18, 108, { font: boldFont, size: 9 });
+    drawTextTopLeftMm(p2, asUpper(d.commune), 75, 108, { font: boldFont, size: 9, maxWidth: 60, singleLine: true });
     
-    // Rue / Lot / Ilot
-    drawTextTopLeftMm(p2, asUpper(d.rue), 22, 110, { font: boldFont, size: 7, maxWidth: 80, singleLine: true });
-    drawTextTopLeftMm(p2, d.lot, 110, 110, { font: boldFont, size: 8 });
-    drawTextTopLeftMm(p2, d.ilot, 145, 110, { font: boldFont, size: 8 });
+    // Quartier (~115mm) / Rue
+    drawTextTopLeftMm(p2, asUpper(d.quartier), 25, 115, { font: boldFont, size: 8, maxWidth: 60, singleLine: true });
+    drawTextTopLeftMm(p2, asUpper(d.rue), 100, 115, { font: boldFont, size: 8, maxWidth: 90, singleLine: true });
     
-    // Nom immeuble / Numéro étage / Numéro porte
-    drawTextTopLeftMm(p2, asUpper(d.nomImmeuble), 38, 118, { font: boldFont, size: 7, maxWidth: 60, singleLine: true });
-    drawTextTopLeftMm(p2, d.numeroEtage, 115, 118, { font: boldFont, size: 8 });
-    drawTextTopLeftMm(p2, d.numeroPorte, 155, 118, { font: boldFont, size: 8 });
+    // Lot (~122mm) / Ilot
+    drawTextTopLeftMm(p2, d.lot, 25, 122, { font: boldFont, size: 9 });
+    drawTextTopLeftMm(p2, d.ilot, 75, 122, { font: boldFont, size: 9 });
     
-    // Section / Parcelle
-    drawTextTopLeftMm(p2, d.section, 28, 126, { font: boldFont, size: 8 });
-    drawTextTopLeftMm(p2, d.parcelle, 65, 126, { font: boldFont, size: 8 });
+    // Nom immeuble (~129mm) / Numéro étage / Numéro porte
+    drawTextTopLeftMm(p2, asUpper(d.nomImmeuble), 38, 129, { font: boldFont, size: 8, maxWidth: 55, singleLine: true });
+    drawTextTopLeftMm(p2, d.numeroEtage, 105, 129, { font: boldFont, size: 9 });
+    drawTextTopLeftMm(p2, d.numeroPorte, 155, 129, { font: boldFont, size: 9 });
     
-    // TF n° / Tél
-    drawTextTopLeftMm(p2, d.tfNumero, 25, 134, { font: boldFont, size: 8 });
-    drawTextTopLeftMm(p2, d.telephone, 85, 134, { font: boldFont, size: 8 });
+    // Section (~136mm) / Parcelle
+    drawTextTopLeftMm(p2, d.section, 25, 136, { font: boldFont, size: 9 });
+    drawTextTopLeftMm(p2, d.parcelle, 95, 136, { font: boldFont, size: 9 });
     
-    // Fax
-    drawTextTopLeftMm(p2, d.fax, 22, 142, { font: boldFont, size: 8 });
+    // TF n° (~143mm)
+    drawTextTopLeftMm(p2, d.tfNumero, 22, 143, { font: boldFont, size: 9 });
     
-    // Adresse postale / Email
-    drawTextTopLeftMm(p2, d.adressePostale, 45, 150, { font: boldFont, size: 7, maxWidth: 70, singleLine: true });
-    drawTextTopLeftMm(p2, d.email, 130, 150, { font: boldFont, size: 7, maxWidth: 60, singleLine: true });
+    // Tél (~150mm) / Fax
+    drawTextTopLeftMm(p2, d.telephone, 18, 150, { font: boldFont, size: 9 });
+    drawTextTopLeftMm(p2, d.fax, 100, 150, { font: boldFont, size: 9 });
+    
+    // Adresse postale (~157mm) / Email
+    drawTextTopLeftMm(p2, d.adressePostale, 42, 157, { font: boldFont, size: 8, maxWidth: 75, singleLine: true });
+    drawTextTopLeftMm(p2, d.email, 130, 157, { font: boldFont, size: 8, maxWidth: 65, singleLine: true });
 
-    // --- IV- ADRESSE DES AUTRES ÉTABLISSEMENTS ---
-    // (généralement vide ou "Néant")
+    // --- V- INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES ---
+    // Tableau associés (colonnes 1, 2, 3) - à partir de ~200mm
+    const assocTableY = 207;
+    const assocRowH = 6;
+    
+    // Remplir les colonnes du tableau associés
+    d.associates.forEach((assoc, idx) => {
+      if (idx >= 3) return; // Max 3 colonnes
+      const colX = 75 + (idx * 45); // Colonnes à 75mm, 120mm, 165mm
+      
+      // Nom et Prénoms
+      drawTextTopLeftMm(p2, asUpper(assoc.nom), colX, assocTableY, { font: boldFont, size: 6, maxWidth: 40, singleLine: true });
+      // Adresse
+      drawTextTopLeftMm(p2, asUpper(assoc.adresse), colX, assocTableY + assocRowH, { font, size: 5, maxWidth: 40, singleLine: true });
+      // Nationalité
+      drawTextTopLeftMm(p2, assoc.nationalite, colX, assocTableY + (assocRowH * 2), { font, size: 6, maxWidth: 40, singleLine: true });
+      // Date et lieu naissance
+      drawTextTopLeftMm(p2, `${assoc.dateNaissance} ${assoc.lieuNaissance}`, colX, assocTableY + (assocRowH * 3), { font, size: 5, maxWidth: 40, singleLine: true });
+      // Régime matrimonial
+      drawTextTopLeftMm(p2, assoc.regimeMatrimonial, colX, assocTableY + (assocRowH * 4), { font, size: 6, maxWidth: 40, singleLine: true });
+      // Clauses opposables (vide généralement)
+      // Domicile
+      drawTextTopLeftMm(p2, assoc.villeResidence || assoc.adresse, colX, assocTableY + (assocRowH * 6), { font, size: 5, maxWidth: 40, singleLine: true });
+    });
   }
 
   // ============================================================
-  // PAGE 3: V- INFORMATIONS SUR LES DIRIGEANTS, ACTIONNAIRES
+  // PAGE 3: Dirigeants sociaux + Commissaires + Signature
   // ============================================================
   if (pages[2]) {
     const p3 = pages[2];
 
-    // --- Tableau associés (en haut de page 3) ---
-    // Colonnes: 1 | Nom et Prénoms | Adresse | Nationalité
-    // On remplit ligne par ligne (max ~3-4 lignes visibles dans le tableau)
-    const tableStartY = 60; // mm depuis le haut
-    const rowHeight = 9; // mm entre chaque ligne
+    // --- Dirigeants sociaux (tableau en haut) ---
+    // Colonnes: 1 (~75mm) | 2 (~120mm) | 3 (~165mm)
+    const dirigTableY = 32;
+    const dirigRowH = 7;
     
-    d.associates.forEach((assoc, idx) => {
-      if (idx >= 4) return; // Limiter à 4 lignes dans le tableau
-      const y = tableStartY + (idx * rowHeight);
-      
-      // Colonne 1: numéro
-      drawTextTopLeftMm(p3, String(idx + 1), 15, y, { font, size: 6, singleLine: true });
-      
-      // Colonne 2: Nom et Prénoms
-      drawTextTopLeftMm(p3, asUpper(assoc.nom), 25, y, { font: boldFont, size: 6, maxWidth: 55, singleLine: true });
-      
-      // Colonne 3: Adresse
-      drawTextTopLeftMm(p3, asUpper(assoc.adresse), 82, y, { font, size: 5, maxWidth: 45, singleLine: true });
-      
-      // Colonne 4: Nationalité
-      drawTextTopLeftMm(p3, asText(assoc.nationalite), 130, y, { font, size: 6, maxWidth: 30, singleLine: true });
-    });
-
-    // --- Suite tableau: Date et lieu naissance / Régime matrimonial / Nom père / Nom mère ---
-    // Ces colonnes sont sur les lignes suivantes du même tableau
-    d.associates.forEach((assoc, idx) => {
-      if (idx >= 4) return;
-      const y = tableStartY + (idx * rowHeight);
-      
-      // Colonne 5: Date et lieu de naissance
-      const dateEtLieu = `${assoc.dateNaissance}${assoc.lieuNaissance ? ' ' + assoc.lieuNaissance : ''}`;
-      drawTextTopLeftMm(p3, dateEtLieu, 162, y, { font, size: 5, maxWidth: 35, singleLine: true });
-    });
-
-    // --- Dirigeants sociaux (gérant, administrateur...) ---
-    // Section en bas de page 3
-    const dirigeantStartY = 132; // mm depuis le haut (ajuster selon le PDF)
-    
-    // Ligne 1 du tableau dirigeants: Nom et Prénoms
-    drawTextTopLeftMm(p3, asUpper(d.gerantNom), 25, dirigeantStartY, { font: boldFont, size: 6, maxWidth: 55, singleLine: true });
-    
-    // Adresse
-    drawTextTopLeftMm(p3, asUpper(d.gerantAdresse), 82, dirigeantStartY, { font, size: 5, maxWidth: 45, singleLine: true });
-    
-    // Nationalité
-    drawTextTopLeftMm(p3, asText(d.gerantNationalite), 130, dirigeantStartY, { font, size: 6, maxWidth: 30, singleLine: true });
-    
+    // Colonne 1: Gérant principal
+    // Nom et Prénoms
+    drawTextTopLeftMm(p3, asUpper(d.gerantNom), 75, dirigTableY, { font: boldFont, size: 6, maxWidth: 40, singleLine: true });
+    // Nom de jeune fille (vide)
     // Date et lieu de naissance
-    const gerantDateLieu = `${d.gerantDateNaissance}${d.gerantLieuNaissance ? ', ' + asUpper(d.gerantLieuNaissance) : ''}`;
-    drawTextTopLeftMm(p3, gerantDateLieu, 162, dirigeantStartY, { font, size: 5, maxWidth: 35, singleLine: true });
-
-    // Ligne 2 du tableau dirigeants (suite infos)
-    const dirigeantLigne2Y = dirigeantStartY + rowHeight;
-    
-    // Régime matrimonial
-    drawTextTopLeftMm(p3, d.gerantRegimeMatrimonial, 25, dirigeantLigne2Y, { font, size: 6, maxWidth: 40, singleLine: true });
-    
-    // Nom du père
-    drawTextTopLeftMm(p3, d.gerantPereNom, 70, dirigeantLigne2Y, { font, size: 6, maxWidth: 40, singleLine: true });
-    
-    // Nom de la mère
-    drawTextTopLeftMm(p3, d.gerantMereNom, 115, dirigeantLigne2Y, { font, size: 6, maxWidth: 40, singleLine: true });
-    
+    drawTextTopLeftMm(p3, `${d.gerantDateNaissance} ${d.gerantLieuNaissance}`, 75, dirigTableY + (dirigRowH * 2), { font, size: 5, maxWidth: 40, singleLine: true });
+    // Fonction
+    drawTextTopLeftMm(p3, 'GERANT', 75, dirigTableY + (dirigRowH * 3), { font: boldFont, size: 6, maxWidth: 40, singleLine: true });
     // Domicile
-    drawTextTopLeftMm(p3, asUpper(d.gerantVilleResidence || d.gerantAdresse), 160, dirigeantLigne2Y, { font, size: 5, maxWidth: 35, singleLine: true });
+    drawTextTopLeftMm(p3, asUpper(d.gerantAdresse), 75, dirigTableY + (dirigRowH * 4), { font, size: 5, maxWidth: 40, singleLine: true });
+    // Téléphone et adresse postale
+    drawTextTopLeftMm(p3, d.telephone, 75, dirigTableY + (dirigRowH * 5), { font, size: 6, maxWidth: 40, singleLine: true });
+    // Situation matrimoniale
+    drawTextTopLeftMm(p3, d.gerantRegimeMatrimonial, 75, dirigTableY + (dirigRowH * 6), { font, size: 6, maxWidth: 40, singleLine: true });
+
+    // --- Date et signature (en bas) ---
+    // "Fait à Abidjan, le" (~200mm)
+    const today = new Date();
+    const dateStr = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+    drawTextTopLeftMm(p3, dateStr, 45, 202, { font: boldFont, size: 10 });
   }
 
   // ============================================================
