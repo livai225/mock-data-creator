@@ -64,8 +64,19 @@ const getCepiciTemplatePath = (associates = []) => {
   return full;
 };
 
-const asUpper = (v) => (v == null ? '' : String(v)).trim().toUpperCase();
-const asText = (v) => (v == null ? '' : String(v)).trim();
+const sanitizePdfText = (value) => {
+  if (value == null) return '';
+  return String(value)
+    .replace(/[\u202F\u00A0]/g, ' ') // espaces insécables
+    .replace(/[\u2019\u2018]/g, "'") // apostrophes
+    .replace(/[\u2013\u2014]/g, '-') // tirets
+    .replace(/[\uFEFF]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+const asUpper = (v) => sanitizePdfText(v).toUpperCase();
+const asText = (v) => sanitizePdfText(v);
 
 /**
  * Dessine du texte à une position (mm depuis haut-gauche).
