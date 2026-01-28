@@ -117,7 +117,7 @@ export async function apiRequestBlob(
 ): Promise<Blob> {
   const { token, headers, ...rest } = options;
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(buildApiUrl(path), {
     ...rest,
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
