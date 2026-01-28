@@ -1420,9 +1420,17 @@ const generateDSVHTML = (company, associates, managers, additionalData = {}) => 
   
   const gerant = managers && managers.length > 0 ? managers[0] : null;
   
-  const totalParts = associates && associates.length > 0 
-    ? associates.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0)
+  const companyAssociates = company.associates || company.associes || [];
+  const resolvedAssociates = Array.isArray(associates) && associates.length > 0
+    ? (companyAssociates.length > associates.length ? companyAssociates : associates)
+    : companyAssociates;
+  const totalParts = resolvedAssociates.length > 0 
+    ? resolvedAssociates.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0)
     : Math.floor(capital / 5000);
+  console.log('📄 [DSV] Associés résolus:', {
+    count: resolvedAssociates.length,
+    names: resolvedAssociates.map(a => a.name || `${a.nom || ''} ${a.prenoms || ''}`.trim()).filter(Boolean)
+  });
   const valeurPart = totalParts > 0 ? capital / totalParts : 5000;
   
   const dateActuelle = formatDate(new Date().toISOString());
@@ -1468,16 +1476,51 @@ const generateDSVHTML = (company, associates, managers, additionalData = {}) => 
   const objetSocial = company.activity || '[OBJET SOCIAL]';
   
   // Déterminer si c'est une SARL unipersonnelle ou pluripersonnelle
-  const isUnipersonnelle = !associates || associates.length <= 1;
+  const isUnipersonnelle = !resolvedAssociates || resolvedAssociates.length <= 1;
+
+  const signataires = (resolvedAssociates && resolvedAssociates.length > 1)
+    ? resolvedAssociates
+    : [
+        {
+          nom: gerant?.nom || '',
+          prenoms: gerant?.prenoms || '',
+          profession: gerantProfession,
+          adresse: gerantAdresse,
+          nationalite: gerantNationalite,
+          dateNaissance: gerantDateNaissance,
+          lieuNaissance: gerantLieuNaissance,
+          typeIdentite: gerantTypeId,
+          numeroIdentite: gerantNumId,
+          dateDelivranceId: gerantDateDelivranceId,
+          dateValiditeId: gerantDateValiditeId
+        }
+      ];
+
+  const signatairesLabel = signataires.length > 1 ? 'Les soussignés,' : 'Le soussigné,';
+  const signatairesText = signataires
+    .map((associe) => {
+      const nom = associe.name || `${associe.nom || ''} ${associe.prenoms || ''}`.trim() || '[NOM]';
+      const profession = associe.profession || gerantProfession;
+      const adresse = associe.adresse || associe.address || associe.adresseDomicile || gerantAdresse;
+      const nationalite = associe.nationalite || associe.nationality || gerantNationalite;
+      const dateNaissance = associe.date_naissance || associe.dateNaissance || gerantDateNaissance;
+      const lieuNaissance = associe.lieu_naissance || associe.lieuNaissance || gerantLieuNaissance;
+      const typeId = associe.type_identite || associe.typeIdentite || gerantTypeId;
+      const numeroId = associe.numero_identite || associe.numeroIdentite || gerantNumId;
+      const dateDelivrance = associe.date_delivrance_id || associe.dateDelivranceId || gerantDateDelivranceId;
+      const dateValidite = associe.date_validite_id || associe.dateValiditeId || gerantDateValiditeId;
+      return `M. ${escapeHtml(String(nom).toUpperCase())}, ${escapeHtml(profession)}, résident à ${escapeHtml(adresse)} de nationalité ${escapeHtml(nationalite)} né(e) le ${escapeHtml(formatDate(dateNaissance))} à ${escapeHtml(lieuNaissance)} et titulaire de la ${escapeHtml(typeId)} ${escapeHtml(numeroId)} délivré(e) le ${escapeHtml(formatDate(dateDelivrance))} et valable jusqu'au ${escapeHtml(formatDate(dateValidite))}.`;
+    })
+    .join('<br/><br/>');
   
   // Construire le tableau des associés et les signatures
   let tableauSouscription = '';
   let signaturesHTML = '';
   let repartitionParts = '';
   
-  if (associates && associates.length > 0) {
+  if (resolvedAssociates && resolvedAssociates.length > 0) {
     let debutParts = 1;
-    associates.forEach((associe, index) => {
+    resolvedAssociates.forEach((associe, index) => {
       const assocNom = associe.name || `${associe.nom || ''} ${associe.prenoms || ''}`.trim() || '[NOM ASSOCIÉ]';
       const parts = parseInt(associe.parts) || 0;
       const montant = parts * valeurPart;
@@ -1698,13 +1741,10 @@ const generateDSVHTML = (company, associates, managers, additionalData = {}) => 
         <p style="text-align: center;">L'An ${numberToWords(annee)},</p>
         <p style="text-align: center;">Le ${dateActuelle}</p>
         
-        <p style="margin-top: 20px;">Le soussigné,</p>
+        <p style="margin-top: 20px;">${signatairesLabel}</p>
         
         <p style="margin: 15px 0; text-align: justify;">
-          <strong>M. ${escapeHtml(gerantNom.toUpperCase())}</strong>, ${escapeHtml(gerantProfession)}, résident à ${escapeHtml(gerantAdresse)} 
-          de nationalité ${escapeHtml(gerantNationalite)} né(e) le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance)} 
-          et titulaire de la ${gerantTypeId} ${escapeHtml(gerantNumId)} délivré(e) le ${gerantDateDelivranceId} 
-          et valable jusqu'au ${gerantDateValiditeId}.
+          ${signatairesText}
         </p>
         
         <div class="dsv-section">

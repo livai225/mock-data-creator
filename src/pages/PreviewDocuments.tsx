@@ -368,6 +368,18 @@ export default function PreviewDocuments() {
         
         // Préparer les données additionnelles (bailleur, etc.)
         const additionalData: any = {};
+        if (formData.declarantNom || formData.declarantQualite || formData.declarantAdresse) {
+          additionalData.declarant = {
+            nom: formData.declarantNom || '',
+            qualite: formData.declarantQualite || '',
+            adresse: formData.declarantAdresse || '',
+            telephone: formData.declarantTelephone || '',
+            fax: formData.declarantFax || '',
+            mobile: formData.declarantMobile || '',
+            email: formData.declarantEmail || ''
+          };
+          additionalData.declarant_num_cc = formData.declarantNumeroCompte || '';
+        }
         if (formData.bailleurNom) {
           additionalData.bailleur_nom = `${formData.bailleurNom} ${formData.bailleurPrenom || ''}`.trim();
           additionalData.bailleur_telephone = formData.bailleurContact || '';
