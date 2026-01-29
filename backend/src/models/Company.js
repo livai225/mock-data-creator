@@ -16,6 +16,7 @@ class Company {
         userId,
         companyType,
         companyName,
+        sigle,
         activity,
         capital,
         address,
@@ -49,6 +50,7 @@ class Company {
         userId, 
         companyType, 
         companyName, 
+        sigle,
         activity, 
         capital, 
         address, 
@@ -91,11 +93,11 @@ class Company {
       
       const [result] = await connection.execute(
         `INSERT INTO companies 
-        (user_id, company_type, company_name, activity, capital, address, city, gerant, payment_amount, chiffre_affaires_prev, 
+        (user_id, company_type, company_name, sigle, activity, capital, address, city, gerant, payment_amount, chiffre_affaires_prev, 
          declarant_nom, declarant_qualite, declarant_adresse, declarant_telephone, declarant_fax, declarant_mobile, declarant_email,
          investissement_annee1, investissement_annee2, investissement_annee3, emplois_annee1, emplois_annee2, emplois_annee3,
          commune, quartier, lot, ilot, nom_immeuble, numero_etage, numero_porte, section, parcelle, tf_numero, fax, adresse_postale, telephone, email, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
         cleanParamsArray
       );
 
@@ -336,7 +338,7 @@ class Company {
     const fields = [];
     const values = [];
 
-    const allowedFields = ['company_name', 'activity', 'capital', 'address', 'city', 'gerant', 'notes'];
+    const allowedFields = ['company_name', 'sigle', 'activity', 'capital', 'address', 'city', 'gerant', 'notes'];
     
     for (const field of allowedFields) {
       if (companyData[field] !== undefined) {

@@ -21,6 +21,7 @@ const createCompanyValidation = [
     .isIn(['SARL', 'SARLU', 'SARL_PLURI', 'EI', 'SNC', 'SCS', 'GIE', 'SA', 'SAS', 'COOPERATIVE'])
     .withMessage('Type d\'entreprise invalide'),
   body('companyName').trim().notEmpty().withMessage('Le nom de l\'entreprise est requis'),
+  body('sigle').optional().trim(),
   body('activity').trim().notEmpty().withMessage('L\'activité est requise'),
   body('capital').isNumeric().withMessage('Le capital doit être un nombre'),
   body('address').trim().notEmpty().withMessage('L\'adresse est requise'),

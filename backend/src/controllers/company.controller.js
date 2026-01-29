@@ -16,6 +16,7 @@ export const createCompany = async (req, res, next) => {
     const {
       companyType,
       companyName,
+      sigle,
       activity,
       capital,
       address,
@@ -48,6 +49,7 @@ export const createCompany = async (req, res, next) => {
       userId: req.user.id,
       companyType,
       companyName,
+      sigle,
       activity,
       capital,
       address,

@@ -86,6 +86,23 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
       gerant: `${formData.associeNom} ${formData.associePrenoms}`,
       paymentAmount: price,
       chiffreAffairesPrev: formData.chiffreAffairesPrev,
+      declarant: {
+        nom: formData.declarantNom,
+        qualite: formData.declarantQualite,
+        adresse: formData.declarantAdresse,
+        telephone: formData.declarantTelephone,
+        fax: formData.declarantFax,
+        mobile: formData.declarantMobile,
+        email: formData.declarantEmail
+      },
+      projections: {
+        investissementAnnee1: formData.investissementAnnee1,
+        investissementAnnee2: formData.investissementAnnee2,
+        investissementAnnee3: formData.investissementAnnee3,
+        emploisAnnee1: formData.emploisAnnee1,
+        emploisAnnee2: formData.emploisAnnee2,
+        emploisAnnee3: formData.emploisAnnee3
+      },
       // Informations du bailleur
       bailleur: {
         nom: formData.bailleurNom,

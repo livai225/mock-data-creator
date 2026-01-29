@@ -354,7 +354,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
           <CardHeader>
             <div className="flex items-center gap-2 text-secondary mb-2">
               <Building2 className="h-5 w-5" />
-              <span className="text-sm font-medium">Étape 1/5</span>
+              <span className="text-sm font-medium">Étape 1/6</span>
             </div>
             <CardTitle>Informations de la société</CardTitle>
             <CardDescription>
@@ -478,7 +478,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
           <CardHeader>
             <div className="flex items-center gap-2 text-secondary mb-2">
               <Home className="h-5 w-5" />
-              <span className="text-sm font-medium">Étape 2/5</span>
+              <span className="text-sm font-medium">Étape 2/6</span>
             </div>
             <CardTitle>Siège social & Contrat de bail</CardTitle>
             <CardDescription>
@@ -735,7 +735,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
           <CardHeader>
             <div className="flex items-center gap-2 text-secondary mb-2">
               <Users className="h-5 w-5" />
-              <span className="text-sm font-medium">Étape 3/5</span>
+              <span className="text-sm font-medium">Étape 3/6</span>
             </div>
             <CardTitle>Associés ({formData.associes.length})</CardTitle>
             <CardDescription>
@@ -930,7 +930,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
           <CardHeader>
             <div className="flex items-center gap-2 text-secondary mb-2">
               <User className="h-5 w-5" />
-              <span className="text-sm font-medium">Étape 4/5</span>
+              <span className="text-sm font-medium">Étape 4/6</span>
             </div>
             <CardTitle>Gérance de la société</CardTitle>
             <CardDescription>
@@ -1192,7 +1192,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                 Retour
               </Button>
               <Button variant="gold" onClick={nextStep}>
-                Voir le récapitulatif
+                Continuer vers CEPICI
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>

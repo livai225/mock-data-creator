@@ -62,6 +62,64 @@ export default function PreviewDocuments() {
 
   const { formData, companyType, payload, price, docs, companyTypeName } = location.state || {};
 
+  const buildAdditionalData = () => {
+    const additionalData: any = {};
+
+    // Déclarant
+    if (formData?.declarantNom || formData?.declarantQualite || formData?.declarantAdresse) {
+      additionalData.declarant = {
+        nom: formData.declarantNom || '',
+        qualite: formData.declarantQualite || '',
+        adresse: formData.declarantAdresse || '',
+        telephone: formData.declarantTelephone || '',
+        fax: formData.declarantFax || '',
+        mobile: formData.declarantMobile || '',
+        email: formData.declarantEmail || ''
+      };
+      additionalData.declarant_num_cc = formData.declarantNumeroCompte || '';
+    }
+
+    // Projections CEPICI
+    if (
+      formData?.investissementAnnee1 != null ||
+      formData?.investissementAnnee2 != null ||
+      formData?.investissementAnnee3 != null ||
+      formData?.emploisAnnee1 != null ||
+      formData?.emploisAnnee2 != null ||
+      formData?.emploisAnnee3 != null
+    ) {
+      additionalData.projections = {
+        investissementAnnee1: formData.investissementAnnee1,
+        investissementAnnee2: formData.investissementAnnee2,
+        investissementAnnee3: formData.investissementAnnee3,
+        emploisAnnee1: formData.emploisAnnee1,
+        emploisAnnee2: formData.emploisAnnee2,
+        emploisAnnee3: formData.emploisAnnee3
+      };
+    }
+
+    // Bailleur
+    if (formData?.bailleurNom) {
+      additionalData.bailleur_nom = `${formData.bailleurNom} ${formData.bailleurPrenom || ''}`.trim();
+      additionalData.bailleur_telephone = formData.bailleurContact || '';
+      additionalData.loyer_mensuel = formData.loyerMensuel || 0;
+      additionalData.caution_mois = formData.cautionMois || 2;
+      additionalData.avance_mois = formData.avanceMois || 2;
+      additionalData.duree_bail = formData.dureeBailAnnees || 1;
+      additionalData.date_debut = formData.dateDebutBail || new Date().toISOString();
+      additionalData.date_fin = formData.dateFinBail || null;
+    }
+
+    // Champs souvent utilisés par les templates
+    if (payload?.banque) additionalData.banque = payload.banque;
+    if (payload?.lot) additionalData.lot = payload.lot;
+    if (payload?.ilot) additionalData.ilot = payload.ilot;
+    if (payload?.commune) additionalData.commune = payload.commune;
+    if (payload?.quartier) additionalData.quartier = payload.quartier;
+
+    return additionalData;
+  };
+
   // Protections renforcées contre la copie et l'enregistrement
   useEffect(() => {
     // Désactiver le clic droit
@@ -366,30 +424,8 @@ export default function PreviewDocuments() {
         // Préparer les managers
         const managers = payload.managers || [];
         
-        // Préparer les données additionnelles (bailleur, etc.)
-        const additionalData: any = {};
-        if (formData.declarantNom || formData.declarantQualite || formData.declarantAdresse) {
-          additionalData.declarant = {
-            nom: formData.declarantNom || '',
-            qualite: formData.declarantQualite || '',
-            adresse: formData.declarantAdresse || '',
-            telephone: formData.declarantTelephone || '',
-            fax: formData.declarantFax || '',
-            mobile: formData.declarantMobile || '',
-            email: formData.declarantEmail || ''
-          };
-          additionalData.declarant_num_cc = formData.declarantNumeroCompte || '';
-        }
-        if (formData.bailleurNom) {
-          additionalData.bailleur_nom = `${formData.bailleurNom} ${formData.bailleurPrenom || ''}`.trim();
-          additionalData.bailleur_telephone = formData.bailleurContact || '';
-          additionalData.loyer_mensuel = formData.loyerMensuel || 0;
-          additionalData.caution_mois = formData.cautionMois || 2;
-          additionalData.avance_mois = formData.avanceMois || 2;
-          additionalData.duree_bail = formData.dureeBailAnnees || 1;
-          additionalData.date_debut = formData.dateDebutBail || new Date().toISOString();
-          additionalData.date_fin = formData.dateFinBail || null;
-        }
+        // Préparer les données additionnelles (bailleur, déclarant, projections, etc.)
+        const additionalData = buildAdditionalData();
 
         // Appeler l'API de prévisualisation (sans token car route publique)
         console.log('📤 Appel API /api/documents/preview avec:', {
@@ -521,11 +557,7 @@ export default function PreviewDocuments() {
         companyId: newCompanyId,
         docs,
         formats: ['pdf', 'docx'], // Générer les deux formats
-        additionalData: {
-          banque: payload.banque,
-          lot: payload.lot,
-          ilot: payload.ilot
-        }
+        additionalData: buildAdditionalData()
       });
       
       setDocumentsGenerated(true);
