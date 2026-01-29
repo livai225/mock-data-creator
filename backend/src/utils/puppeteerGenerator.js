@@ -6,7 +6,7 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
-import { generateCepiciPdfFromTemplate } from './cepiciPdfOverlay.js';
+import { generateCepiciHtml } from './cepiciHtmlGenerator.js';
 
 // Instance du navigateur (réutilisée pour de meilleures performances)
 let browserInstance = null;
@@ -2220,8 +2220,11 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
 
 /**
  * Générer un PDF à partir du HTML avec Puppeteer
+ * @param {string} htmlContent - Contenu HTML
+ * @param {string} outputPath - Chemin de sortie du PDF
+ * @param {object} options - Options personnalisées pour le PDF (optionnel)
  */
-export const generatePDFWithPuppeteer = async (htmlContent, outputPath) => {
+export const generatePDFWithPuppeteer = async (htmlContent, outputPath, options = {}) => {
   console.log(`📄 [Puppeteer] Génération PDF: ${outputPath}`);
   
   const browser = await getBrowser();
@@ -2230,7 +2233,8 @@ export const generatePDFWithPuppeteer = async (htmlContent, outputPath) => {
   try {
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
-    await page.pdf({
+    // Options par défaut
+    const defaultOptions = {
       path: outputPath,
       format: 'A4',
       printBackground: true,
@@ -2249,7 +2253,18 @@ export const generatePDFWithPuppeteer = async (htmlContent, outputPath) => {
         bottom: '20mm',
         left: '15mm'
       }
-    });
+    };
+    
+    // Si options personnalisées, on les fusionne (désactive header/footer si margin personnalisé)
+    const pdfOptions = options.margin ? {
+      path: outputPath,
+      format: options.format || 'A4',
+      printBackground: options.printBackground !== false,
+      preferCSSPageSize: options.preferCSSPageSize || false,
+      margin: options.margin
+    } : defaultOptions;
+    
+    await page.pdf(pdfOptions);
     
     console.log(`✅ [Puppeteer] PDF généré avec succès: ${outputPath}`);
     return true;
@@ -2309,10 +2324,16 @@ export const generateDocumentHTML = (docName, company, associates = [], managers
 export const generateDocumentPDF = async (docName, company, associates = [], managers = [], additionalData = {}, outputPath) => {
   console.log(`\n🔧 [Puppeteer] Génération document: "${docName}"`);
 
-  // CEPICI: utiliser le gabarit PDF officiel + overlay (rendu identique)
+  // CEPICI: utiliser le nouveau générateur HTML + Puppeteer (rendu pixel-perfect)
   if (docName.toLowerCase().includes('cepici')) {
-    console.log(`   🧾 [CEPICI] Génération via gabarit PDF + overlay: ${outputPath}`);
-    await generateCepiciPdfFromTemplate(company, managers, associates, additionalData, outputPath);
+    console.log(`   🧾 [CEPICI] Génération via HTML + Puppeteer: ${outputPath}`);
+    const htmlContent = generateCepiciHtml(company, managers, associates, additionalData);
+    await generatePDFWithPuppeteer(htmlContent, outputPath, {
+      format: 'A4',
+      printBackground: true,
+      preferCSSPageSize: true,
+      margin: { top: '12mm', right: '12mm', bottom: '12mm', left: '12mm' }
+    });
     return outputPath;
   }
   
