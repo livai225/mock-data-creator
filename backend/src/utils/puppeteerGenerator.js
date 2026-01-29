@@ -2328,12 +2328,31 @@ export const generateDocumentPDF = async (docName, company, associates = [], man
   if (docName.toLowerCase().includes('cepici')) {
     console.log(`   🧾 [CEPICI] Génération via HTML + Puppeteer: ${outputPath}`);
     const htmlContent = generateCepiciHtml(company, managers, associates, additionalData);
-    await generatePDFWithPuppeteer(htmlContent, outputPath, {
-      format: 'A4',
-      printBackground: true,
-      preferCSSPageSize: true,
-      margin: { top: '12mm', right: '12mm', bottom: '12mm', left: '12mm' }
-    });
+    
+    const browser = await getBrowser();
+    const page = await browser.newPage();
+    
+    try {
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      
+      await page.pdf({
+        path: outputPath,
+        format: 'A4',
+        printBackground: true,
+        displayHeaderFooter: true,
+        headerTemplate: '<div></div>',
+        footerTemplate: `
+          <div style="width: 100%; font-size: 8px; text-align: center; color: #444; padding: 0 12mm;">
+            CEPICI : BP V152 ABIDJAN 01 – ABIDJAN PLATEAU 2<sup>ème</sup> étage immeuble DJEKANOU Tel : (225) 20 30 23 85 – Fax : (225) 20 21 40 71 – Site web : www.cepici.gouv.ci
+          </div>
+        `,
+        margin: { top: '12mm', right: '12mm', bottom: '18mm', left: '12mm' }
+      });
+      
+      console.log(`✅ [CEPICI] PDF généré: ${outputPath}`);
+    } finally {
+      await page.close();
+    }
     return outputPath;
   }
   

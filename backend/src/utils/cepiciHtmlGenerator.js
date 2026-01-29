@@ -369,11 +369,7 @@ export const generateCepiciHtml = (company, managers = [], associates = [], addi
     }
 
     .footer {
-      position: relative;
-      margin-top: 14mm;
-      font-size: 9.5px;
-      color: #444;
-      text-align: center;
+      display: none;
     }
 
     .mt-6 { margin-top: 6mm; }
@@ -530,11 +526,6 @@ export const generateCepiciHtml = (company, managers = [], associates = [], addi
       </table>
     </div>
 
-    <div class="footer">
-      CEPICI : BP V152 ABIDJAN 01 – ABIDJAN PLATEAU 2<sup>ème</sup> étage immeuble DJEKANOU
-      Tel : (225) 20 30 23 85 – Fax : (225) 20 21 40 71 – Site web : www.cepici.gouv.ci
-    </div>
-
   </section>
 
   <!-- PAGE 2 -->
@@ -672,11 +663,6 @@ export const generateCepiciHtml = (company, managers = [], associates = [], addi
       </table>
     </div>
 
-    <div class="footer">
-      CEPICI : BP V152 ABIDJAN 01 – ABIDJAN PLATEAU 2<sup>ème</sup> étage immeuble DJEKANOU
-      Tel : (225) 20 30 23 85 – Fax : (225) 20 21 40 71 – Site web : www.cepici.gouv.ci
-    </div>
-
   </section>
 
   <!-- PAGE 3 -->
@@ -731,11 +717,6 @@ export const generateCepiciHtml = (company, managers = [], associates = [], addi
         Fait à Abidjan, le <span class="inlineDots" style="width: 70mm;">${dateSignature}</span>
       </div>
       <div class="sigBox">Signature</div>
-    </div>
-
-    <div class="footer">
-      CEPICI : BP V152 ABIDJAN 01 – ABIDJAN PLATEAU 2<sup>ème</sup> étage immeuble DJEKANOU
-      Tel : (225) 20 30 23 85 – Fax : (225) 20 21 40 71 – Site web : www.cepici.gouv.ci
     </div>
 
   </section>
