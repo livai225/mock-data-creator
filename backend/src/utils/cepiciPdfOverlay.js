@@ -62,18 +62,22 @@ const resolveModelsDir = () => {
 
 const getCepiciTemplatePath = (associates = []) => {
   const modelsDir = resolveModelsDir();
-  const isUni = !associates || associates.length <= 1;
+  
+  // Utiliser le même template pour les deux types (formulaire unique officiel)
+  // Le template SARL PLURIPERSONEL n'existe pas encore en PDF
+  const candidates = [
+    path.join(modelsDir, 'SARL PLURIPERSONEL', 'formulaire-unique.pdf'),
+    path.join(modelsDir, 'SARL UNIPERSONNELLE', 'formulaire-unique.pdf')
+  ];
 
-  const rel = isUni
-    ? path.join('SARL UNIPERSONNELLE', 'formulaire-unique.pdf')
-    : path.join('SARL PLURIPERSONEL', 'formulaire-unique HYDRA FOR.pdf');
-
-  const full = path.join(modelsDir, rel);
-  if (!fs.existsSync(full)) {
-    throw new Error(`Gabarit CEPICI introuvable: ${full}`);
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      console.log(`   📄 Template trouvé: ${p}`);
+      return p;
+    }
   }
 
-  return full;
+  throw new Error(`Gabarit CEPICI introuvable. Candidats testés: ${candidates.join(', ')}`);
 };
 
 const sanitizePdfText = (value) => {
