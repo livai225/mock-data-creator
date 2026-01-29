@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +50,7 @@ import { createCompanyApi, generateDocumentsApi } from "@/lib/api";
 
 export default function CreationEntreprise() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, token } = useAuth();
   const [pricing, setPricing] = useState<PricingSetting | null>(null);
   const [step, setStep] = useState<Step>('type');
@@ -95,6 +96,27 @@ export default function CreationEntreprise() {
       price: typeof override[ct.id] === 'number' ? override[ct.id] : ct.price,
     }));
   }, [pricing?.companyTypePrices]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const typeParam = params.get('type');
+    if (!typeParam) return;
+    if (formData.companyType) return;
+
+    const found = effectiveCompanyTypes.find((ct) => ct.id === typeParam);
+    if (!found) return;
+
+    setFormData((prev) => ({ ...prev, companyType: found }));
+    if (found.requiresNotary) {
+      setStep('contact');
+    } else if (found.id === 'SARL_PLURI') {
+      setStep('sarl-pluri');
+    } else if (found.id === 'SARLU') {
+      setStep('sarlu');
+    } else {
+      setStep('info');
+    }
+  }, [effectiveCompanyTypes, formData.companyType, location.search]);
 
   const checklist = useMemo(() => {
     const base = [
