@@ -174,8 +174,8 @@ export const generateCepiciHtml = (company, managers = [], associates = [], addi
     }
     .page {
       width: 100%;
-      min-height: calc(297mm - 24mm);
       page-break-after: always;
+      page-break-inside: avoid;
       padding: 0;
     }
     .page:last-child { page-break-after: auto; }
