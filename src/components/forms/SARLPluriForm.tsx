@@ -1216,6 +1216,71 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
           <CardContent className="space-y-6">
             <div className="border-b pb-4 mb-4">
               <h3 className="font-semibold mb-4">Déclarant responsable</h3>
+              
+              {/* Sélecteur pour pré-remplir avec un associé ou gérant */}
+              <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                <Label className="text-sm font-medium mb-2 block">Pré-remplir avec un associé ou gérant</Label>
+                <Select
+                  onValueChange={(value) => {
+                    if (value === 'manual') return;
+                    
+                    // Chercher dans les associés
+                    const assoc = formData.associes.find(a => a.id === value);
+                    if (assoc) {
+                      setFormData(prev => ({
+                        ...prev,
+                        declarantNom: `${assoc.nom} ${assoc.prenoms}`,
+                        declarantQualite: 'ASSOCIÉ',
+                        declarantAdresse: assoc.adresseDomicile,
+                        declarantMobile: '',
+                        declarantEmail: ''
+                      }));
+                      return;
+                    }
+                    
+                    // Chercher dans les gérants
+                    const gerant = formData.gerants.find(g => g.id === value);
+                    if (gerant) {
+                      setFormData(prev => ({
+                        ...prev,
+                        declarantNom: `${gerant.nom} ${gerant.prenoms}`,
+                        declarantQualite: 'GÉRANT',
+                        declarantAdresse: gerant.adresse,
+                        declarantMobile: '',
+                        declarantEmail: ''
+                      }));
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner une personne..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Saisie manuelle</SelectItem>
+                    {formData.associes.length > 0 && (
+                      <>
+                        <SelectItem value="" disabled className="font-semibold text-xs text-muted-foreground">— Associés —</SelectItem>
+                        {formData.associes.map((assoc) => (
+                          <SelectItem key={`assoc-${assoc.id}`} value={assoc.id}>
+                            {assoc.nom} {assoc.prenoms} (Associé)
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                    {formData.gerants.length > 0 && (
+                      <>
+                        <SelectItem value="" disabled className="font-semibold text-xs text-muted-foreground">— Gérants —</SelectItem>
+                        {formData.gerants.map((gerant) => (
+                          <SelectItem key={`gerant-${gerant.id}`} value={gerant.id}>
+                            {gerant.nom} {gerant.prenoms} (Gérant)
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="declarantNom">Nom complet *</Label>
