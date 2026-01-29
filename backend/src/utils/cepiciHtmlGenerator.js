@@ -3,6 +3,27 @@
  * Utilise Puppeteer pour convertir en PDF - rendu pixel-perfect
  */
 
+import fs from 'fs';
+import path from 'path';
+
+const readImageAsDataUri = (fileName) => {
+  try {
+    const imagePath = path.resolve(process.cwd(), 'public', 'images', fileName);
+    if (!fs.existsSync(imagePath)) {
+      console.log(`[CEPICI] Image non trouvée: ${imagePath}`);
+      return '';
+    }
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64 = imageBuffer.toString('base64');
+    const ext = path.extname(fileName).slice(1).toLowerCase();
+    const mimeType = ext === 'png' ? 'image/png' : ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/png';
+    return `data:${mimeType};base64,${base64}`;
+  } catch (error) {
+    console.error(`[CEPICI] Erreur lecture image ${fileName}:`, error.message);
+    return '';
+  }
+};
+
 const formatDateDMY = (dateStr) => {
   if (!dateStr) return '';
   try {
@@ -141,6 +162,10 @@ export const generateCepiciHtml = (company, managers = [], associates = [], addi
   
   const today = new Date();
   const dateSignature = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+
+  // Charger les images une seule fois
+  const logoCepici = readImageAsDataUri('logo_cepici.png');
+  const armoiries = readImageAsDataUri('armoiries-ci.png');
 
   // Génération des lignes du tableau associés
   const assoc1 = d.associates[0] || {};
@@ -388,17 +413,13 @@ export const generateCepiciHtml = (company, managers = [], associates = [], addi
 
     <div class="header">
       <div class="logoBox">
-        <div class="logo">LOGO CEPICI</div>
-        <div>
-          <div class="small bold">CEPICI</div>
-          <div class="small muted">GUICHET UNIQUE DES FORMALITÉS D'ENTREPRISES</div>
-        </div>
+        ${logoCepici ? `<img src="${logoCepici}" style="height: 45px; width: auto;" />` : '<div class="logo">LOGO CEPICI</div>'}
       </div>
 
       <div class="gov">
         <div class="bold">RÉPUBLIQUE DE CÔTE D'IVOIRE</div>
         <div class="small">Union - Discipline - Travail</div>
-        <div class="coat">Armoiries</div>
+        ${armoiries ? `<img src="${armoiries}" style="height: 60px; width: auto; margin-top: 5px;" />` : '<div class="coat">Armoiries</div>'}
       </div>
     </div>
 
