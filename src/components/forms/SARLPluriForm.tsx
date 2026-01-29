@@ -1259,7 +1259,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <SelectItem value="manual">Saisie manuelle</SelectItem>
                     {formData.associes.length > 0 && (
                       <>
-                        <SelectItem value="" disabled className="font-semibold text-xs text-muted-foreground">— Associés —</SelectItem>
+                        <SelectItem value="__group_associes" disabled className="font-semibold text-xs text-muted-foreground">— Associés —</SelectItem>
                         {formData.associes.map((assoc) => (
                           <SelectItem key={`assoc-${assoc.id}`} value={assoc.id}>
                             {assoc.nom} {assoc.prenoms} (Associé)
@@ -1269,7 +1269,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     )}
                     {formData.gerants.length > 0 && (
                       <>
-                        <SelectItem value="" disabled className="font-semibold text-xs text-muted-foreground">— Gérants —</SelectItem>
+                        <SelectItem value="__group_gerants" disabled className="font-semibold text-xs text-muted-foreground">— Gérants —</SelectItem>
                         {formData.gerants.map((gerant) => (
                           <SelectItem key={`gerant-${gerant.id}`} value={gerant.id}>
                             {gerant.nom} {gerant.prenoms} (Gérant)
