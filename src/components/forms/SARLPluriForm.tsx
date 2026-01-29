@@ -971,7 +971,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                           Saisie manuelle (gérant externe)
                         </div>
                       </SelectItem>
-                      {formData.associes.map((associe) => (
+                      {formData.associes.filter(a => a.id).map((associe) => (
                         <SelectItem key={associe.id} value={associe.id}>
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4" />
@@ -1260,7 +1260,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     {formData.associes.length > 0 && (
                       <>
                         <SelectItem value="__group_associes" disabled className="font-semibold text-xs text-muted-foreground">— Associés —</SelectItem>
-                        {formData.associes.map((assoc) => (
+                        {formData.associes.filter(a => a.id).map((assoc) => (
                           <SelectItem key={`assoc-${assoc.id}`} value={assoc.id}>
                             {assoc.nom} {assoc.prenoms} (Associé)
                           </SelectItem>
@@ -1270,7 +1270,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     {formData.gerants.length > 0 && (
                       <>
                         <SelectItem value="__group_gerants" disabled className="font-semibold text-xs text-muted-foreground">— Gérants —</SelectItem>
-                        {formData.gerants.map((gerant) => (
+                        {formData.gerants.filter(g => g.id).map((gerant) => (
                           <SelectItem key={`gerant-${gerant.id}`} value={gerant.id}>
                             {gerant.nom} {gerant.prenoms} (Gérant)
                           </SelectItem>
