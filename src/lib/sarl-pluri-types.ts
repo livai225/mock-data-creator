@@ -9,7 +9,7 @@ export interface AssocieInfo {
   nationalite: string;
   profession: string;
   adresseDomicile: string;
-  typeIdentite: 'CNI' | 'Passeport';
+  typeIdentite: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident';
   numeroIdentite: string;
   dateDelivranceId: string;
   dateValiditeId: string;
@@ -96,7 +96,7 @@ export interface GerantInfo {
   nationalite: string;
   profession: string;
   adresse: string;
-  typeIdentite: 'CNI' | 'Passeport';
+  typeIdentite: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident';
   numeroIdentite: string;
   dateDelivranceId: string;
   dateValiditeId: string;

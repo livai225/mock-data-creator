@@ -48,7 +48,7 @@ export interface SARLUFormData {
   associeProfession: string;
   associeAdresseDomicile: string;
   associeVilleResidence: string;
-  associeTypeIdentite: 'CNI' | 'Passeport';
+  associeTypeIdentite: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident';
   associeNumeroIdentite: string;
   associeDateDelivranceId: string;
   associeDateValiditeId: string;

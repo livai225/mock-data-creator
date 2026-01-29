@@ -824,6 +824,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       <SelectContent>
                         <SelectItem value="CNI">CNI</SelectItem>
                         <SelectItem value="Passeport">Passeport</SelectItem>
+                        <SelectItem value="Carte de séjour">Carte de séjour</SelectItem>
+                        <SelectItem value="Carte de résident">Carte de résident</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1064,7 +1066,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <Label>Type d'identité *</Label>
                     <Select
                       value={gerant.typeIdentite}
-                      onValueChange={(value: 'CNI' | 'Passeport') => updateGerant(index, 'typeIdentite', value)}
+                      onValueChange={(value: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident') => updateGerant(index, 'typeIdentite', value)}
                       disabled={gerant.isFromAssociate}
                     >
                       <SelectTrigger className={gerant.isFromAssociate ? "bg-muted" : ""}>
@@ -1073,6 +1075,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       <SelectContent>
                         <SelectItem value="CNI">CNI</SelectItem>
                         <SelectItem value="Passeport">Passeport</SelectItem>
+                        <SelectItem value="Carte de séjour">Carte de séjour</SelectItem>
+                        <SelectItem value="Carte de résident">Carte de résident</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

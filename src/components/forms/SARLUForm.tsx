@@ -608,7 +608,7 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                   <Label>Type d'identité *</Label>
                   <Select
                     value={formData.associeTypeIdentite}
-                    onValueChange={(value: 'CNI' | 'Passeport') => updateField('associeTypeIdentite', value)}
+                    onValueChange={(value: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident') => updateField('associeTypeIdentite', value)}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -616,6 +616,8 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                     <SelectContent>
                       <SelectItem value="CNI">CNI</SelectItem>
                       <SelectItem value="Passeport">Passeport</SelectItem>
+                      <SelectItem value="Carte de séjour">Carte de séjour</SelectItem>
+                      <SelectItem value="Carte de résident">Carte de résident</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
