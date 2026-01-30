@@ -850,7 +850,23 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
         </Card>
       )}
 
-      {/* Step 5: Récapitulatif */}
+      {/* Step 5: CEPICI */}
+      {step === 'cepici' && (
+        <div>
+          <h2 className="text-xl font-bold mb-4">Formulaire CEPICI</h2>
+          {/* Contenu du formulaire CEPICI ici */}
+          <div className="flex justify-between pt-4">
+            <Button variant="ghost" onClick={prevStep}>
+              <ArrowLeft className="h-4 w-4 mr-2" /> Retour
+            </Button>
+            <Button variant="gold" onClick={nextStep}>
+              Continuer vers Récapitulatif <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 6: Récapitulatif */}
       {step === 'recap' && (
         <Card variant="gold">
           <CardHeader>

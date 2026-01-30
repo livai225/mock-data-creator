@@ -153,12 +153,13 @@ export const defaultSARLUFormData: SARLUFormData = {
   gerantDureeMandat: 99,
 };
 
-export type SARLUStep = 'societe' | 'siege' | 'associe' | 'bail' | 'recap';
+export type SARLUStep = 'societe' | 'siege' | 'associe' | 'bail' | 'cepici' | 'recap';
 
 export const sarluSteps: { id: SARLUStep; label: string }[] = [
   { id: 'societe', label: 'Société' },
   { id: 'siege', label: 'Siège social' },
   { id: 'associe', label: 'Associé unique' },
   { id: 'bail', label: 'Contrat de bail' },
+  { id: 'cepici', label: 'CEPICI' },
   { id: 'recap', label: 'Récapitulatif' },
 ];
