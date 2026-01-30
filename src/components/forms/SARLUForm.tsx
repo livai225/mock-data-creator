@@ -854,7 +854,123 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
       {step === 'cepici' && (
         <div>
           <h2 className="text-xl font-bold mb-4">Formulaire CEPICI</h2>
-          {/* Contenu du formulaire CEPICI ici */}
+          {/* Projections sur 3 ans */}
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3">Projections sur 3 ans</h3>
+            <div className="grid grid-cols-4 gap-4">
+              <div></div>
+              <div className="text-center font-medium">Année 1</div>
+              <div className="text-center font-medium">Année 2</div>
+              <div className="text-center font-medium">Année 3</div>
+              
+              <div className="font-medium">Investissements (FCFA)</div>
+              <Input 
+                type="number" 
+                value={formData.investissementAnnee1} 
+                onChange={(e) => updateField('investissementAnnee1', Number(e.target.value))} 
+              />
+              <Input 
+                type="number" 
+                value={formData.investissementAnnee2} 
+                onChange={(e) => updateField('investissementAnnee2', Number(e.target.value))} 
+              />
+              <Input 
+                type="number" 
+                value={formData.investissementAnnee3} 
+                onChange={(e) => updateField('investissementAnnee3', Number(e.target.value))} 
+              />
+              
+              <div className="font-medium">Emplois créés</div>
+              <Input 
+                type="number" 
+                value={formData.emploisAnnee1} 
+                onChange={(e) => updateField('emploisAnnee1', Number(e.target.value))} 
+              />
+              <Input 
+                type="number" 
+                value={formData.emploisAnnee2} 
+                onChange={(e) => updateField('emploisAnnee2', Number(e.target.value))} 
+              />
+              <Input 
+                type="number" 
+                value={formData.emploisAnnee3} 
+                onChange={(e) => updateField('emploisAnnee3', Number(e.target.value))} 
+              />
+            </div>
+          </div>
+          
+          {/* Déclarant */}
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3">Déclarant</h3>
+            <div className="flex items-center space-x-2 mb-4">
+              <Checkbox 
+                id="declarantEstAssocie" 
+                checked={formData.declarantEstAssocie} 
+                onCheckedChange={(checked) => updateField('declarantEstAssocie', Boolean(checked))}
+              />
+              <label htmlFor="declarantEstAssocie">Le déclarant est l'associé unique</label>
+            </div>
+            
+            {!formData.declarantEstAssocie && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="declarantNom">Nom complet *</Label>
+                    <Input 
+                      id="declarantNom" 
+                      value={formData.declarantNom} 
+                      onChange={(e) => updateField('declarantNom', e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="declarantQualite">Qualité *</Label>
+                    <Input 
+                      id="declarantQualite" 
+                      value={formData.declarantQualite} 
+                      onChange={(e) => updateField('declarantQualite', e.target.value)} 
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="declarantAdresse">Adresse *</Label>
+                  <Input 
+                    id="declarantAdresse" 
+                    value={formData.declarantAdresse} 
+                    onChange={(e) => updateField('declarantAdresse', e.target.value)} 
+                  />
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="declarantTelephone">Téléphone</Label>
+                    <Input 
+                      id="declarantTelephone" 
+                      value={formData.declarantTelephone} 
+                      onChange={(e) => updateField('declarantTelephone', e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="declarantMobile">Mobile *</Label>
+                    <Input 
+                      id="declarantMobile" 
+                      value={formData.declarantMobile} 
+                      onChange={(e) => updateField('declarantMobile', e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="declarantEmail">Email</Label>
+                    <Input 
+                      id="declarantEmail" 
+                      value={formData.declarantEmail} 
+                      onChange={(e) => updateField('declarantEmail', e.target.value)} 
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
           <div className="flex justify-between pt-4">
             <Button variant="ghost" onClick={prevStep}>
               <ArrowLeft className="h-4 w-4 mr-2" /> Retour
@@ -865,7 +981,7 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
           </div>
         </div>
       )}
-
+      
       {/* Step 6: Récapitulatif */}
       {step === 'recap' && (
         <Card variant="gold">
