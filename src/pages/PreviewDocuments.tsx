@@ -415,7 +415,9 @@ export default function PreviewDocuments() {
           company_type: payload.companyType || companyType,
           banque: payload.banque || formData.banque,
           lot: payload.lot || formData.lot,
-          ilot: payload.ilot || formData.ilot
+          ilot: payload.ilot || formData.ilot,
+          commune: payload.commune || formData.commune,
+          quartier: payload.quartier || formData.quartier
         };
 
         // Préparer les associés

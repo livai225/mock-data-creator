@@ -1,6 +1,71 @@
 // Nouveau chemin pour le modèle unipersonnel
 const statutsSarluTemplatePath = path.resolve(__dirname, '../templates/statuts-sarlu-template.txt');
 
+// Templates de documents pour la génération
+// Basés sur les templates du generator mais adaptés pour le backend
+
+/**
+ * Convertir un nombre en lettres (français)
+ */
+const numberToWords = (num) => {
+  const ones = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
+    'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
+  const tens = ['', '', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix', 'quatre-vingt', 'quatre-vingt-dix'];
+  
+  if (num === 0) return 'zéro';
+  if (num < 20) return ones[num];
+  if (num < 100) {
+    const ten = Math.floor(num / 10);
+    const one = num % 10;
+    if (ten === 7) {
+      return 'soixante' + (one > 0 ? '-' + ones[10 + one] : '-dix');
+    }
+    if (ten === 8) {
+      return one === 0 ? 'quatre-vingts' : 'quatre-vingt-' + ones[one];
+    }
+    if (ten === 9) {
+      return 'quatre-vingt' + (one > 0 ? '-' + ones[10 + one] : '-dix');
+    }
+    return tens[ten] + (one > 0 ? '-' + ones[one] : '');
+  }
+  if (num < 1000) {
+    const hundred = Math.floor(num / 100);
+    const remainder = num % 100;
+    return (hundred === 1 ? 'cent' : ones[hundred] + ' cent') + 
+           (remainder > 0 ? ' ' + numberToWords(remainder) : '');
+  }
+  if (num < 1000000) {
+    const thousand = Math.floor(num / 1000);
+    const remainder = num % 1000;
+    return (thousand === 1 ? 'mille' : numberToWords(thousand) + ' mille') + 
+           (remainder > 0 ? ' ' + numberToWords(remainder) : '');
+  }
+  if (num < 1000000000) {
+    const million = Math.floor(num / 1000000);
+    const remainder = num % 1000000;
+    const millionText = (million === 1 ? 'un million' : numberToWords(million) + ' millions');
+    return millionText + (remainder > 0 ? ' ' + numberToWords(remainder) : '');
+  }
+  return num.toString();
+};
+
+/**
+ * Formater une date au format français
+ */
+const formatDate = (dateString) => {
+  if (!dateString) return '[DATE]';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  } catch {
+    return dateString;
+  }
+};
+
 /**
  * Template: Statuts SARL (Version complète avec tous les articles)
  */
@@ -107,8 +172,8 @@ export const generateStatutsSARL = (company, associates, managers) => {
   // Formater les activités en liste à puces (chaque ligne devient un point)
   const activitesFormatees = objetSocial
     .split('\n')
-    .filter(line => line.trim())
-    .map(line => `• ${line.trim().replace(/^[-•]\s*/, '')}`)
+    .map(line => line.trim())
+    .filter(Boolean)
     .join('\n');
   
   const objetSocialComplet = `${activitesFormatees}
@@ -128,7 +193,12 @@ En outre, la Société peut également participer par tous moyens, directement o
 - et généralement, toutes opérations financières, commerciales, industrielles, mobilières et immobilières, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
   
   // Construire l'adresse complète pour l'en-tête
-  const adresseComplete = `${(company.address || '[ADRESSE]').toUpperCase()}${company.commune ? ', COMMUNE DE ' + company.commune.toUpperCase() : ''}${company.quartier ? ', ' + company.quartier.toUpperCase() : ''}, ${(company.city || 'ABIDJAN').toUpperCase()}${company.lot ? ' LOT ' + company.lot : ''}${company.ilot ? ', ILOT ' + company.ilot : ''}`;
+  const baseAdresse = `${(company.address || '[ADRESSE]').toUpperCase()}${company.commune ? ', COMMUNE DE ' + company.commune.toUpperCase() : ''}${company.quartier ? ', ' + company.quartier.toUpperCase() : ''}`;
+  const cityUpper = (company.city || 'ABIDJAN').toUpperCase();
+  const citySuffix = baseAdresse.includes(cityUpper) ? '' : `, ${cityUpper}`;
+  const lotSuffix = company.lot && !baseAdresse.includes(`LOT ${company.lot}`) ? ` LOT ${company.lot}` : '';
+  const ilotSuffix = company.ilot && !baseAdresse.includes(`ILOT ${company.ilot}`) ? `, ILOT ${company.ilot}` : '';
+  const adresseComplete = `${baseAdresse}${citySuffix}${lotSuffix}${ilotSuffix}`;
 
   return `
 STATUTS DE LA SOCIETE
@@ -161,7 +231,7 @@ Le ${dateActuelle}
 Le soussigné${isUnipersonnelle ? '' : 's'},
 
 ${isUnipersonnelle ? 
-  `M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire ${gerantTypeId === 'Passeport' ? 'du passeport' : 'de la CNI'} N°${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId}.` :
+  `M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire ${gerantTypeId === 'Passeport' ? 'du passeport' : 'de la CNI'} N°${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId}.` :
   associates.map(a => {
     const nom = a.name || `${a.nom || ''} ${a.prenoms || ''}`.trim() || '[NOM ASSOCIÉ]';
     const profession = a.profession || '[PROFESSION]';
@@ -200,7 +270,7 @@ ${objetSocialComplet}
 
 ARTICLE 4- SIEGE SOCIAL
 
-Le siège social est fixé à : ${company.address || '[ADRESSE]'}${company.commune ? ', COMMUNE DE ' + company.commune.toUpperCase() : ''}${company.quartier ? ', ' + company.quartier.toUpperCase() : ''}, ${(company.city || 'Abidjan').toUpperCase()}${company.lot ? ' LOT ' + company.lot : ''}${company.ilot ? ', ILOT ' + company.ilot : ''}
+Le siège social est fixé à : ${adresseComplete}
 
 Il peut être transféré dans les limites du territoire de la République de COTE D'IVOIRE par décision de la gérance qui modifie en conséquence les statuts, sous réserve de la ratification de cette décision par la plus prochaine Assemblée Générale Ordinaire.
 
@@ -341,7 +411,7 @@ ${isUnipersonnelle ? `ARTICLE 13 : GERANCE
 
 Est nommé gérant de la société pour une durée de ${gerantDureeWords} ans (${gerantDuree}ans):
 
-M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId} qui accepte.
+M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId} qui accepte.
 
 Le gérant est nommé par décision de l'associe unique.
 
@@ -355,7 +425,7 @@ La société est gérée par une ou plusieurs personnes physiques, choisies parm
 
 Est nommée comme gérant pour une durée de Quatre (4) ans :
 
-M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId} qui accepte.
+M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId} qui accepte.
 
 Les gérants reçoivent, à titre de rémunération de leurs fonctions et en compensation de la responsabilité attachée à la gestion de la société, un traitement dont le montant et les modalités de paiement sont déterminés par décision collective ordinaire des associés. Ce traitement peut être fixe ou proportionnel ou à la fois fixe et proportionnel selon des modalités arrêtées par les associés. Il peut comprendre, également, des avantages en nature et, éventuellement, être augmenté de gratifications exceptionnelles en cours ou en fin d'exercice social. Chaque gérant a droit au remboursement, sur justification, de ses frais de représentation et de déplacement.
 
@@ -597,24 +667,646 @@ Pour l'exécution des présentes et de leurs suites, les parties déclarent fair
 
 ${isUnipersonnelle ? `ARTICLE 25 : POUVOIRS
 
-L'associé donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né(e) le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId} de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.` : `ARTICLE 31 : POUVOIRS
+L'associé donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId} de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.` : `ARTICLE 31 : POUVOIRS
 
-Les associés donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivré(e) le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${gerantLieuDelivranceId} à l'effet de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.`}
+Les associés donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId} à l'effet de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.`}
 
-${isUnipersonnelle ? 'EN QUATRE (4) EXEMPLAIRES ORIGINAUX' : 'En Deux (2) exemplaires originaux'}
-
-NOMS DES ASSOCIES                                    SIGNATURES
-
-${isUnipersonnelle ? 
-  `M. ${gerantNom}                                   ____________________
-
-Associé unique` :
-  associates.map((a, index) => {
-    const nom = a.name || `${a.nom || ''} ${a.prenoms || ''}`.trim() || '[NOM ASSOCIÉ]';
-    return `M. ${nom}                                   ____________________`;
-  }).join('\n\n')
-}
-
-Fait à ${company.city || 'Abidjan'}, le ${company.date_constitution ? formatDate(company.date_constitution) : dateActuelle}
+${isUnipersonnelle ? '' : ''}
 `;
+};
+
+/**
+ * Template: Contrat de Bail Commercial
+ */
+export const generateContratBail = (company, bailleurData = {}) => {
+  const gerant = company.managers && company.managers.length > 0 ? company.managers[0] : null;
+  const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
+  
+  // Utiliser lot et îlot des données si fournis, sinon extraire de l'adresse
+  const lotNumero = bailleurData.lot || company.lot || '';
+  const ilotNumero = bailleurData.ilot || company.ilot || '';
+  
+  const dureeBail = bailleurData.duree_bail || 1;
+  const dureeBailWords = dureeBail === 1 ? 'un (01)' : `${numberToWords(dureeBail)} (${String(dureeBail).padStart(2, '0')})`;
+  const dateDebut = bailleurData.date_debut ? formatDate(bailleurData.date_debut) : formatDate(new Date().toISOString());
+  const dateFin = bailleurData.date_fin ? formatDate(bailleurData.date_fin) : '[DATE FIN]';
+  const loyerMensuel = bailleurData.loyer_mensuel || 0;
+  const loyerLettres = bailleurData.loyer_lettres || numberToWords(Math.floor(loyerMensuel));
+  const cautionMois = bailleurData.caution_mois || 2;
+  const avanceMois = bailleurData.avance_mois || 2;
+  const garantieTotale = bailleurData.garantie_totale || (loyerMensuel * (cautionMois + avanceMois));
+  const garantieTotaleWords = numberToWords(Math.floor(garantieTotale)).toUpperCase();
+  
+  return `
+CONTRAT DE BAIL COMMERCIAL
+
+Entre les soussignés :
+
+${bailleurData.bailleur_nom || '[NOM DU BAILLEUR]'}, Téléphone : ${bailleurData.bailleur_telephone || '[TELEPHONE]'} Propriétaire, ci-après dénommé « le bailleur »
+
+D'une part
+
+Et
+
+La société dénommée « ${company.company_name || '[NOM SOCIÉTÉ]'} » Représenté par son gérant Monsieur ${gerantNom} locataire ci-après dénommé « le preneur »
+
+D'autre part.
+
+Il a été dit et convenu ce qui suit :
+
+Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ${company.address || '[ADRESSE]'}, LOT ${lotNumero || '[LOT]'}, ILOT ${ilotNumero || '[ILOT]'} en vue de l'exploitation de la « ${company.company_name || '[NOM SOCIÉTÉ]'} ».
+
+Article 1 : Désignation
+
+Il est précisé que l'emplacement est livré nu, et que le preneur devra supporter le cout et les frais d'eaux, d'électricité, téléphone et en général, tous travaux d'aménagements.
+
+Tel au surplus que le cout se poursuit et se comporte sans plus ample description, le preneur déclarant avoir vu. Visite et parfaitement connaitre les locaux loués, qu'il consent à occuper dans leur état actuel.
+
+Article 2 : Durée
+
+Le présent bail est conclu pour une durée de ${dureeBailWords} an${dureeBail > 1 ? 's' : ''} allant du ${dateDebut} au ${dateFin} à son expiration, le bail se renouvellera par tacite reconduction, sauf dénonciation par acte extra judiciaire, au plus tard TROIS (03) mois avant la date d'expiration de la période triennale concernée.
+
+Article 3 : Renouvellement et cession
+
+- Le preneur qui a droit au renouvellement de son bail, doit demander le renouvellement de celui-ci au bailleur, par écrit, au plus tard deux (2) mois avant la date d'expiration du bail.
+
+- Le preneur qui n'a pas formé sa demande de renouvellement dans ce délai est déchu du droit de renouvellement du bail.
+
+Le BAILLEUR qui n'a pas fait connaître sa réponse à la demande de renouvellement au plus tard UN (01) mois avant l'expiration du bail est réputé avoir accepté le principe du renouvellement de ce bail.
+
+La partie qui entend résilier le bail doit donner congés, par acte extra judiciaire au moins SIX (06) mois à l'avance.
+
+Article 4 : Obligation du bailleur
+
+- Le bailleur fait procéder, à ses frais dans les locaux donnés à bail, à toutes les grosses réparations devenues nécessaires et urgentes.
+
+Le bailleur délivre les locaux en bon état.
+
+- Le bailleur autorise le preneur à apposer sur les façades extérieures des locaux les enseignes et plaques indicatrices relatives à son commerce.
+
+Article 5 : Obligation du preneur
+
+- Le preneur doit payer le loyer aux termes convenus, entre les mains du bailleur.
+
+- Le preneur est tenu d'exploiter les locaux donnés à bail, en bon père de famille, et conformément à la destination prévue au bail, à défaut de convention écrite, suivant celle présumée d'après les circonstances.
+
+Le preneur est tenu des réparations d'entretien ; il répond des dégradations ou des pertes dues à un défaut d'entretien en cours de bail.
+
+Article 6 : Loyer
+
+La présente location est consentie et acceptée moyennant un loyer mensuel de ${loyerLettres.charAt(0).toUpperCase() + loyerLettres.slice(1)} (${loyerMensuel.toLocaleString('fr-FR')}) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de ${garantieTotaleWords} (${garantieTotale.toLocaleString('fr-FR')} FCFA) dont ${numberToWords(cautionMois)} (${cautionMois}) mois de caution et ${numberToWords(avanceMois)} (${avanceMois}) mois d'avance.
+
+Les parties conviennent que le prix fixé ci-dessus ne peut être révisé au cours du bail.
+
+Dans le cas où il surviendrait une contestation sur le montant du loyer tel qu'il est défini par le présent bail, le preneur devra aviser le bailleur qui s'engage à s'en remettre à une expertise amiable.
+
+Article 7 : Sous-location
+
+Sauf stipulation contraire du bail, toute sous-location totale ou partielle est interdite.
+
+Article 8 : Clause résolutoire
+
+A défaut de paiement d'un seul terme de loyer ou en cas d'inexécution d'une clause du bail, le bailleur pourra demander à la juridiction compétente la résiliation du bail et l'expulsion du preneur, et de tous occupants de son chef, après avoir fait délivrer, par acte extrajudiciaire, une mise en demeure d'avoir à respecter les clauses et conditions du bail.
+
+Article 9 : Election de domicile
+
+En cas de litige, si aucun accord amiable n'est trouvé, le tribunal d'Abidjan sera seul compétent.
+
+Fait en deux exemplaires et de bonne foi.
+
+À ${bailleurData.lieu_signature || company.city || 'Abidjan'}, le ${formatDate(bailleurData.date_signature || new Date().toISOString())}
+
+Le Bailleur                                    Le Preneur
+
+_____________________                          _____________________
+`;
+};
+
+/**
+ * Template: Déclaration Souscription/Versement (DSV)
+ */
+export const generateDSV = (company, associates, additionalData = {}) => {
+  const capital = parseFloat(company.capital) || 0;
+  const capitalWords = numberToWords(Math.floor(capital));
+  const dateSignature = formatDate(new Date().toISOString());
+  const dateParts = dateSignature.split(' ');
+  const dateJour = dateParts[0] || '';
+  const annee = new Date().getFullYear();
+  const anneeWords = numberToWords(annee);
+  const banque = company.banque || additionalData.banque || '[NOM BANQUE]';
+  const lotNumero = additionalData.lot || company.lot || '';
+  const ilotNumero = additionalData.ilot || company.ilot || '';
+  const siegeAdresseParts = [
+    company.address || '[ADRESSE]',
+    lotNumero ? `LOT ${lotNumero}` : '',
+    ilotNumero ? `ILOT ${ilotNumero}` : '',
+    company.city || 'Abidjan'
+  ].filter(Boolean);
+  const siegeAdresse = siegeAdresseParts.join(', ');
+  
+  // Calculer le nombre de parts et la valeur nominale
+  const totalParts = associates && associates.length > 0 
+    ? associates.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0)
+    : Math.floor(capital / 5000); // Par défaut, parts de 5000 FCFA
+  const valeurPart = capital / totalParts;
+  
+  const gerant = company.managers && company.managers.length > 0 ? company.managers[0] : null;
+  
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [DOCX DSV] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      address: gerant.address,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance,
+      dateNaissance: gerant.dateNaissance
+    });
+  }
+  
+  const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
+  const gerantProfession = gerant?.profession || '[PROFESSION]';
+  const gerantAdresse = gerant?.adresse || gerant?.address || '[ADRESSE]';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
+  const gerantDateNaissance = (gerant?.date_naissance || gerant?.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
+  const gerantLieuNaissance = gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU NAISSANCE]';
+  const gerantTypeId = gerant?.type_identite || gerant?.typeIdentite || 'CNI';
+  const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '[NUMÉRO]';
+  const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
+  const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
+  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la république de Côte d\'Ivoire';
+  
+  // Construire l'objet social complet
+  const objetSocial = company.activity || '[OBJET SOCIAL]';
+  const objetSocialComplet = `${objetSocial}
+
+et généralement, toutes opérations industrielles, commerciales, financières, civiles, mobilières ou immobilières pouvant se rattacher directement ou indirectement à l'objet social ou à tous objets similaires ou connexes ou susceptibles d'en faciliter l'extension ou le développement.
+
+En outre, la Société peut également participer par tous moyens, directement ou indirectement, dans toutes opérations pouvant se rattacher à son objet.
+
+- l'acquisition, la location et la vente de tous biens meubles et immeubles.
+
+- l'emprunt de toutes sommes auprès de tous établissements financiers avec possibilité de donner en garantie tout ou partie des biens sociaux.
+
+- la prise en location gérance de tous fonds de commerce.
+
+- la prise de participation dans toute société existante ou devant être créée
+
+- et généralement, toutes opérations financières, commerciales, industrielles, mobilières et immobilières, se rapportant directement ou indirectement à l'objet social ou pouvant en faciliter l'extension ou le développement.`;
+  
+  // Construire le tableau des associés
+  let tableauAssocies = '';
+  let totalSouscrit = 0;
+  let totalVerse = 0;
+  
+  if (associates && associates.length > 0) {
+    tableauAssocies = associates.map((associe, index) => {
+      const parts = parseInt(associe.parts) || 0;
+      const montantSouscrit = (capital * parts) / totalParts;
+      totalSouscrit += montantSouscrit;
+      totalVerse += montantSouscrit;
+      const debutParts = index === 0 ? 1 : associates.slice(0, index).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) + 1;
+      const finParts = associates.slice(0, index + 1).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0);
+      
+      return `M. ${associe.name || '[NOM ASSOCIÉ]'}
+
+${parts} parts numérotés de ${debutParts} à ${finParts} inclus
+
+${valeurPart.toLocaleString('fr-FR')} FCFA
+
+${montantSouscrit.toLocaleString('fr-FR')} CFA
+
+${montantSouscrit.toLocaleString('fr-FR')} CFA`;
+    }).join('\n\n');
+  } else {
+    tableauAssocies = `M. ${gerantNom}
+
+${totalParts} parts numérotés de 1 à ${totalParts} inclus
+
+${valeurPart.toLocaleString('fr-FR')} FCFA
+
+${capital.toLocaleString('fr-FR')} CFA
+
+${capital.toLocaleString('fr-FR')} CFA`;
+    totalSouscrit = capital;
+    totalVerse = capital;
+  }
+  
+  const isUnipersonnelle = !associates || associates.length <= 1;
+  
+  return `
+DSV DE LA SOCIETE « ${company.company_name || '[NOM SOCIÉTÉ]'} »
+
+DECLARATION DE SOUSCRIPTION ET DE VERSEMENT
+
+(cf Art 314 de l'Acte uniforme révisé du 30 janvier 2014, Art 6 de l'Ordonnance N° 2014-161 du 02 avril 2014 relative à la formes des statuts et au capital social de la société à responsabilité limitée)
+
+L'An ${anneeWords},
+
+Le ${dateJour}
+
+Le soussigné,
+
+M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId}.
+
+EXPOSE PREALABLE
+
+Par Acte sous seing Privé en date du ${dateJour},
+
+Ont établi, les statuts de la Société à Responsabilité Limitée devant exister entre ${isUnipersonnelle ? 'lui' : 'eux'} et tous propriétaires de parts sociales ultérieures, dont les principales caractéristiques sont les suivantes :
+
+1-FORME
+
+La société constituée est une société à Responsabilité Limitée régie par les dispositions de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au droit des Sociétés commerciales et du Groupement d'intérêt économique (GIE), ainsi que par toutes autres dispositions légales ou réglementaires applicables et ses présents statuts.
+
+2- DENOMINATION
+
+La société a pour dénomination : ${company.company_name || '[NOM SOCIÉTÉ]'}
+
+3- OBJET
+
+La société a pour objet en CÔTE-D'IVOIRE :
+
+${objetSocialComplet}
+
+4- SIEGE SOCIAL
+
+Le siège social est fixé à : ${siegeAdresse}
+
+5- DUREE
+
+La durée de la société est de ${numberToWords(company.duree_societe || 99)} (${company.duree_societe || 99}) années, sauf dissolution anticipée ou prorogation.
+
+6- CAPITAL SOCIAL
+
+Le capital social est fixé à la somme de ${capitalWords} Franc CFA (F CFA ${capital.toLocaleString('fr-FR')}) divisé en ${totalParts} parts sociales de F CFA ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}
+
+II- CONSTATATION DE LA LIBERATION ET DU DEPOT DES FONDS PROVENANT DES PARTS SOCIALES
+
+Les soussignées déclarent, que les souscriptions et les versements des fonds provenant de la libération des parts sociales ont été effectués comme suit :
+
+Identité des associés et leur domicile
+
+Nombre de parts Souscrites
+
+Montant nominal
+
+Montant total souscrit F CFA
+
+Versement effectué F CFA
+
+${tableauAssocies}
+
+TOTAL
+
+${totalParts} parts
+
+${valeurPart.toLocaleString('fr-FR')} FCFA
+
+${totalSouscrit.toLocaleString('fr-FR')} CFA
+
+${totalVerse.toLocaleString('fr-FR')} CFA
+
+La somme correspondante à l'ensemble des souscriptions et versements effectué à ce jour, de ${numberToWords(Math.floor(totalVerse)).toLowerCase()} (${totalVerse.toLocaleString('fr-FR')} FCFA) a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${banque}
+
+En Foi de quoi, ils ont dressé la présente, pour servir et valoir ce que de droit
+
+Fait à ${company.city || 'Abidjan'}, le ${dateJour}
+
+En Deux (2) exemplaires originaux
+
+${isUnipersonnelle ? 'L\'associé Unique' : 'L\'associé' + (associates && associates.length > 1 ? 's' : '')}
+
+${gerantNom}
+`;
+};
+
+/**
+ * Template: Liste de Gérant
+ */
+export const generateListeGerants = (company, managers) => {
+  if (!managers || managers.length === 0) {
+    return generateListeGerantsDefault(company);
+  }
+  
+  const gerant = managers[0];
+  
+  // Debug: Afficher les données du gérant
+  console.log('🔍 [DOCX Liste Gérants] Données gérant:', {
+    nom: gerant.nom,
+    prenoms: gerant.prenoms,
+    nationalite: gerant.nationalite,
+    lieu_naissance: gerant.lieu_naissance,
+    lieuNaissance: gerant.lieuNaissance,
+    adresse: gerant.adresse,
+    address: gerant.address,
+    profession: gerant.profession,
+    date_naissance: gerant.date_naissance,
+    dateNaissance: gerant.dateNaissance
+  });
+  
+  const capital = parseFloat(company.capital) || 0;
+  const dureeMandat = gerant.duree_mandat || gerant.dureeMandat || 99;
+  const dureeMandatWords = numberToWords(dureeMandat);
+  
+  // Extraire le numéro de pièce d'identité
+  const numeroIdentite = gerant.numero_identite || gerant.numeroIdentite || '[NUMÉRO]';
+  const typeIdentite = gerant.type_identite || gerant.typeIdentite || 'CNI';
+  const dateDelivranceId = (gerant.date_delivrance_id || gerant.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
+  const dateValiditeId = (gerant.date_validite_id || gerant.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
+  const lieuDelivranceId = gerant.lieu_delivrance_id || gerant.lieuDelivranceId || 'la république de Côte d\'Ivoire';
+  
+  // Construire l'adresse avec lot et îlot si disponibles
+  let adresseSiege = company.address || '[ADRESSE]';
+  const lot = company.lot || '';
+  const ilot = company.ilot || '';
+  if (lot || ilot) {
+    const parts = [];
+    if (lot) parts.push(`Lot ${lot}`);
+    if (ilot) parts.push(`Îlot ${ilot}`);
+    adresseSiege = `${adresseSiege}${parts.length > 0 ? `, ${parts.join(', ')}` : ''}`;
+  }
+  
+  // Récupérer les champs du gérant avec toutes les variantes
+  const gerantProfession = gerant.profession || '[PROFESSION]';
+  const gerantAdresse = gerant.adresse || gerant.address || '[ADRESSE]';
+  const gerantNationalite = gerant.nationalite || gerant.nationality || '[NATIONALITÉ]';
+  const gerantDateNaissance = (gerant.date_naissance || gerant.dateNaissance) ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
+  const gerantLieuNaissance = gerant.lieu_naissance || gerant.lieuNaissance || '[LIEU NAISSANCE]';
+  
+  return `
+« ${company.company_name || '[NOM SOCIÉTÉ]'} »
+
+AYANT SON SIÈGE SOCIAL À ${adresseSiege.toUpperCase()}, ${company.city?.toUpperCase() || 'ABIDJAN'}
+
+__________________________________________________________________________
+
+LISTE DE DIRIGEANT
+
+Est nommé gérant de la société pour une durée de ${dureeMandatWords} ans (${dureeMandat} ans),
+
+M. ${gerant.nom || ''} ${gerant.prenoms || ''}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${typeIdentite} ${numeroIdentite} délivrée le ${dateDelivranceId} et valable jusqu'au ${dateValiditeId} par ${lieuDelivranceId}.
+`;
+};
+
+const generateListeGerantsDefault = (company) => {
+  const capital = parseFloat(company.capital) || 0;
+  return `
+« ${company.company_name || '[NOM SOCIÉTÉ]'} »
+
+Au capital de ${capital.toLocaleString('fr-FR')} FCFA, située à ${company.address || '[ADRESSE]'}, ${company.city || 'Abidjan'}
+
+__________________________________________________________________________
+
+LISTE DE DIRIGEANT
+
+__________________________________________________________________________
+
+Est nommé Gérant pour une durée de 4 ans (quatre ans)
+
+M. ${company.gerant || '[NOM GÉRANT]'}, [PROFESSION] résidant à [ADRESSE] de nationalité [NATIONALITÉ], né le [DATE NAISSANCE] à [LIEU NAISSANCE] et titulaire du [TYPE PIÈCE] N° [NUMÉRO] délivrée le [DATE DÉLIVRANCE] et valable jusqu'au [DATE VALIDITÉ] par [ÉMETTEUR]
+
+__________________________________________________________________________
+
+Signature
+
+_____________________
+`;
+};
+
+/**
+ * Template: Déclaration sur l'Honneur
+ */
+export const generateDeclarationHonneur = (company, managers) => {
+  const gerant = managers && managers.length > 0 ? managers[0] : null;
+  
+  // Debug: Afficher les données du gérant
+  if (gerant) {
+    console.log('🔍 [DOCX Déclaration Honneur] Données gérant:', {
+      nom: gerant.nom,
+      prenoms: gerant.prenoms,
+      nationalite: gerant.nationalite,
+      lieu_naissance: gerant.lieu_naissance,
+      lieuNaissance: gerant.lieuNaissance,
+      adresse: gerant.adresse,
+      profession: gerant.profession,
+      date_naissance: gerant.date_naissance
+    });
+  }
+  
+  const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM]';
+  const gerantPrenoms = gerant?.prenoms || gerant?.prenoms || '[PRÉNOMS]';
+  const gerantPereNom = gerant?.pere_nom || gerant?.pereNom || '[NOM ET PRÉNOMS DU PÈRE]';
+  const gerantMereNom = gerant?.mere_nom || gerant?.mereNom || '[NOM ET PRÉNOMS DE LA MÈRE]';
+  const gerantDateNaissance = gerant?.date_naissance || gerant?.dateNaissance ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE NAISSANCE]';
+  const gerantNationalite = gerant?.nationalite || gerant?.nationality || '[NATIONALITÉ]';
+  const gerantDomicile = gerant?.adresse || gerant?.address || '[DOMICILE]';
+  const gerantProfession = gerant?.profession || '[PROFESSION]';
+  
+  return `
+DÉCLARATION SUR L'HONNEUR
+
+(Article 47 de l'Acte Uniforme relatif au Droit commercial général adopté le 15 décembre 2010)
+
+NOM : ${gerant?.nom || '[NOM]'}
+
+PRÉNOMS : ${gerantPrenoms}
+
+DE : ${gerantPereNom}
+
+Et DE : ${gerantMereNom}
+
+DATE DE NAISSANCE : ${gerantDateNaissance}
+
+NATIONALITÉ : ${gerantNationalite}
+
+DOMICILE : ${gerantDomicile}
+
+PROFESSION : ${gerantProfession}
+
+QUALITÉ : GÉRANT
+
+Déclare, conformément à l'article 47 de l'Acte Uniforme relatif au Droit Commercial Général adopté le 15 décembre 2010, au titre du Registre de commerce et du Crédit Mobilier,
+
+N'avoir fait l'objet d'aucune condamnation pénale, ni de sanction professionnelle ou administrative de nature à m'interdire de gérer, administrer ou diriger une société ou l'exercice d'une activité commerciale.
+
+M'engage dans un délai de 75 jours à compter de l'immatriculation à fournir mon casier judiciaire ou tout autre document en tenant lieu.
+
+Je prends acte de ce qu'à défaut de produire l'extrait du casier judiciaire ou tout document en tenant lieu dans le délai de soixante-quinze (75) jours, il sera procédé au retrait de mon immatriculation et à ma radiation.
+
+Fait à ${company.city || 'Abidjan'}, le ${formatDate(new Date().toISOString())}
+
+(Lu et approuvé suivi de la signature)
+`;
+};
+
+/**
+ * Template: Formulaire CEPICI
+ */
+export const generateFormulaireCEPICI = (company, managers, associates) => {
+  const gerant = managers && managers.length > 0 ? managers[0] : null;
+  
+  const capital = parseFloat(company.capital) || 0;
+  const dureeSociete = company.duree_societe || 99;
+  
+  // Récupérer les informations du déclarant (consultant comptable)
+  const declarant = company.declarant || {};
+  const declarantNom = declarant.nom || '[NOM DECLARANT]';
+  const declarantQualite = declarant.qualite || 'CONSULTANT COMPTABLE';
+  const declarantNumeroCompte = declarant.numeroCompte || '[NUMERO COMPTE]';
+  const declarantAdresse = declarant.adresse || '[ADRESSE DECLARANT]';
+  const declarantTel = declarant.telephone || '[TEL]';
+  const declarantFax = declarant.fax || '[FAX]';
+  const declarantMobile = declarant.mobile || '[MOBILE]';
+  const declarantEmail = declarant.email || '[EMAIL]';
+  
+  // Récupérer les projections sur 3 ans
+  const projections = company.projections || {};
+  const investAnnee1 = projections.investissementAnnee1 || 0;
+  const investAnnee2 = projections.investissementAnnee2 || 0;
+  const investAnnee3 = projections.investissementAnnee3 || 0;
+  const emploisAnnee1 = projections.emploisAnnee1 || 0;
+  const emploisAnnee2 = projections.emploisAnnee2 || 0;
+  const emploisAnnee3 = projections.emploisAnnee3 || 0;
+  
+  return `
+RÉPUBLIQUE DE CÔTE D'IVOIRE
+Union - Discipline - Travail
+
+Présidence de la République
+CEPICI
+CENTRE DE PROMOTION DES INVESTISSEMENTS EN CÔTE D'IVOIRE
+
+FORMULAIRE UNIQUE
+D'IMMATRICULATION DES ENTREPRISES
+(PERSONNES MORALES)
+
+
+CADRE RÉSERVÉ AU CEPICI
+
+DOSSIER N° ………………………………………………
+
+DATE DE RECEPTION ………………………………………
+
+NUMERO REGISTRE DE COMMERCE      /___/___/___/___/___/___/___/___/___/___/
+NUMERO COMPTE CONTRIBUABLE       /___/___/___/___/___/___/___/___/___/___/
+NUMERO CNPS ENTREPRISE           /___/___/___/___/___/___/___/___/___/___/
+CODE IMPORT-EXPORT               /___/___/___/___/___/___/___/___/___/___/
+
+
+DÉCLARANT RESPONSABLE POUR L'ACCOMPLISSEMENT DES FORMALITÉS
+
+DÉCLARATION ÉTABLIE PAR : ${declarantNom}
+
+AGISSANT EN QUALITÉ DE : ${declarantQualite}
+
+ADRESSE PERSONNELLE : ${declarantAdresse}
+
+………………………………………………………………………………………………………………………………………………
+
+TEL :……………………………………… FAX :…………… MOBILE : ${declarantMobile}…………
+
+E-MAIL : ${declarantEmail}
+
+
+I- IDENTIFICATION
+
+                                    ANNÉE 1         ANNÉE 2         ANNÉE 3
+
+Montant d'Investissement         ${investAnnee1.toLocaleString().padEnd(15)} ${investAnnee2.toLocaleString().padEnd(15)} ${investAnnee3.toLocaleString()}
+(projeté)
+
+Nombre d'Emplois                 ${emploisAnnee1.toString().padEnd(15)} ${emploisAnnee2.toString().padEnd(15)} ${emploisAnnee3.toString()}
+(projetés)
+
+
+II- DÉNOMINATION
+
+Dénomination sociale : ${company.company_name || '[DENOMINATION]'}
+
+Sigle : ${company.sigle || ''}
+
+Forme juridique : ${company.company_type || 'SARL'}
+
+Durée : ${dureeSociete} ANS
+
+Montant du capital : ${capital.toLocaleString('fr-FR')} FCFA
+
+
+III- ACTIVITÉ
+
+Activité principale : ${company.activity || '[ACTIVITE PRINCIPALE]'}
+
+Activités secondaires : ${company.activite_secondaire || ''}
+
+Chiffre d'affaires prévisionnel : ${company.chiffre_affaires_prev || '[CA PREV]'} FCFA
+
+
+IV- LOCALISATION DU SIÈGE SOCIAL / DE LA SUCCURSALE
+
+Ville : ${company.city || 'ABIDJAN'}      Commune : ${company.commune || ''}      Quartier : ${company.quartier || ''}
+
+Rue : ${company.address || '[RUE]'}      Lot n° : ${company.lot || ''}      Ilot n° : ${company.ilot || ''}
+
+Nom immeuble : ${company.nomImmeuble || ''}      Numéro étage : ${company.numeroEtage || ''}      Numéro porte : ${company.numeroPorte || ''}
+
+Section : ${company.section || ''}      Parcelle : ${company.parcelle || ''}
+
+TF n° : ${company.tfNumero || ''}
+
+Tél. : ${company.telephone || ''}
+
+Fax : ${company.fax || ''}
+
+Adresse postale : ${company.adressePostale || ''}      Email : ${company.email || ''}
+
+
+V- INFORMATIONS SUR LES DIRIGEANTS
+
+DIRIGEANT SOCIAL
+
+Nom et Prénoms : ${gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : '[NOM GERANT]'}
+
+Adresse : ${gerant?.adresse || gerant?.address || '[ADRESSE]'}
+
+Nationalité : ${gerant?.nationalite || '[NATIONALITE]'}
+
+Date et lieu de naissance : ${gerant ? formatDate(gerant.date_naissance || gerant.dateNaissance) : '[DATE]'} à ${gerant?.lieu_naissance || gerant?.lieuNaissance || '[LIEU]'}
+
+Fonction : GÉRANT
+
+
+__________________________________________________________________________
+
+Fait à Abidjan, le ${formatDate(new Date().toISOString())}
+
+Signature du déclarant
+
+
+_____________________
+`;
+};
+
+/**
+ * Mapper les noms de documents vers les fonctions de génération
+ */
+export const documentGenerators = {
+  'Statuts SARL': generateStatutsSARL,
+  'Statuts': generateStatutsSARL,
+  'Contrat de bail commercial': generateContratBail,
+  'Contrat de bail': generateContratBail,
+  'Formulaire unique CEPICI': generateFormulaireCEPICI,
+  'Formulaire CEPICI': generateFormulaireCEPICI,
+  'Liste des dirigeants/gérants': generateListeGerants,
+  'Liste de Gérant': generateListeGerants,
+  'Liste des gérants': generateListeGerants,
+  'Déclaration sur l\'honneur (greffe)': generateDeclarationHonneur,
+  'Déclaration sur l\'honneur': generateDeclarationHonneur,
+  'Déclaration de Souscription et Versement (DSV)': generateDSV,
+  'DSV': generateDSV,
+  'Déclaration Souscription/Versement': generateDSV,
 };
