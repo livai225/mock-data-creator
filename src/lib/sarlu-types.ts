@@ -9,6 +9,7 @@ export interface SARLUFormData {
   capitalEnLettres: string;
   nombreParts: number;
   valeurPart: number;
+  banque: string;
   objetSocial: string;
   activiteSecondaire: string;
   dureeAnnees: number;
@@ -88,6 +89,7 @@ export const defaultSARLUFormData: SARLUFormData = {
   capitalEnLettres: '',
   nombreParts: 100,
   valeurPart: 10000,
+  banque: '',
   objetSocial: '',
   activiteSecondaire: '',
   dureeAnnees: 99,

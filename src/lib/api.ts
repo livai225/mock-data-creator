@@ -183,13 +183,18 @@ export async function previewDocumentsApi(
 }
 
 export async function generateDocumentsApi(
-  token: string, 
-  payload: { 
-    companyId?: number; 
-    companyTypeName?: string; 
+  token: string,
+  payload: {
+    companyId?: number;
+    companyTypeName?: string;
     docs: string[];
     formats?: ('pdf' | 'docx')[];
-    regenerate?: boolean; // Nouveau paramètre pour régénérer les documents
+    regenerate?: boolean;
+    banque?: string;
+    bailleur?: any;
+    declarant?: any;
+    projections?: any;
+    additionalData?: any;
   }
 ) {
   return apiRequest<ApiResult<Array<{ id: number; docType: string; docName: string; fileName: string; format?: string; createdAt: string }>>>(

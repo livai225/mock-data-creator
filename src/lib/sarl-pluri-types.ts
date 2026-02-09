@@ -58,7 +58,10 @@ export interface SARLPluriFormData {
   bailleurContact: string;
   loyerMensuel: number;
   cautionMois: number;
+  avanceMois: number;
   dureeBailAnnees: number;
+  dateDebutBail: string;
+  dateFinBail: string;
   
   // Déclarant (consultant comptable)
   declarantNom: string;
@@ -184,7 +187,10 @@ export const defaultSARLPluriFormData: SARLPluriFormData = {
   bailleurContact: '',
   loyerMensuel: 0,
   cautionMois: 2,
+  avanceMois: 2,
   dureeBailAnnees: 3,
+  dateDebutBail: new Date().toISOString().split('T')[0],
+  dateFinBail: '',
   
   declarantNom: '',
   declarantQualite: 'CONSULTANT COMPTABLE',

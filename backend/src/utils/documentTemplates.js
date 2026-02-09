@@ -131,7 +131,7 @@ export const generateStatutsSARL = (company, associates, managers) => {
   const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '[NUMÉRO]';
   const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
   const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
-  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la république de Côte d\'Ivoire';
+  const gerantLieuDelivranceId = gerant?.pays_delivrance || gerant?.paysDelivrance || gerant?.pays || gerant?.country || 'la République de Côte d\'Ivoire';
   
   const isUnipersonnelle = !associates || associates.length <= 1;
   const nombreParts = associates?.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) || Math.floor(capital / 5000);
@@ -243,7 +243,7 @@ ${isUnipersonnelle ?
     const numId = a.numeroIdentite || '[NUMÉRO]';
     const dateDelivrance = a.dateDelivranceId ? formatDate(a.dateDelivranceId) : '[DATE DÉLIVRANCE]';
     const dateValidite = a.dateValiditeId ? formatDate(a.dateValiditeId) : '[DATE VALIDITÉ]';
-    const lieuDelivrance = a.lieuDelivranceId || 'la République de Côte d\'Ivoire';
+    const lieuDelivrance = a.paysDelivrance || a.pays || a.country || 'la République de Côte d\'Ivoire';
     return `M. ${nom}, ${profession} résidant à ${adresse} de nationalité ${nationalite}, né le ${dateNaissance} à ${lieuNaissance} et titulaire ${typeId === 'Passeport' ? 'du passeport' : 'de la CNI'} N°${numId} délivrée le ${dateDelivrance} et valable jusqu'au ${dateValidite} par ${lieuDelivrance}.`;
   }).join('\n\n')
 }
@@ -804,6 +804,10 @@ export const generateDSV = (company, associates, additionalData = {}) => {
   ].filter(Boolean);
   const siegeAdresse = siegeAdresseParts.join(', ');
   
+  const formatNumber = (value) => (
+    value.toLocaleString('fr-FR').replace(/\u202f/g, ' ').replace(/\u00a0/g, ' ')
+  );
+
   // Calculer le nombre de parts et la valeur nominale
   const totalParts = associates && associates.length > 0 
     ? associates.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0)
@@ -839,6 +843,25 @@ export const generateDSV = (company, associates, additionalData = {}) => {
   const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
   const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
   const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la république de Côte d\'Ivoire';
+
+  const isUnipersonnelle = !associates || associates.length <= 1;
+  const soussignesBlock = (!isUnipersonnelle && associates && associates.length > 0)
+    ? associates.map((associe) => {
+        const assocNom = associe.name || `${associe.nom || ''} ${associe.prenoms || ''}`.trim() || '[NOM ASSOCIÉ]';
+        const assocProfession = associe.profession || '[PROFESSION]';
+        const assocAdresse = associe.adresse || associe.address || '[ADRESSE]';
+        const assocNationalite = associe.nationalite || associe.nationality || '[NATIONALITÉ]';
+        const assocDateNaissance = (associe.date_naissance || associe.dateNaissance) ? formatDate(associe.date_naissance || associe.dateNaissance) : '[DATE NAISSANCE]';
+        const assocLieuNaissance = associe.lieu_naissance || associe.lieuNaissance || '[LIEU NAISSANCE]';
+        const assocTypeId = associe.type_identite || associe.typeIdentite || 'CNI';
+        const assocNumId = associe.numero_identite || associe.numeroIdentite || '[NUMÉRO]';
+        const assocDateDelivranceId = (associe.date_delivrance_id || associe.dateDelivranceId) ? formatDate(associe.date_delivrance_id || associe.dateDelivranceId) : '[DATE DÉLIVRANCE]';
+        const assocDateValiditeId = (associe.date_validite_id || associe.dateValiditeId) ? formatDate(associe.date_validite_id || associe.dateValiditeId) : '[DATE VALIDITÉ]';
+        const assocLieuDelivranceId = associe.lieu_delivrance_id || associe.lieuDelivranceId || 'la république de Côte d\'Ivoire';
+
+        return `M. ${assocNom}, ${assocProfession}, résident à ${assocAdresse} de nationalité ${assocNationalite} né le ${assocDateNaissance} à ${assocLieuNaissance} et titulaire de la ${assocTypeId} ${assocNumId} délivrée le ${assocDateDelivranceId} et valable jusqu'au ${assocDateValiditeId} par ${assocLieuDelivranceId}.`;
+      }).join('\n\n')
+    : `M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId}.`;
   
   // Construire l'objet social complet
   const objetSocial = company.activity || '[OBJET SOCIAL]';
@@ -876,27 +899,25 @@ En outre, la Société peut également participer par tous moyens, directement o
 
 ${parts} parts numérotés de ${debutParts} à ${finParts} inclus
 
-${valeurPart.toLocaleString('fr-FR')} FCFA
+${formatNumber(valeurPart)} FCFA
 
-${montantSouscrit.toLocaleString('fr-FR')} CFA
+${formatNumber(montantSouscrit)} CFA
 
-${montantSouscrit.toLocaleString('fr-FR')} CFA`;
+${formatNumber(montantSouscrit)} CFA`;
     }).join('\n\n');
   } else {
     tableauAssocies = `M. ${gerantNom}
 
 ${totalParts} parts numérotés de 1 à ${totalParts} inclus
 
-${valeurPart.toLocaleString('fr-FR')} FCFA
+${formatNumber(valeurPart)} FCFA
 
-${capital.toLocaleString('fr-FR')} CFA
+${formatNumber(capital)} CFA
 
-${capital.toLocaleString('fr-FR')} CFA`;
+${formatNumber(capital)} CFA`;
     totalSouscrit = capital;
     totalVerse = capital;
   }
-  
-  const isUnipersonnelle = !associates || associates.length <= 1;
   
   return `
 DSV DE LA SOCIETE « ${company.company_name || '[NOM SOCIÉTÉ]'} »
@@ -909,9 +930,9 @@ L'An ${anneeWords},
 
 Le ${dateJour}
 
-Le soussigné,
+${isUnipersonnelle ? 'Le soussigné,' : 'Les soussignés,'}
 
-M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId}.
+${soussignesBlock}
 
 EXPOSE PREALABLE
 
@@ -943,7 +964,7 @@ La durée de la société est de ${numberToWords(company.duree_societe || 99)} (
 
 6- CAPITAL SOCIAL
 
-Le capital social est fixé à la somme de ${capitalWords} Franc CFA (F CFA ${capital.toLocaleString('fr-FR')}) divisé en ${totalParts} parts sociales de F CFA ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}
+Le capital social est fixé à la somme de ${capitalWords} Franc CFA (F CFA ${formatNumber(capital)}) divisé en ${totalParts} parts sociales de F CFA ${formatNumber(valeurPart)}
 
 II- CONSTATATION DE LA LIBERATION ET DU DEPOT DES FONDS PROVENANT DES PARTS SOCIALES
 
@@ -971,7 +992,7 @@ ${totalSouscrit.toLocaleString('fr-FR')} CFA
 
 ${totalVerse.toLocaleString('fr-FR')} CFA
 
-La somme correspondante à l'ensemble des souscriptions et versements effectué à ce jour, de ${numberToWords(Math.floor(totalVerse)).toLowerCase()} (${totalVerse.toLocaleString('fr-FR')} FCFA) a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${banque}
+La somme correspondante à l'ensemble des souscriptions et versements effectué à ce jour, de ${numberToWords(Math.floor(totalVerse)).toLowerCase()} (${formatNumber(totalVerse)} FCFA) a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${banque}
 
 En Foi de quoi, ils ont dressé la présente, pour servir et valoir ce que de droit
 
@@ -979,9 +1000,9 @@ Fait à ${company.city || 'Abidjan'}, le ${dateJour}
 
 En Deux (2) exemplaires originaux
 
-${isUnipersonnelle ? 'L\'associé Unique' : 'L\'associé' + (associates && associates.length > 1 ? 's' : '')}
+${isUnipersonnelle ? 'L\'associé Unique' : 'Les associés'}
 
-${gerantNom}
+${isUnipersonnelle ? gerantNom : (associates && associates.length > 0 ? associates.map((associe) => (associe.name || `${associe.nom || ''} ${associe.prenoms || ''}`.trim() || '[NOM ASSOCIÉ]')).join('\n') : gerantNom)}
 `;
 };
 

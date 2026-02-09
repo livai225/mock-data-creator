@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +59,7 @@ export default function PreviewDocuments() {
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({}); // URLs blob pour prévisualisation
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const hasGeneratedPreview = useRef(false);
 
   const { formData, companyType, payload, price, docs, companyTypeName } = location.state || {};
 
@@ -110,12 +111,18 @@ export default function PreviewDocuments() {
       additionalData.date_fin = formData.dateFinBail || null;
     }
 
+    // Bailleur adresse
+    if (formData?.bailleurAdresse) {
+      additionalData.bailleur_adresse = formData.bailleurAdresse;
+    }
+
     // Champs souvent utilisés par les templates
-    if (payload?.banque) additionalData.banque = payload.banque;
-    if (payload?.lot) additionalData.lot = payload.lot;
-    if (payload?.ilot) additionalData.ilot = payload.ilot;
-    if (payload?.commune) additionalData.commune = payload.commune;
-    if (payload?.quartier) additionalData.quartier = payload.quartier;
+    if (payload?.banque || formData?.banque) additionalData.banque = payload?.banque || formData?.banque;
+    if (payload?.capitalEnLettres || formData?.capitalEnLettres) additionalData.capitalEnLettres = payload?.capitalEnLettres || formData?.capitalEnLettres;
+    if (payload?.lot || formData?.lot) additionalData.lot = payload?.lot || formData?.lot;
+    if (payload?.ilot || formData?.ilot) additionalData.ilot = payload?.ilot || formData?.ilot;
+    if (payload?.commune || formData?.commune) additionalData.commune = payload?.commune || formData?.commune;
+    if (payload?.quartier || formData?.quartier) additionalData.quartier = payload?.quartier || formData?.quartier;
 
     return additionalData;
   };
@@ -396,7 +403,8 @@ export default function PreviewDocuments() {
   // Générer les documents en mode prévisualisation au chargement de la page
   useEffect(() => {
     const generatePreview = async () => {
-      if (!formData || !payload || !docs || isLoadingPreview) return;
+      if (!formData || !payload || !docs || hasGeneratedPreview.current) return;
+      hasGeneratedPreview.current = true;
       
       setIsLoadingPreview(true);
       try {
@@ -555,11 +563,16 @@ export default function PreviewDocuments() {
 
       // 3. Générer les documents avec l'ID de l'entreprise (PDF et Word)
       // Les documents sont générés mais le paiement sera requis pour télécharger
-      await generateDocumentsApi(token!, { 
+      const additionalData = buildAdditionalData();
+      await generateDocumentsApi(token!, {
         companyId: newCompanyId,
         docs,
         formats: ['pdf', 'docx'], // Générer les deux formats
-        additionalData: buildAdditionalData()
+        banque: payload?.banque || formData?.banque,
+        bailleur: payload?.bailleur,
+        declarant: payload?.declarant,
+        projections: payload?.projections,
+        additionalData
       });
       
       setDocumentsGenerated(true);

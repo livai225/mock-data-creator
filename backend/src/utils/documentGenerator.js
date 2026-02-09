@@ -641,8 +641,13 @@ export const generateDocument = async (docName, company, associates = [], manage
         try {
           htmlContent = puppeteerGenerator.generateDocumentHTML(docName, company, associates, managers, additionalData);
         } catch (htmlError) {
-          console.warn(`   [DOCX] Generation HTML echouee, fallback contenu texte:`, htmlError.message);
+          console.warn(`   [DOCX] Generation HTML echouee:`, htmlError.message);
+          htmlContent = null;
         }
+      }
+
+      if (!htmlContent) {
+        throw new Error(`DOCX non généré: template HTML manquant pour "${docName}"`);
       }
 
       if (htmlContent) {
@@ -655,8 +660,6 @@ export const generateDocument = async (docName, company, associates = [], manage
         const arrayBuffer = await docxBlob.arrayBuffer();
         const docxBuffer = Buffer.from(arrayBuffer);
         fs.writeFileSync(docxPath, docxBuffer);
-      } else {
-        await generateWordDocument(content, docName, docxPath);
       }
 
       if (!fs.existsSync(docxPath)) {
@@ -707,4 +710,3 @@ export const generateMultipleDocuments = async (docNames, company, associates = 
   
   return results;
 };
-

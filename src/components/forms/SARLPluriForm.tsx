@@ -46,11 +46,144 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
   const [step, setStep] = useState<SARLPluriStep>('societe');
   const [formData, setFormData] = useState<SARLPluriFormData>(defaultSARLPluriFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [missingBank, setMissingBank] = useState(false);
+  const [missingAssocies, setMissingAssocies] = useState<Record<number, Array<keyof AssocieInfo>>>({});
+  const [missingGerants, setMissingGerants] = useState<Record<number, Array<keyof GerantInfo>>>({});
 
   const currentStepIndex = sarlPluriSteps.findIndex(s => s.id === step);
 
   const updateField = <K extends keyof SARLPluriFormData>(field: K, value: SARLPluriFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'banque' && typeof value === 'string' && value.trim()) {
+      setMissingBank(false);
+    }
+  };
+
+  const associeRequiredFields: Array<keyof AssocieInfo> = [
+    'nom',
+    'prenoms',
+    'profession',
+    'adresseDomicile',
+    'nationalite',
+    'dateNaissance',
+    'lieuNaissance',
+    'typeIdentite',
+    'numeroIdentite',
+    'dateDelivranceId',
+    'dateValiditeId',
+    'lieuDelivranceId',
+  ];
+
+  const gerantRequiredFields: Array<keyof GerantInfo> = [
+    'nom',
+    'prenoms',
+    'profession',
+    'adresse',
+    'nationalite',
+    'dateNaissance',
+    'lieuNaissance',
+    'typeIdentite',
+    'numeroIdentite',
+    'dateDelivranceId',
+    'dateValiditeId',
+    'lieuDelivranceId',
+  ];
+
+  const inputErrorClass = (isMissing: boolean) => isMissing ? "border-red-500 focus-visible:ring-red-500" : "";
+  const isAssocieMissing = (index: number, field: keyof AssocieInfo) => (missingAssocies[index] || []).includes(field);
+  const isGerantMissing = (index: number, field: keyof GerantInfo) => (missingGerants[index] || []).includes(field);
+
+  const validateBank = () => {
+    if (!formData.banque || !formData.banque.trim()) {
+      setMissingBank(true);
+      toast.error("Veuillez renseigner la banque (dépôt du capital).");
+      return false;
+    }
+    setMissingBank(false);
+    return true;
+  };
+
+  const associeFieldLabels: Record<keyof AssocieInfo, string> = {
+    id: 'ID',
+    nom: 'Nom',
+    prenoms: 'Prénom(s)',
+    dateNaissance: 'Date de naissance',
+    lieuNaissance: 'Lieu de naissance',
+    nationalite: 'Nationalité',
+    profession: 'Profession',
+    adresseDomicile: 'Adresse domicile',
+    typeIdentite: "Type d'identité",
+    numeroIdentite: "N° d'identité",
+    dateDelivranceId: 'Date de délivrance',
+    dateValiditeId: 'Date de validité',
+    lieuDelivranceId: 'Lieu de délivrance',
+    nombreParts: 'Nombre de parts',
+    valeurParts: 'Valeur des parts',
+    apportNumeraire: 'Apport numéraire',
+  };
+
+  const gerantFieldLabels: Record<keyof GerantInfo, string> = {
+    id: 'ID',
+    isFromAssociate: "Issu d'associé",
+    associateId: "Associé lié",
+    nom: 'Nom',
+    prenoms: 'Prénom(s)',
+    dateNaissance: 'Date de naissance',
+    lieuNaissance: 'Lieu de naissance',
+    nationalite: 'Nationalité',
+    profession: 'Profession',
+    adresse: 'Adresse',
+    typeIdentite: "Type d'identité",
+    numeroIdentite: "N° d'identité",
+    dateDelivranceId: 'Date de délivrance',
+    dateValiditeId: 'Date de validité',
+    lieuDelivranceId: 'Lieu de délivrance',
+    pereNom: 'Nom du père',
+    mereNom: 'Nom de la mère',
+    dureeMandat: 'Durée du mandat',
+    dureeMandatAnnees: 'Durée du mandat (années)',
+  };
+
+  const validateAssocies = () => {
+    const nextMissing: Record<number, Array<keyof AssocieInfo>> = {};
+    for (let i = 0; i < formData.associes.length; i += 1) {
+      const associe = formData.associes[i];
+      const missing = associeRequiredFields.filter((field) => {
+        const value = associe[field];
+        return typeof value === 'string' ? !value.trim() : value === undefined || value === null;
+      });
+
+      if (missing.length > 0) {
+        nextMissing[i] = missing;
+        setMissingAssocies(nextMissing);
+        const missingLabels = missing.map((field) => associeFieldLabels[field]).join(', ');
+        toast.error(`Associé ${i + 1} : ${missingLabels}`);
+        return false;
+      }
+    }
+    setMissingAssocies({});
+    return true;
+  };
+
+  const validateGerants = () => {
+    const nextMissing: Record<number, Array<keyof GerantInfo>> = {};
+    for (let i = 0; i < formData.gerants.length; i += 1) {
+      const gerant = formData.gerants[i];
+      const missing = gerantRequiredFields.filter((field) => {
+        const value = gerant[field];
+        return typeof value === 'string' ? !value.trim() : value === undefined || value === null;
+      });
+
+      if (missing.length > 0) {
+        nextMissing[i] = missing;
+        setMissingGerants(nextMissing);
+        const missingLabels = missing.map((field) => gerantFieldLabels[field]).join(', ');
+        toast.error(`Gérant ${i + 1} : ${missingLabels}`);
+        return false;
+      }
+    }
+    setMissingGerants({});
+    return true;
   };
 
   const updateAssocie = (index: number, field: keyof AssocieInfo, value: string | number) => {
@@ -61,12 +194,25 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
       newAssocies[index].apportNumeraire = newAssocies[index].nombreParts * newAssocies[index].valeurParts;
     }
     setFormData(prev => ({ ...prev, associes: newAssocies }));
+    if (associeRequiredFields.includes(field)) {
+      const stringValue = typeof value === 'string' ? value.trim() : value;
+      if (stringValue) {
+        setMissingAssocies(prev => {
+          const current = prev[index] || [];
+          if (!current.includes(field)) return prev;
+          const next = { ...prev };
+          next[index] = current.filter((f) => f !== field);
+          return next;
+        });
+      }
+    }
   };
 
   const addAssocie = () => {
-    const newAssocie: AssocieInfo = { 
-      ...defaultAssocieInfo, 
-      id: String(formData.associes.length + 1) 
+    const maxId = formData.associes.reduce((max, a) => Math.max(max, Number(a.id) || 0), 0);
+    const newAssocie: AssocieInfo = {
+      ...defaultAssocieInfo,
+      id: String(maxId + 1)
     };
     setFormData(prev => ({ ...prev, associes: [...prev.associes, newAssocie] }));
   };
@@ -77,6 +223,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         ...prev, 
         associes: prev.associes.filter((_, i) => i !== index) 
       }));
+      setMissingAssocies({});
     } else {
       toast.error("Une SARL Pluripersonnelle nécessite au minimum 2 associés");
     }
@@ -86,6 +233,18 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
     const newGerants = [...formData.gerants];
     newGerants[index] = { ...newGerants[index], [field]: value };
     setFormData(prev => ({ ...prev, gerants: newGerants }));
+    if (gerantRequiredFields.includes(field)) {
+      const stringValue = typeof value === 'string' ? value.trim() : value;
+      if (stringValue) {
+        setMissingGerants(prev => {
+          const current = prev[index] || [];
+          if (!current.includes(field)) return prev;
+          const next = { ...prev };
+          next[index] = current.filter((f) => f !== field);
+          return next;
+        });
+      }
+    }
   };
 
   // Fonction pour sélectionner un associé comme gérant
@@ -120,7 +279,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
           dateDelivranceId: associe.dateDelivranceId,
           lieuDelivranceId: associe.lieuDelivranceId,
           // Les champs spécifiques au gérant restent à remplir
-          dateValiditeId: newGerants[gerantIndex].dateValiditeId || '',
+          dateValiditeId: associe.dateValiditeId,
           pereNom: newGerants[gerantIndex].pereNom || '',
           mereNom: newGerants[gerantIndex].mereNom || '',
           dureeMandat: newGerants[gerantIndex].dureeMandat || 'indeterminee',
@@ -130,12 +289,18 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
     }
     
     setFormData(prev => ({ ...prev, gerants: newGerants }));
+    setMissingGerants(prev => {
+      const next = { ...prev };
+      next[gerantIndex] = [];
+      return next;
+    });
   };
 
   const addGerant = () => {
-    const newGerant: GerantInfo = { 
-      ...defaultGerantInfo, 
-      id: String(formData.gerants.length + 1) 
+    const maxId = formData.gerants.reduce((max, g) => Math.max(max, Number(g.id) || 0), 0);
+    const newGerant: GerantInfo = {
+      ...defaultGerantInfo,
+      id: String(maxId + 1)
     };
     setFormData(prev => ({ ...prev, gerants: [...prev.gerants, newGerant] }));
   };
@@ -146,6 +311,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         ...prev, 
         gerants: prev.gerants.filter((_, i) => i !== index) 
       }));
+      setMissingGerants({});
     } else {
       toast.error("Il faut au moins un gérant");
     }
@@ -154,6 +320,9 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
   const nextStep = () => {
     const currentIndex = sarlPluriSteps.findIndex(s => s.id === step);
     if (currentIndex < sarlPluriSteps.length - 1) {
+      if (step === 'societe' && !validateBank()) return;
+      if (step === 'associes' && !validateAssocies()) return;
+      if (step === 'gerant' && !validateGerants()) return;
       setStep(sarlPluriSteps[currentIndex + 1].id);
     }
   };
@@ -168,6 +337,9 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
   };
 
   const handleGenerate = async () => {
+    if (!validateBank() || !validateAssocies() || !validateGerants()) {
+      return;
+    }
     const mainManager = formData.gerants[0];
     const gerantName = `${mainManager.nom} ${mainManager.prenoms}`;
 
@@ -209,7 +381,10 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         telephone: formData.bailleurContact,
         loyerMensuel: formData.loyerMensuel,
         cautionMois: formData.cautionMois,
-        dureeBailAnnees: formData.dureeBailAnnees
+        avanceMois: formData.avanceMois,
+        dureeBailAnnees: formData.dureeBailAnnees,
+        dateDebutBail: formData.dateDebutBail,
+        dateFinBail: formData.dateFinBail
       },
       // Informations du déclarant
       declarant: {
@@ -424,6 +599,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                   placeholder="Ex: NSIA BANQUE, SGBCI, BICICI..."
                   value={formData.banque}
                   onChange={(e) => updateField('banque', e.target.value)}
+                  className={inputErrorClass(missingBank)}
                 />
               </div>
               <div className="space-y-2">
@@ -684,7 +860,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3 mt-4">
+              <div className="grid gap-4 md:grid-cols-2 mt-4">
                 <div className="space-y-2">
                   <Label htmlFor="loyerMensuel">Loyer mensuel (FCFA) *</Label>
                   <Input
@@ -704,12 +880,39 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="avanceMois">Mois d'avance *</Label>
+                  <Input
+                    id="avanceMois"
+                    type="number"
+                    value={formData.avanceMois}
+                    onChange={(e) => updateField('avanceMois', Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="dureeBailAnnees">Durée du bail (années) *</Label>
                   <Input
                     id="dureeBailAnnees"
                     type="number"
                     value={formData.dureeBailAnnees}
                     onChange={(e) => updateField('dureeBailAnnees', Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dateDebutBail">Date de début *</Label>
+                  <Input
+                    id="dateDebutBail"
+                    type="date"
+                    value={formData.dateDebutBail}
+                    onChange={(e) => updateField('dateDebutBail', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dateFinBail">Date de fin</Label>
+                  <Input
+                    id="dateFinBail"
+                    type="date"
+                    value={formData.dateFinBail}
+                    onChange={(e) => updateField('dateFinBail', e.target.value)}
                   />
                 </div>
               </div>
@@ -766,6 +969,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       placeholder="Nom de famille"
                       value={associe.nom}
                       onChange={(e) => updateAssocie(index, 'nom', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'nom'))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -774,6 +978,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       placeholder="Prénoms"
                       value={associe.prenoms}
                       onChange={(e) => updateAssocie(index, 'prenoms', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'prenoms'))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -782,6 +987,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       type="date"
                       value={associe.dateNaissance}
                       onChange={(e) => updateAssocie(index, 'dateNaissance', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'dateNaissance'))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -789,6 +995,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <Input
                       value={associe.lieuNaissance}
                       onChange={(e) => updateAssocie(index, 'lieuNaissance', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'lieuNaissance'))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -796,6 +1003,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <Input
                       value={associe.nationalite}
                       onChange={(e) => updateAssocie(index, 'nationalite', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'nationalite'))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -803,6 +1011,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <Input
                       value={associe.profession}
                       onChange={(e) => updateAssocie(index, 'profession', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'profession'))}
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
@@ -810,6 +1019,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <Input
                       value={associe.adresseDomicile}
                       onChange={(e) => updateAssocie(index, 'adresseDomicile', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'adresseDomicile'))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -818,7 +1028,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={associe.typeIdentite}
                       onValueChange={(value) => updateAssocie(index, 'typeIdentite', value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={inputErrorClass(isAssocieMissing(index, 'typeIdentite'))}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -834,6 +1044,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <Input
                       value={associe.numeroIdentite}
                       onChange={(e) => updateAssocie(index, 'numeroIdentite', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'numeroIdentite'))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -842,6 +1053,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       type="date"
                       value={associe.dateDelivranceId}
                       onChange={(e) => updateAssocie(index, 'dateDelivranceId', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'dateDelivranceId'))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -850,6 +1062,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       type="date"
                       value={associe.dateValiditeId}
                       onChange={(e) => updateAssocie(index, 'dateValiditeId', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'dateValiditeId'))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -857,6 +1070,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <Input
                       value={associe.lieuDelivranceId}
                       onChange={(e) => updateAssocie(index, 'lieuDelivranceId', e.target.value)}
+                      className={inputErrorClass(isAssocieMissing(index, 'lieuDelivranceId'))}
                     />
                   </div>
                 </div>
@@ -997,7 +1211,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={gerant.nom}
                       onChange={(e) => updateGerant(index, 'nom', e.target.value)}
                       disabled={gerant.isFromAssociate}
-                      className={gerant.isFromAssociate ? "bg-muted" : ""}
+                      className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'nom'))}`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1007,7 +1221,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={gerant.prenoms}
                       onChange={(e) => updateGerant(index, 'prenoms', e.target.value)}
                       disabled={gerant.isFromAssociate}
-                      className={gerant.isFromAssociate ? "bg-muted" : ""}
+                      className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'prenoms'))}`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1018,7 +1232,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={gerant.dateNaissance}
                       onChange={(e) => updateGerant(index, 'dateNaissance', e.target.value)}
                       disabled={gerant.isFromAssociate}
-                      className={gerant.isFromAssociate ? "bg-muted" : ""}
+                      className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'dateNaissance'))}`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1028,7 +1242,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={gerant.lieuNaissance}
                       onChange={(e) => updateGerant(index, 'lieuNaissance', e.target.value)}
                       disabled={gerant.isFromAssociate}
-                      className={gerant.isFromAssociate ? "bg-muted" : ""}
+                      className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'lieuNaissance'))}`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1038,7 +1252,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={gerant.nationalite}
                       onChange={(e) => updateGerant(index, 'nationalite', e.target.value)}
                       disabled={gerant.isFromAssociate}
-                      className={gerant.isFromAssociate ? "bg-muted" : ""}
+                      className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'nationalite'))}`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1049,7 +1263,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={gerant.profession}
                       onChange={(e) => updateGerant(index, 'profession', e.target.value)}
                       disabled={gerant.isFromAssociate}
-                      className={gerant.isFromAssociate ? "bg-muted" : ""}
+                      className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'profession'))}`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1059,7 +1273,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={gerant.adresse}
                       onChange={(e) => updateGerant(index, 'adresse', e.target.value)}
                       disabled={gerant.isFromAssociate}
-                      className={gerant.isFromAssociate ? "bg-muted" : ""}
+                      className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'adresse'))}`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1069,7 +1283,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       onValueChange={(value: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident') => updateGerant(index, 'typeIdentite', value)}
                       disabled={gerant.isFromAssociate}
                     >
-                      <SelectTrigger className={gerant.isFromAssociate ? "bg-muted" : ""}>
+                      <SelectTrigger className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'typeIdentite'))}`}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1087,7 +1301,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={gerant.numeroIdentite}
                       onChange={(e) => updateGerant(index, 'numeroIdentite', e.target.value)}
                       disabled={gerant.isFromAssociate}
-                      className={gerant.isFromAssociate ? "bg-muted" : ""}
+                      className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'numeroIdentite'))}`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1098,7 +1312,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={gerant.dateDelivranceId}
                       onChange={(e) => updateGerant(index, 'dateDelivranceId', e.target.value)}
                       disabled={gerant.isFromAssociate}
-                      className={gerant.isFromAssociate ? "bg-muted" : ""}
+                      className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'dateDelivranceId'))}`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1108,6 +1322,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       type="date"
                       value={gerant.dateValiditeId}
                       onChange={(e) => updateGerant(index, 'dateValiditeId', e.target.value)}
+                      className={inputErrorClass(isGerantMissing(index, 'dateValiditeId'))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1117,7 +1332,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       value={gerant.lieuDelivranceId}
                       onChange={(e) => updateGerant(index, 'lieuDelivranceId', e.target.value)}
                       disabled={gerant.isFromAssociate}
-                      className={gerant.isFromAssociate ? "bg-muted" : ""}
+                      className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'lieuDelivranceId'))}`}
                     />
                   </div>
                 </div>

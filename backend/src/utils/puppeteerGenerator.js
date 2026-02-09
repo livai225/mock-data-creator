@@ -569,7 +569,7 @@ const generateStatutsHTML = (company, associates, managers) => {
   const gerantNumId = gerant?.numero_identite || gerant?.numeroIdentite || '[NUMÉRO]';
   const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
   const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
-  const gerantLieuDelivranceId = gerant?.lieu_delivrance_id || gerant?.lieuDelivranceId || 'la République de Côte d\'Ivoire';
+  const gerantLieuDelivranceId = gerant?.pays_delivrance || gerant?.paysDelivrance || gerant?.pays || gerant?.country || 'la République de Côte d\'Ivoire';
   
   const isUnipersonnelle = !associates || associates.length <= 1;
   const nombreParts = associates?.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) || Math.floor(capital / 5000);
@@ -672,6 +672,110 @@ const generateStatutsHTML = (company, associates, managers) => {
     `;
   }
 
+  const uniIntroHtml = `
+    <div class="statuts-uni-date">
+      <p>L'An Deux Mille ${numberToWords(annee % 100).charAt(0).toUpperCase() + numberToWords(annee % 100).slice(1)},</p>
+      <p>Le ${dateActuelle}</p>
+    </div>
+    <p class="statuts-uni-associe">
+      M. ${escapeHtml(gerantNom.toUpperCase())}, ${escapeHtml(gerantProfession)}, résidant à ${escapeHtml(gerantAdresse.toUpperCase())} de nationalité ${escapeHtml(gerantNationalite)} né le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance.toUpperCase())} et titulaire de la ${gerantTypeId} ${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}.
+    </p>
+    <p class="statuts-uni-soussignes">Le soussigné,</p>
+    <p class="statuts-uni-intro">
+      A établi par les présentes, les statuts de la Société à Responsabilité Limitée dont la teneur suit :
+    </p>
+  `;
+
+  const buildStatutsUniArticlesHtml = () => {
+    const fullText = generateStatutsSARL(company, associates, managers);
+    const markerApports = 'ARTICLE 7-APPORTS';
+    const markerCapital = 'ARTICLE 8- CAPITAL SOCIAL';
+    const markerNext = 'ARTICLE 9- MODIFICATION DU CAPITAL';
+    const indexApports = fullText.indexOf(markerApports);
+    const indexCapital = fullText.indexOf(markerCapital);
+    const indexNext = fullText.indexOf(markerNext);
+
+    const before = indexApports >= 0 ? fullText.slice(0, indexApports) : fullText;
+    const after = indexNext >= 0 ? fullText.slice(indexNext) : '';
+
+    const apportsTableRows = `
+      <tr>
+        <td>${escapeHtml(gerantNom)}</td>
+        <td>${capital.toLocaleString('fr-FR')} FCFA</td>
+      </tr>
+      <tr>
+        <td><strong>Total des apports en numéraire : ${capital.toLocaleString('fr-FR')} de francs CFA,</strong></td>
+        <td><strong>${capital.toLocaleString('fr-FR')} FCFA</strong></td>
+      </tr>
+    `;
+
+    const partsTableRows = `
+      <tr>
+        <td>${escapeHtml(gerantNom)}</td>
+        <td>${nombreParts} PARTS</td>
+      </tr>
+      <tr>
+        <td><strong>TOTAL EGAL au nombre de parts composant le capital social, soit ${nombreParts} parts sociales, ci-contre</strong></td>
+        <td><strong>${nombreParts} PARTS</strong></td>
+      </tr>
+    `;
+
+    const apportsHtml = `
+      <h3 class="article-title">ARTICLE 7-APPORTS</h3>
+      <p class="article-content text-bold">Apports en numéraires</p>
+      <p class="article-content">Lors de la constitution, le soussigné a fait apport à la société, à savoir :</p>
+      <table class="statuts-uni-table">
+        <thead>
+          <tr>
+            <th>IDENTITE DES APPORTEURS</th>
+            <th>MONTANT APPORT EN NUMERAIRE</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${apportsTableRows}
+        </tbody>
+      </table>
+      <p class="article-content">
+        Les apports en numéraire de ${capitalWords} de francs CFA (${capital.toLocaleString('fr-FR')}) F CFA correspondent à ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA entièrement souscrites et libérée intégralement, La somme correspondante a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${escapeHtml(banque)}.
+      </p>
+    `;
+
+    const capitalHtml = `
+      <h3 class="article-title">ARTICLE 8- CAPITAL SOCIAL</h3>
+      <p class="article-content">
+        Le capital social est fixé à la somme de F CFA ${capital.toLocaleString('fr-FR')} divisé en ${nombreParts} parts sociales de F CFA ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}, entièrement souscrites et libérées intégralement, numérotées de 1 à ${nombreParts}, attribuées à l'associé unique, à savoir :
+      </p>
+      <table class="statuts-uni-table">
+        <thead>
+          <tr>
+            <th>IDENTITE DES ASSOCIES</th>
+            <th>CONCURRENCE DES PARTS</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${partsTableRows}
+        </tbody>
+      </table>
+    `;
+
+    const footerHtml = `
+      <div class="statuts-uni-footer-block">
+        <p>Fait à ${escapeHtml((company.city || 'ABIDJAN').toUpperCase())} le ${dateActuelle}</p>
+        <p>EN QUATRE (2) EXEMPLAIRES ORIGINAUX</p>
+        <p class="statuts-uni-footer-name">${escapeHtml(gerantNom)}</p>
+        <p class="statuts-uni-footer-role">Associé unique</p>
+      </div>
+    `;
+
+    return [
+      buildHtmlFromTemplateText(before),
+      apportsHtml,
+      capitalHtml,
+      buildHtmlFromTemplateText(after),
+      footerHtml,
+    ].join('\n');
+  };
+
   return `
     <!DOCTYPE html>
     <html lang="fr">
@@ -681,6 +785,155 @@ const generateStatutsHTML = (company, associates, managers) => {
         ${getCommonStyles()}
         
         /* Styles spécifiques pour Statuts SARL - Format PDF modèle */
+        .statuts-uni-frame {
+          border: 2px solid #000;
+          min-height: 257mm;
+          position: relative;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+        .statuts-uni-bar {
+          position: absolute;
+          left: 0;
+          top: 0;
+          height: 100%;
+          width: 8mm;
+          background: #3f4f62;
+        }
+        .statuts-uni-arrow {
+          position: absolute;
+          left: 8mm;
+          top: 52mm;
+          width: 55mm;
+          height: 12mm;
+          background: #6aa4d8;
+        }
+        .statuts-uni-arrow::after {
+          content: "";
+          position: absolute;
+          right: -12mm;
+          top: 0;
+          width: 0;
+          height: 0;
+          border-top: 6mm solid transparent;
+          border-bottom: 6mm solid transparent;
+          border-left: 12mm solid #6aa4d8;
+        }
+        .statuts-uni-curves {
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          width: 80mm;
+          height: 90mm;
+          opacity: 0.6;
+        }
+        .statuts-uni-cover-text {
+          text-align: center;
+          font-style: italic;
+          font-weight: bold;
+          font-size: 14pt;
+          line-height: 1.4;
+          margin-top: 40mm;
+        }
+        .statuts-uni-page2 {
+          min-height: 257mm;
+          position: relative;
+          box-sizing: border-box;
+          padding: 20mm 18mm;
+        }
+        .statuts-uni-page2-header {
+          border: 1px solid #000;
+          padding: 6mm 8mm;
+          text-align: center;
+          font-size: 9.5pt;
+          line-height: 1.3;
+          margin-bottom: 10mm;
+        }
+        .statuts-uni-page2-title {
+          text-align: center;
+          font-weight: bold;
+          margin-bottom: 6mm;
+        }
+        .statuts-uni-page2-title h1 {
+          font-size: 11pt;
+          text-transform: uppercase;
+          margin-bottom: 4mm;
+        }
+        .statuts-uni-page2-title p {
+          font-size: 9.5pt;
+        }
+        .statuts-uni-nb {
+          font-size: 9.5pt;
+          line-height: 1.4;
+        }
+        .statuts-uni-nb-title {
+          text-decoration: underline;
+          font-weight: bold;
+          margin: 6mm 0 3mm 0;
+        }
+        .statuts-uni-footer {
+          text-align: center;
+          margin-top: 30mm;
+          font-weight: bold;
+          font-size: 12pt;
+        }
+        .statuts-uni-page-number {
+          position: absolute;
+          bottom: 10mm;
+          right: 15mm;
+          font-size: 10pt;
+        }
+        .statuts-uni-header {
+          border: 1px solid #000;
+          padding: 6mm 8mm;
+          text-align: center;
+          font-weight: bold;
+          text-transform: uppercase;
+          font-size: 10.5pt;
+          line-height: 1.3;
+          margin-bottom: 8mm;
+        }
+        .statuts-uni-date p {
+          margin: 0 0 2mm 0;
+        }
+        .statuts-uni-associe {
+          margin: 4mm 0 4mm 0;
+        }
+        .statuts-uni-soussignes {
+          margin: 6mm 0 2mm 0;
+        }
+        .statuts-uni-intro {
+          margin-bottom: 6mm;
+        }
+        .statuts-uni-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 4mm 0 4mm 0;
+          font-size: 10pt;
+        }
+        .statuts-uni-table th,
+        .statuts-uni-table td {
+          border: 1px solid #000;
+          padding: 4px 6px;
+          vertical-align: top;
+        }
+        .statuts-uni-table th {
+          text-align: left;
+          font-weight: bold;
+        }
+        .statuts-uni-footer-block {
+          margin-top: 12mm;
+          text-align: center;
+          font-size: 10.5pt;
+        }
+        .statuts-uni-footer-name {
+          margin-top: 6mm;
+          font-weight: bold;
+        }
+        .statuts-uni-footer-role {
+          margin-top: 8mm;
+          font-weight: bold;
+        }
         .statuts-cover {
           border: 4px solid black;
           display: flex;
@@ -781,72 +1034,120 @@ const generateStatutsHTML = (company, associates, managers) => {
     </head>
     <body>
       <div class="document">
-        <!-- PAGE 1 : PAGE DE COUVERTURE -->
-        <div class="statuts-cover">
-          <div class="statuts-cover-content">
-            <div class="statuts-cover-title">STATUTS DE LA SOCIETE</div>
-            <div class="statuts-cover-company">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ', en Abrégée ' + escapeHtml(company.sigle.toUpperCase()) : ''} SARL »</div>
-            <div class="statuts-cover-capital">AU CAPITAL DE ${capital.toLocaleString('fr-FR').replace(/\s/g, '.')} FCFA</div>
+        ${isUnipersonnelle ? `
+          <!-- PAGE 1 : PAGE DE COUVERTURE -->
+          <div class="statuts-uni-frame">
+            <div class="statuts-uni-bar"></div>
+            <div class="statuts-uni-arrow"></div>
+            <svg class="statuts-uni-curves" viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5,195 C15,140 35,105 70,70" fill="none" stroke="#9aa2ad" stroke-width="1.2"/>
+              <path d="M0,200 C10,150 28,115 60,85" fill="none" stroke="#aeb4bc" stroke-width="0.9"/>
+              <path d="M12,200 C20,155 40,125 85,90" fill="none" stroke="#8f97a3" stroke-width="1.4"/>
+            </svg>
+            <div class="statuts-uni-cover-text">
+              LES STATUTS DE LA SOCIETE «<br/>
+              ${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ', en Abrégée ' + escapeHtml(company.sigle.toUpperCase()) : ''}»
+            </div>
           </div>
-        </div>
-        
-        <!-- PAGE 2 : INFORMATIONS OHADA -->
-        <div class="page-break"></div>
-        
-        <div class="statuts-page2">
-          <!-- Header avec double bordure -->
-          <div class="statuts-page2-header">
-            <p>Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur</p>
-            <p>de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au</p>
-            <p>Droit des Sociétés commerciales et du Groupement d'Intérêt Economique</p>
+
+          <!-- PAGE 2 : INFORMATIONS OHADA -->
+          <div class="page-break"></div>
+          <div class="statuts-uni-page2">
+            <div class="statuts-uni-page2-header">
+              Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d'Intérêt Economique
+            </div>
+            <div class="statuts-uni-page2-title">
+              <h1>STATUT TYPE SOUS SEING PRIVE</h1>
+              <p>Cas d'une Société à Responsabilité Limitée comportant un seul associé et constituée exclusivement par apports en numéraire</p>
+            </div>
+            <div class="statuts-uni-nb">
+              <div class="statuts-uni-nb-title">N.B : Indications d'utilisation</div>
+              <p>Ce cas de figure courant a été conçu pour faciliter et encadrer le processus de création d'entreprise pour une meilleure sécurisation des opérateurs économiques.</p>
+              <p>1. les espaces en pointillé sont des champs à remplir et à adapter à partir des informations décrites dans les parenthèses qui suivent ;</p>
+              <p>2. établir les statuts en nombre suffisant pour la remise d'un exemplaire original à chaque associé, le dépôt d'un exemplaire au siège social, et l'accomplissement des formalités de constitution.</p>
+            </div>
+            <div class="statuts-uni-footer">SARL unipersonnelleconstituée exclusivement<br/>par apportsen numéraire</div>
+            <div class="statuts-uni-page-number">1</div>
           </div>
-          
-          <!-- Titre centré -->
-          <div class="statuts-page2-title">
-            <h1>STATUT TYPE SOUS SEING PRIVE</h1>
-            <p>Cas d'une Société à Responsabilité Limitée comportant ${isUnipersonnelle ? 'un associé unique' : 'plusieurs associés'} et constituée exclusivement par apports en numéraire</p>
+
+          <!-- PAGE 3+ : STATUTS -->
+          <div class="page-break"></div>
+          <div class="statuts-uni-header">
+            STATUTS DE LA SOCIETE A<br/>
+            RESPONSABILITE LIMITEE DENOMMEE<br/>
+            «${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ', en Abrégée ' + escapeHtml(company.sigle.toUpperCase()) : ''}»<br/>
+            AYANT SON SIEGE SOCIAL A ${escapeHtml(adresseComplete.toUpperCase())}
           </div>
-          
-          <!-- Section N.B. -->
-          <div class="statuts-page2-nb">
-            <p class="statuts-page2-nb-title">N.B : Indications d'utilisation</p>
-            <p>Ce cas de figure courant a été conçu pour faciliter et encadrer le processus de création d'entreprise pour une meilleure sécurisation des opérateurs économiques.</p>
-            <p>1. les espaces en pointillé sont des champs à remplir et à adapter à partir des informations décrites dans les parenthèses qui suivent ;</p>
-            <p>2. établir les statuts en nombre suffisant pour la remise d'un exemplaire original à chaque associé, le dépôt d'un exemplaire au siège social, et l'accomplissement des formalités de constitution.</p>
+          ${uniIntroHtml}
+          ${buildStatutsUniArticlesHtml()}
+        ` : `
+          <!-- PAGE 1 : PAGE DE COUVERTURE -->
+          <div class="statuts-cover">
+            <div class="statuts-cover-content">
+              <div class="statuts-cover-title">STATUTS DE LA SOCIETE</div>
+              <div class="statuts-cover-company">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ', en Abrégée ' + escapeHtml(company.sigle.toUpperCase()) : ''} SARL »</div>
+              <div class="statuts-cover-capital">AU CAPITAL DE ${capital.toLocaleString('fr-FR').replace(/\s/g, '.')} FCFA</div>
+            </div>
           </div>
-          
-          <!-- Bas de page -->
-          <div class="statuts-page2-footer">
-            <p>SARL ${isUnipersonnelle ? 'unipersonnelle' : 'pluripersonnelle'} constituée exclusivement</p>
-            <p>Par apports en numéraire</p>
+
+          <!-- PAGE 2 : INFORMATIONS OHADA -->
+          <div class="page-break"></div>
+
+          <div class="statuts-page2">
+            <!-- Header avec double bordure -->
+            <div class="statuts-page2-header">
+              <p>Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur</p>
+              <p>de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au</p>
+              <p>Droit des Sociétés commerciales et du Groupement d'Intérêt Economique</p>
+            </div>
+
+            <!-- Titre centré -->
+            <div class="statuts-page2-title">
+              <h1>STATUT TYPE SOUS SEING PRIVE</h1>
+              <p>Cas d'une Société à Responsabilité Limitée comportant ${isUnipersonnelle ? 'un associé unique' : 'plusieurs associés'} et constituée exclusivement par apports en numéraire</p>
+            </div>
+
+            <!-- Section N.B. -->
+            <div class="statuts-page2-nb">
+              <p class="statuts-page2-nb-title">N.B : Indications d'utilisation</p>
+              <p>Ce cas de figure courant a été conçu pour faciliter et encadrer le processus de création d'entreprise pour une meilleure sécurisation des opérateurs économiques.</p>
+              <p>1. les espaces en pointillé sont des champs à remplir et à adapter à partir des informations décrites dans les parenthèses qui suivent ;</p>
+              <p>2. établir les statuts en nombre suffisant pour la remise d'un exemplaire original à chaque associé, le dépôt d'un exemplaire au siège social, et l'accomplissement des formalités de constitution.</p>
+            </div>
+
+            <!-- Bas de page -->
+            <div class="statuts-page2-footer">
+              <p>SARL ${isUnipersonnelle ? 'unipersonnelle' : 'pluripersonnelle'} constituée exclusivement</p>
+              <p>Par apports en numéraire</p>
+            </div>
+
+            <!-- Numéro de page -->
+            <div class="statuts-page-number">1</div>
           </div>
-          
-          <!-- Numéro de page -->
-          <div class="statuts-page-number">1</div>
-        </div>
-        
-        <!-- PAGE 3 : STATUTS -->
-        <div class="page-break"></div>
-        
-        <div class="main-header" style="text-align: center; margin-bottom: 30px;">
-          <h1 style="font-size: 14pt; font-weight: bold;">STATUTS DE LA SOCIÉTÉ A RESPONSABILITÉ LIMITÉE DÉNOMMÉE</h1>
-          <p style="font-size: 14pt; font-weight: bold; margin: 15px 0;">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ' ' + company.sigle : ''} SARL»</p>
-          <p style="font-size: 11pt;">Au capital de ${capital.toLocaleString('fr-FR')} FCFA, située à ${adresseComplete}</p>
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-          <p>L'An Deux Mil ${numberToWords(annee % 100).charAt(0).toUpperCase() + numberToWords(annee % 100).slice(1)},</p>
-          <p>Le ${dateActuelle}</p>
-        </div>
-        
-        ${associesListHTML}
-        
-        <p class="mt-20">
-          ${isUnipersonnelle ? 'A établi' : 'Ont établi'} ainsi qu'il suit les statuts de la société à responsabilité limitée devant exister entre ${isUnipersonnelle ? 'lui' : 'eux'}.
-        </p>
-        
-        <!-- ARTICLES -->
-        ${buildStatutsArticlesFromTemplate(company, associates, managers)}
+
+          <!-- PAGE 3 : STATUTS -->
+          <div class="page-break"></div>
+
+          <div class="main-header" style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-size: 14pt; font-weight: bold;">STATUTS DE LA SOCIÉTÉ A RESPONSABILITÉ LIMITÉE DÉNOMMÉE</h1>
+            <p style="font-size: 14pt; font-weight: bold; margin: 15px 0;">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ' ' + company.sigle : ''} SARL»</p>
+            <p style="font-size: 11pt;">Au capital de ${capital.toLocaleString('fr-FR')} FCFA, située à ${adresseComplete}</p>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <p>L'An Deux Mil ${numberToWords(annee % 100).charAt(0).toUpperCase() + numberToWords(annee % 100).slice(1)},</p>
+            <p>Le ${dateActuelle}</p>
+          </div>
+
+          ${associesListHTML}
+
+          <p class="mt-20">
+            ${isUnipersonnelle ? 'A établi' : 'Ont établi'} ainsi qu'il suit les statuts de la société à responsabilité limitée devant exister entre ${isUnipersonnelle ? 'lui' : 'eux'}.
+          </p>
+
+          <!-- ARTICLES -->
+          ${buildStatutsArticlesFromTemplate(company, associates, managers)}
+        `}
       </div>
     </body>
     </html>
@@ -865,8 +1166,11 @@ const generateContratBailHTML = (company, additionalData = {}) => {
   const bailleurTel = bailData.bailleur_telephone || bailData.bailleur_contact || bailData.telephone_bailleur || bailData.bailleurTelephone || '[TÉLÉPHONE]';
 
   const loyerMensuel = bailData.loyer_mensuel || bailData.loyerMensuel || bailData.montant_loyer || 0;
+  const loyerLettres = bailData.loyer_lettres || numberToWords(Math.floor(loyerMensuel));
   const cautionMois = bailData.caution_mois || bailData.cautionMois || 2;
   const avanceMois = bailData.avance_mois || bailData.avanceMois || 2;
+  const garantieTotale = bailData.garantie_totale || (loyerMensuel * (cautionMois + avanceMois));
+  const garantieTotaleWords = numberToWords(Math.floor(garantieTotale)).toUpperCase();
   const dureeBail = bailData.duree_bail || bailData.dureeBail || 1;
   const dateDebut = bailData.date_debut ? formatDate(bailData.date_debut) : formatDate(new Date().toISOString());
   const dateFin = bailData.date_fin ? formatDate(bailData.date_fin) : null;
@@ -879,67 +1183,156 @@ const generateContratBailHTML = (company, additionalData = {}) => {
   const ilotText = ilotNumero ? `, ILOT ${ilotNumero}` : '';
   const adresseComplete = `${(company.city || 'ABIDJAN').toUpperCase()}${communeText}${quartierText}, ${(company.address || '[ADRESSE]').toUpperCase()}${lotText}${ilotText}`;
 
-  const dateActuelle = formatDate(new Date().toISOString());
+  const dateActuelle = formatDate(bailData.date_signature || new Date().toISOString());
+  const lieuSignature = bailData.lieu_signature || company.city || 'Abidjan';
 
   return `
     <!DOCTYPE html>
     <html lang="fr">
     <head>
       <meta charset="UTF-8">
-      <style>${getCommonStyles()}</style>
+      <style>
+        ${getCommonStyles()}
+
+        /* Contrat de bail - mise en forme modèle */
+        body {
+          font-family: "Times New Roman", Georgia, serif;
+          font-size: 10pt;
+          line-height: 1.25;
+        }
+
+        .bail-page {
+          border: 2px solid #000;
+          padding: 9mm 8mm;
+          min-height: 257mm;
+          box-sizing: border-box;
+        }
+
+        .bail-title {
+          text-align: center;
+          font-weight: bold;
+          font-size: 12pt;
+          color: #b3612a;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+          margin-bottom: 3mm;
+          position: relative;
+        }
+
+        .bail-title::after {
+          content: "";
+          display: block;
+          margin: 2mm auto 0 auto;
+          width: 85%;
+          border-top: 1px solid #b3612a;
+        }
+
+        .bail-subtitle {
+          margin-top: 2mm;
+          margin-bottom: 3mm;
+          font-weight: bold;
+        }
+
+        .bail-body p {
+          margin: 0 0 2mm 0;
+          text-align: justify;
+        }
+
+        .bail-body .part-label {
+          text-align: right;
+        }
+
+        .bail-body .article-title {
+          font-weight: bold;
+          text-decoration: underline;
+          margin-top: 2mm;
+        }
+
+        .bail-highlight {
+          color: #b3612a;
+          font-weight: bold;
+        }
+
+        .bail-footer {
+          text-align: center;
+          margin-top: 4mm;
+        }
+
+        .bail-signatures {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 10mm;
+          font-weight: bold;
+        }
+      </style>
     </head>
     <body>
       <div class="document">
-        <p class="main-title">CONTRAT DE BAIL COMMERCIAL</p>
-        <p>Entre les soussignés :</p>
-        <p><strong>${escapeHtml(bailleurNom)}</strong>, Téléphone : ${escapeHtml(bailleurTel)} Propriétaire, ci-après dénommé « le bailleur »</p>
-        <p>D’une part</p>
-        <p>Et</p>
-        <p>La société dénommée « ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} » Représenté par son gérant Monsieur ${escapeHtml(gerantNom)} locataire ci-après dénommé « le preneur »</p>
-        <p>D’autre part.</p>
-        <p>Il a été dit et convenu ce qui suit :</p>
-        <p>Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ${adresseComplete} en vue de l’exploitation de la «${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')}».</p>
+        <div class="bail-page">
+          <div class="bail-title">CONTRAT DE BAIL COMMERCIAL</div>
+          <div class="bail-body">
+            <p class="bail-subtitle">Entre les soussignés :</p>
+            <p><strong>${escapeHtml(bailleurNom)}</strong>, Téléphone : ${escapeHtml(bailleurTel)} Propriétaire, ci-après dénommé « le bailleur »</p>
+            <p class="part-label">D’une part</p>
+            <p>Et</p>
+            <p>La société dénommée « ${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')} » Représenté par son gérant Monsieur ${escapeHtml(gerantNom)} locataire ci-après dénommé « le preneur »</p>
+            <p class="part-label">D’autre part.</p>
+            <p>Il a été dit et convenu ce qui suit :</p>
+            <p>Le bailleur loue et donne par les présentes au preneur, qui accepte, les locaux ci-après désignés sis à ${adresseComplete} en vue de l’exploitation de la «${escapeHtml(company.company_name || '[NOM SOCIÉTÉ]')}».</p>
 
-        <p><strong>Article 1 : Désignation</strong></p>
-        <p>Il est précisé que l’emplacement est livré nu, et que le preneur devra supporter le cout et les frais d’eaux, d’électricité, téléphone et en général, tous travaux d’aménagements.</p>
-        <p>Tel au surplus que le cout se poursuit et se comporte sans plus ample description, le preneur déclarant avoir vu. Visite et parfaitement connaitre les locaux loués, qu’il consent à occuper dans leur état actuel</p>
+            <p class="article-title">Article 1 : Désignation</p>
+            <p>Il est précisé que l’emplacement est livré nu, et que le preneur devra supporter le cout et les frais d’eaux, d’électricité, téléphone et en général, tous travaux d’aménagements.</p>
+            <p>Tel au surplus que le cout se poursuit et se comporte sans plus ample description, le preneur déclarant avoir vu. Visite et parfaitement connaitre les locaux loués, qu’il consent à occuper dans leur état actuel</p>
 
-        <p><strong>Article 2 : Durée</strong></p>
-        <p>Le présent bail est conclu pour une durée d’un (01) an allant du ${dateDebut}${dateFin ? ` au ${dateFin}` : ''} à son expiration, le bail se renouvellera par tacite reconduction, sauf dénonciation par acte extra judiciaire, au plus tard TROIS (03) mois avant la date d’expiration de la période triennale concernée.</p>
+            <p class="article-title">Article 2 : Durée</p>
+            <p>Le présent bail est conclu pour une durée d’un (01) an allant du ${dateDebut}${dateFin ? ` au ${dateFin}` : ''} à son expiration, le bail se renouvellera par tacite reconduction, sauf dénonciation par acte extra judiciaire, au plus tard TROIS (03) mois avant la date d’expiration de la période triennale concernée.</p>
 
-        <p><strong>Article 3 : Renouvellement et cession</strong></p>
-        <p>- Le preneur qui a droit au renouvellement de son bail, doit demander le renouvellement de celui-ci au bailleur, par écrit, au plus tard deux (2) mois avant la date d’expiration du bail.</p>
-        <p>- Le preneur qui n’a pas formé sa demande de renouvellement dans ce délai est déchu du droit de renouvellement du bail.</p>
-        <p>Le BAILLEUR qui n'a pas fait connaître sa réponse à la demande de renouvellement au plus tard UN (01) mois avant l'expiration du bail est réputé avoir accepté le principe du renouvellement de ce bail.</p>
-        <p>La partie qui entend résilier le bail doit donner congés, par acte extra judiciaire au moins SIX (06) mois à l’avance.</p>
+            <p class="article-title">Article 3 : Renouvellement et cession</p>
+            <p>- Le preneur qui a droit au renouvellement de son bail, doit demander le renouvellement de celui-ci au bailleur, par écrit, au plus tard deux (2) mois avant la date d’expiration du bail.</p>
+            <p>- Le preneur qui n’a pas formé sa demande de renouvellement dans ce délai est déchu du droit de renouvellement du bail.</p>
+            <p>Le BAILLEUR qui n'a pas fait connaître sa réponse à la demande de renouvellement au plus tard UN (01) mois avant l'expiration du bail est réputé avoir accepté le principe du renouvellement de ce bail.</p>
+            <p>La partie qui entend résilier le bail doit donner congés, par acte extra judiciaire au moins SIX (06) mois à l’avance.</p>
 
-        <p><strong>Article 4 : Obligation du bailleur</strong></p>
-        <p>- Le bailleur fait procéder, à ses frais dans les locaux donnés à bail, à toutes les grosses réparations devenues nécessaires et urgentes.</p>
-        <p>Le bailleur délivre les locaux en bon état.</p>
-        <p>- Le bailleur autorise le preneur à apposer sur les façades extérieures des locaux les enseignes et plaques indicatrices relatives à son commerce.</p>
+            <p class="article-title">Article 4 : Obligation du bailleur</p>
+            <p>- Le bailleur fait procéder, à ses frais dans les locaux donnés à bail, à toutes les grosses réparations devenues nécessaires et urgentes.</p>
+            <p>Le bailleur délivre les locaux en bon état.</p>
+            <p>- Le bailleur autorise le preneur à apposer sur les façades extérieures des locaux les enseignes et plaques indicatrices relatives à son commerce.</p>
+          </div>
+        </div>
 
-        <p><strong>Article 5 : Obligation du preneur</strong></p>
-        <p>- Le preneur doit payer le loyer aux termes convenus, entre les mains du bailleur.</p>
-        <p>- Le preneur est tenu d’exploiter les locaux donnés à bail, en bon père de famille, et conformément à la destination prévue au bail, à défaut de convention écrite, suivant celle présumée d’après les circonstances.</p>
-        <p>Le preneur est tenu des réparations d’entretien ; il répond des dégradations ou des pertes dues à un défaut d’entretien en cours de bail.</p>
+        <div class="page-break"></div>
 
-        <p><strong>Article 6 : Loyer</strong></p>
-        <p>La présente location est consentie et acceptée moyennant un loyer mensuel de ${numberToWords(Math.floor(loyerMensuel))} (${loyerMensuel.toLocaleString('fr-FR')}) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de ${numberToWords(Math.floor(loyerMensuel * (cautionMois + avanceMois))).toUpperCase()} (${(loyerMensuel * (cautionMois + avanceMois)).toLocaleString('fr-FR')} FCFA) dont ${cautionMois} mois de caution et ${avanceMois} mois d’avance.</p>
-        <p>Les parties conviennent que le prix fixé ci-dessus ne peut être révisé au cours du bail.</p>
-        <p>Dans le cas où il surviendrait une contestation sur le montant du loyer tel qu’il est défini par le présent bail, le preneur devra aviser le bailleur qui s’engage à s’en remettre à une expertise amiable.</p>
+        <div class="bail-page">
+          <div class="bail-body">
+            <p class="article-title">Article 5 : Obligation du preneur</p>
+            <p>- Le preneur doit payer le loyer aux termes convenus, entre les mains du bailleur.</p>
+            <p>- Le preneur est tenu d’exploiter les locaux donnés à bail, en bon père de famille, et conformément à la destination prévue au bail, à défaut de convention écrite, suivant celle présumée d’après les circonstances.</p>
+            <p>- Le preneur est tenu des réparations d’entretien ; il répond des dégradations ou des pertes dues à un défaut d’entretien en cours de bail.</p>
 
-        <p><strong>Article 7 : Sous-location</strong></p>
-        <p>Sauf stipulation contraire du bail, toute sous-location totale ou partielle est interdite.</p>
+            <p class="article-title">Article 6 : Loyer</p>
+            <p>La présente location est consentie et acceptée moyennant un loyer mensuel de <span class="bail-highlight">${escapeHtml(loyerLettres.charAt(0).toUpperCase() + loyerLettres.slice(1))}</span> (<span class="bail-highlight">${loyerMensuel.toLocaleString('fr-FR')}</span>) francs CFA, payable à la fin du mois au plus tard le cinq (05) du mois suivant. De plus une garantie de <span class="bail-highlight">${garantieTotaleWords}</span> (<span class="bail-highlight">${garantieTotale.toLocaleString('fr-FR')} FCFA</span>) dont ${numberToWords(cautionMois)} (${cautionMois}) mois de caution et ${numberToWords(avanceMois)} (${avanceMois}) mois d’avance.</p>
+            <p>Les parties conviennent que le prix fixé ci-dessus ne peut être révisé au cours du bail.</p>
+            <p>Dans le cas où il surviendrait une contestation sur le montant du loyer tel qu’il est défini par le présent bail, le preneur devra aviser le bailleur qui s’engage à s’en remettre à une expertise amiable.</p>
 
-        <p><strong>Article 8 : Clause résolutoire.</strong></p>
-        <p>A défaut de paiement d’un seul terme de loyer ou en cas d’inexécution d’une clause du bail, le bailleur pourra demander à la juridiction compétente la résiliation du bail et l’expulsion du preneur, et de tous occupants de son chef, après avoir fait délivrer, par acte extrajudiciaire, une mise en demeure d’avoir à respecter les clauses et conditions du bail.</p>
+            <p class="article-title">Article 7 : Sous-location</p>
+            <p>Sauf stipulation contraire du bail, toute sous-location totale ou partielle est interdite.</p>
 
-        <p><strong>Article 9 : Election de domicile</strong></p>
-        <p>En cas de litige, si aucun accord amiable n’est trouvé, le tribunal d’Abidjan sera seul compétent.</p>
+            <p class="article-title">Article 8 : Clause résolutoire.</p>
+            <p>A défaut de paiement d’un seul terme de loyer ou en cas d’inexécution d’une clause du bail, le bailleur pourra demander à la juridiction compétente la résiliation du bail et l’expulsion du preneur, et de tous occupants de son chef, après avoir fait délivrer, par acte extrajudiciaire, une mise en demeure d’avoir à respecter les clauses et conditions du bail.</p>
 
-        <p>Fait en deux exemplaires et de bonne foi.</p>
-        <p>A ${escapeHtml(company.city || 'Abidjan')}, le ${dateActuelle}</p>
-        <p>Le Bailleur                              Le Preneur</p>
+            <p class="article-title">Article 9 : Election de domicile</p>
+            <p>En cas de litige, si aucun accord amiable n’est trouvé, le tribunal d’Abidjan sera seul compétent.</p>
+
+            <div class="bail-footer">
+              <div>Fait en deux exemplaires et de bonne foi.</div>
+              <div>A ${escapeHtml(lieuSignature)}, le ${dateActuelle}</div>
+            </div>
+            <div class="bail-signatures">
+              <div>Le Bailleur</div>
+              <div>Le Preneur</div>
+            </div>
+          </div>
+        </div>
       </div>
     </body>
     </html>
@@ -1135,7 +1528,386 @@ const generateDeclarationHonneurHTML = (company, managers) => {
  */
 const generateDSVHTML = (company, associates, managers, additionalData = {}) => {
   const content = generateDSV(company, associates, additionalData);
-  return buildHtmlDocumentFromTemplateText(content);
+  const companyName = (company.company_name || '[NOM SOCIÉTÉ]').toUpperCase();
+  const sigle = company.sigle ? company.sigle.toUpperCase() : '';
+  const companyLine = sigle ? `« ${escapeHtml(companyName)}, en Abrégée ${escapeHtml(sigle)} »` : `« ${escapeHtml(companyName)} »`;
+
+  const capital = parseFloat(company.capital) || 0;
+  const totalParts = associates && associates.length > 0 
+    ? associates.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0)
+    : Math.floor(capital / 5000);
+  const valeurPart = totalParts > 0 ? capital / totalParts : 0;
+  const gerant = company.managers && company.managers.length > 0 ? company.managers[0] : null;
+  const gerantNom = gerant ? `${gerant.nom || ''} ${gerant.prenoms || ''}`.trim() : company.gerant || '[NOM GÉRANT]';
+
+  const buildDsvTableHtml = () => {
+    let totalSouscrit = 0;
+    let totalVerse = 0;
+
+    const rowsHtml = (associates && associates.length > 0)
+      ? associates.map((associe, index) => {
+          const parts = parseInt(associe.parts) || 0;
+          const montantSouscrit = totalParts > 0 ? (capital * parts) / totalParts : 0;
+          totalSouscrit += montantSouscrit;
+          totalVerse += montantSouscrit;
+          const debutParts = index === 0 ? 1 : associates.slice(0, index).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) + 1;
+          const finParts = associates.slice(0, index + 1).reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0);
+          const nom = associe.name || `${associe.nom || ''} ${associe.prenoms || ''}`.trim() || '[NOM ASSOCIÉ]';
+
+          return `
+            <tr>
+              <td><strong>${escapeHtml(nom)}</strong></td>
+              <td>${parts} parts numérotés de ${debutParts} à ${finParts} inclus</td>
+              <td>${valeurPart.toLocaleString('fr-FR')} FCFA</td>
+              <td>${montantSouscrit.toLocaleString('fr-FR')} CFA</td>
+              <td>${montantSouscrit.toLocaleString('fr-FR')} CFA</td>
+            </tr>
+          `;
+        }).join('')
+      : (() => {
+          totalSouscrit = capital;
+          totalVerse = capital;
+          return `
+            <tr>
+              <td><strong>${escapeHtml(gerantNom)}</strong></td>
+              <td>${totalParts} parts numérotés de 1 à ${totalParts} inclus</td>
+              <td>${valeurPart.toLocaleString('fr-FR')} FCFA</td>
+              <td>${capital.toLocaleString('fr-FR')} CFA</td>
+              <td>${capital.toLocaleString('fr-FR')} CFA</td>
+            </tr>
+          `;
+        })();
+
+    return `
+      <table class="dsv-table">
+        <thead>
+          <tr>
+            <th>Identité des associés et leur domicile</th>
+            <th>Nombre de parts Souscrites</th>
+            <th>Montant nominal</th>
+            <th>Montant total souscrit F CFA</th>
+            <th>Versement effectué F CFA</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+          <tr class="dsv-total-row">
+            <td><strong>TOTAL</strong></td>
+            <td>${totalParts} parts</td>
+            <td>${valeurPart.toLocaleString('fr-FR')} FCFA</td>
+            <td>${totalSouscrit.toLocaleString('fr-FR')} CFA</td>
+            <td>${totalVerse.toLocaleString('fr-FR')} CFA</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  };
+
+  const rawLines = content.split('\n');
+  const cleanedLines = [];
+  let headerTitle = 'DECLARATION DE SOUSCRIPTION ET DE VERSEMENT';
+  let headerSubtitle = "(cf Art 314 de l'Acte uniforme révisé du 30 janvier 2014, Art 6 de l'Ordonnance N° 2014-161 du 02 avril 2014 relative à la formes des statuts et au capital social de la société à responsabilité limitée)";
+  let stage = 0;
+  let inTableBlock = false;
+  let footerRightLines = [];
+  let footerCenterLine = '';
+  let footerNameLine = '';
+  let footerRightInserted = false;
+  let footerCenterInserted = false;
+  let footerNameInserted = false;
+
+  for (const line of rawLines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      cleanedLines.push(line);
+      continue;
+    }
+
+    if (stage === 0 && /^DSV DE LA SOCIETE/i.test(trimmed)) {
+      stage = 1;
+      continue;
+    }
+    if (stage <= 1 && /^DECLARATION DE SOUSCRIPTION ET DE VERSEMENT/i.test(trimmed)) {
+      headerTitle = trimmed;
+      stage = 2;
+      continue;
+    }
+    if (stage <= 2 && /^\(cf\s*/i.test(trimmed)) {
+      headerSubtitle = trimmed;
+      stage = 3;
+      continue;
+    }
+
+    if (/^Identité des associés/i.test(trimmed)) {
+      inTableBlock = true;
+      cleanedLines.push('[[DSV_TABLE]]');
+      continue;
+    }
+    if (inTableBlock) {
+      if (/^La somme correspondante/i.test(trimmed)) {
+        inTableBlock = false;
+        cleanedLines.push(line);
+      }
+      continue;
+    }
+
+    if (/^Fait à /i.test(trimmed) || /^En Deux/i.test(trimmed)) {
+      if (!footerRightInserted) {
+        cleanedLines.push('[[DSV_FOOTER_RIGHT]]');
+        footerRightInserted = true;
+      }
+      footerRightLines.push(trimmed);
+      continue;
+    }
+
+    if (/^L['’]associ/i.test(trimmed)) {
+      if (!footerCenterInserted) {
+        cleanedLines.push('[[DSV_FOOTER_CENTER]]');
+        footerCenterInserted = true;
+      }
+      footerCenterLine = trimmed;
+      continue;
+    }
+
+    if (trimmed === gerantNom) {
+      if (!footerNameInserted) {
+        cleanedLines.push('[[DSV_SIGNATURE_NAME]]');
+        footerNameInserted = true;
+      }
+      footerNameLine = trimmed;
+      continue;
+    }
+
+    cleanedLines.push(line);
+  }
+
+  const adjustedContent = cleanedLines.join('\n').replace(/^\s*EXPOSE PREALABLE\s*$/m, 'I- EXPOSE PREALABLE');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        ${getCommonStyles()}
+
+        /* DSV - Page de garde (modèle SARL pluripersonnelle) */
+        .dsv-cover {
+          position: relative;
+          height: 257mm;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+
+        .dsv-cover-bar {
+          position: absolute;
+          left: 0;
+          top: 0;
+          height: 100%;
+          width: 8mm;
+          background: #3f4f62;
+        }
+
+        .dsv-cover-arrow {
+          position: absolute;
+          left: 8mm;
+          top: 52mm;
+          width: 55mm;
+          height: 12mm;
+          background: #6aa4d8;
+        }
+
+        .dsv-cover-arrow::after {
+          content: "";
+          position: absolute;
+          right: -12mm;
+          top: 0;
+          width: 0;
+          height: 0;
+          border-top: 6mm solid transparent;
+          border-bottom: 6mm solid transparent;
+          border-left: 12mm solid #6aa4d8;
+        }
+
+        .dsv-cover-curves {
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          width: 80mm;
+          height: 90mm;
+          opacity: 0.6;
+        }
+
+        .dsv-cover-text {
+          text-align: center;
+          max-width: 120mm;
+        }
+
+        .dsv-cover-title {
+          font-size: 16pt;
+          font-weight: bold;
+          text-transform: uppercase;
+          margin-bottom: 6mm;
+        }
+
+        .dsv-cover-company {
+          font-size: 12pt;
+          font-style: italic;
+          font-weight: 600;
+        }
+
+        .dsv-page2 {
+          position: relative;
+          min-height: 257mm;
+        }
+
+        .dsv-page2-header {
+          border: 1px solid #000;
+          text-align: center;
+          padding: 6mm 8mm;
+          margin-bottom: 12mm;
+        }
+
+        .dsv-page2-title {
+          font-size: 12pt;
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+
+        .dsv-page2-subtitle {
+          font-size: 9pt;
+          margin-top: 3mm;
+        }
+
+        .dsv-body {
+          font-size: 11pt;
+        }
+
+        .dsv-body .text-bold {
+          text-decoration: underline;
+        }
+
+        .dsv-body p {
+          margin-bottom: 8px;
+        }
+
+        .dsv-body .article-content {
+          text-align: justify;
+        }
+
+        .dsv-page-number {
+          position: fixed;
+          bottom: 10mm;
+          right: 15mm;
+          font-size: 10pt;
+        }
+
+        .dsv-page-number::after {
+          content: counter(page);
+        }
+
+        .dsv-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 8mm 0 6mm 0;
+          font-size: 9pt;
+        }
+
+        .dsv-table th,
+        .dsv-table td {
+          border: 1px solid #000;
+          padding: 4px 6px;
+          vertical-align: top;
+        }
+
+        .dsv-table th {
+          background: #fff;
+          font-weight: bold;
+          text-align: center;
+        }
+
+        .dsv-total-row td {
+          font-weight: bold;
+        }
+
+        .dsv-footer-right {
+          text-align: right;
+          margin-top: 10mm;
+          line-height: 1.6;
+        }
+
+        .dsv-footer-center {
+          text-align: center;
+          margin-top: 12mm;
+          font-weight: bold;
+        }
+
+        .dsv-signature-name {
+          text-align: center;
+          margin-top: 18mm;
+          font-weight: bold;
+        }
+
+        .dsv-underline {
+          text-decoration: underline;
+          display: inline-block;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="document">
+        <!-- PAGE 1 : COUVERTURE DSV -->
+        <div class="dsv-cover">
+          <div class="dsv-cover-bar"></div>
+          <div class="dsv-cover-arrow"></div>
+          <svg class="dsv-cover-curves" viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5,195 C15,140 35,105 70,70" fill="none" stroke="#9aa2ad" stroke-width="1.2"/>
+            <path d="M0,200 C10,150 28,115 60,85" fill="none" stroke="#aeb4bc" stroke-width="0.9"/>
+            <path d="M12,200 C20,155 40,125 85,90" fill="none" stroke="#8f97a3" stroke-width="1.4"/>
+          </svg>
+          <div class="dsv-cover-text">
+            <div class="dsv-cover-title">DSV DE LA SOCIETE</div>
+            <div class="dsv-cover-company">${companyLine}</div>
+          </div>
+        </div>
+
+        <!-- PAGE 2+ : CONTENU DSV -->
+        <div class="page-break"></div>
+        <div class="dsv-page2">
+          <div class="dsv-page2-header">
+            <div class="dsv-page2-title">${escapeHtml(headerTitle)}</div>
+            <div class="dsv-page2-subtitle">${escapeHtml(headerSubtitle)}</div>
+          </div>
+          <div class="dsv-body">
+            ${buildHtmlFromTemplateText(adjustedContent)
+              .replace('[[DSV_TABLE]]', buildDsvTableHtml())
+              .replace('[[DSV_FOOTER_RIGHT]]', footerRightLines.length > 0 ? `
+                <div class="dsv-footer-right">
+                  ${footerRightLines.map((l) => `<div>${escapeHtml(l)}</div>`).join('')}
+                </div>
+              ` : '')
+              .replace('[[DSV_FOOTER_CENTER]]', footerCenterLine ? `
+                <div class="dsv-footer-center">${escapeHtml(footerCenterLine)}</div>
+              ` : '')
+              .replace('[[DSV_SIGNATURE_NAME]]', footerNameLine ? (() => {
+                const names = footerNameLine.split('\n').map((n) => n.trim()).filter(Boolean);
+                const line = names.length > 1
+                  ? names.map((n) => `<span class="dsv-underline">${escapeHtml(n)}</span>`).join('&nbsp;&nbsp;&nbsp;&nbsp;')
+                  : `<span class="dsv-underline">${escapeHtml(footerNameLine)}</span>`;
+                return `
+                  <div class="dsv-signature-name">${line}</div>
+                `;
+              })() : '')
+            }
+          </div>
+          <div class="dsv-page-number"></div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
 };
 
 /**
