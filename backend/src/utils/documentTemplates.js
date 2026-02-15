@@ -1,6 +1,3 @@
-// Nouveau chemin pour le modèle unipersonnel
-const statutsSarluTemplatePath = path.resolve(__dirname, '../templates/statuts-sarlu-template.txt');
-
 // Templates de documents pour la génération
 // Basés sur les templates du generator mais adaptés pour le backend
 
@@ -71,30 +68,7 @@ const formatDate = (dateString) => {
  */
 export const generateStatutsSARL = (company, associates, managers) => {
   const isUnipersonnelle = !associates || associates.length <= 1;
-  
-  // Utiliser le modèle pour les SARL unipersonnelles
-  if (isUnipersonnelle) {
-    try {
-      if (fs.existsSync(statutsSarluTemplatePath)) {
-        let template = fs.readFileSync(statutsSarluTemplatePath, 'utf8');
-        
-        // Remplacer les valeurs dynamiques
-        template = template
-          .replace(/«ATTA ADI ENTREPRISES, en Abrégée 2AE»/g, `«${company.company_name || '[NOM SOCIÉTÉ]'}${company.sigle ? ' ' + company.sigle : ''}»`)
-          .replace(/1.000.000/g, company.capital.toLocaleString('fr-FR'))
-          .replace(/200 parts sociales/g, `${company.nombreParts || 100} parts sociales`)
-          .replace(/5.000/g, (company.capital / (company.nombreParts || 100)).toLocaleString('fr-FR', { maximumFractionDigits: 0 }))
-          .replace(/M. ATTA VALENTIN/g, managers[0] ? `${managers[0].nom} ${managers[0].prenoms}` : '[NOM GÉRANT]')
-          .replace(/ABIDJAN COMMUNE DE PORT BOUET JEAN FOLLY, RUE MOBIBOIS, FACE DU POT 90, LOT 461, ILOT 123/g, company.address || '[ADRESSE]');
-        
-        return template;
-      }
-    } catch (error) {
-      console.error('Erreur lecture template SARLU:', error);
-    }
-  }
-  
-  // Génération normale pour les sociétés pluripersonnelles
+
   const capital = parseFloat(company.capital) || 0;
   const capitalWords = numberToWords(Math.floor(capital)).toUpperCase();
   const duree = company.duree_societe || 99;
@@ -132,8 +106,7 @@ export const generateStatutsSARL = (company, associates, managers) => {
   const gerantDateDelivranceId = (gerant?.date_delivrance_id || gerant?.dateDelivranceId) ? formatDate(gerant.date_delivrance_id || gerant.dateDelivranceId) : '[DATE DÉLIVRANCE]';
   const gerantDateValiditeId = (gerant?.date_validite_id || gerant?.dateValiditeId) ? formatDate(gerant.date_validite_id || gerant.dateValiditeId) : '[DATE VALIDITÉ]';
   const gerantLieuDelivranceId = gerant?.pays_delivrance || gerant?.paysDelivrance || gerant?.pays || gerant?.country || 'la République de Côte d\'Ivoire';
-  
-  const isUnipersonnelle = !associates || associates.length <= 1;
+
   const nombreParts = associates?.reduce((sum, a) => sum + (parseInt(a.parts) || 0), 0) || Math.floor(capital / 5000);
   const valeurPart = capital / nombreParts;
   
@@ -168,19 +141,15 @@ export const generateStatutsSARL = (company, associates, managers) => {
   
   // Construire l'objet social complet avec liste à puces
   const objetSocial = company.activity || '[OBJET SOCIAL]';
-  
-  // Formater les activités en liste à puces (chaque ligne devient un point)
+
+  // Formater les activités
   const activitesFormatees = objetSocial
     .split('\n')
     .map(line => line.trim())
     .filter(Boolean)
     .join('\n');
-  
-  const objetSocialComplet = `${activitesFormatees}
 
-et généralement, toutes opérations industrielles, commerciales, financières, civiles, mobilières ou immobilières pouvant se rattacher directement ou indirectement à l'objet social ou à tous objets similaires ou connexes ou susceptibles d'en faciliter l'extension ou le développement.
-
-En outre, la Société peut également participer par tous moyens, directement ou indirectement, dans toutes opérations pouvant se rattacher à son objet.
+  const objetSocialComplet = `${activitesFormatees}, toutes opérations commerciales, financière industrielle, mobilières et immobilière pouvant se rattacher directement ou indirectement à l'un des objets ci-dessus définis ou susceptible d'en faciliter l'application ou le développement, le tout tant pour elle-même que pour le compte des tiers.
 
 - l'acquisition, la location et la vente de tous biens meubles et immeubles.
 
@@ -200,31 +169,37 @@ En outre, la Société peut également participer par tous moyens, directement o
   const ilotSuffix = company.ilot && !baseAdresse.includes(`ILOT ${company.ilot}`) ? `, ILOT ${company.ilot}` : '';
   const adresseComplete = `${baseAdresse}${citySuffix}${lotSuffix}${ilotSuffix}`;
 
+  // Construire la dénomination complète avec sigle
+  const denominationComplete = `${company.company_name || '[NOM SOCIÉTÉ]'}${company.sigle ? ', en Abrégée ' + company.sigle : ''}`;
+
   return `
-STATUTS DE LA SOCIETE
-
-«${company.company_name || '[NOM SOCIÉTÉ]'}${company.sigle ? ' ' + company.sigle : ''} SARL»
-
-AU CAPITAL DE ${capital.toLocaleString('fr-FR')} FCFA
+LES STATUTS DE LA SOCIETE «${denominationComplete}»
 
 Modèle Type utilisable et adaptable, conforme aux dispositions en vigueur de l'Acte uniforme révisé de l'OHADA du 30 janvier 2014 relatif au Droit des Sociétés commerciales et du Groupement d'Intérêt Economique
 
 STATUT TYPE SOUS SEING PRIVE
 
-${isUnipersonnelle ? 
-  `Cas d'une Société à Responsabilité Limitée comportant un associé unique et constituée exclusivement par apports en numéraire` :
+${isUnipersonnelle ?
+  `Cas d'une Société à Responsabilité Limitée comportant un seul associé et constituée exclusivement par apports en numéraire` :
   `Cas d'une Société à Responsabilité Limitée comportant plusieurs associés et constituée exclusivement par apports en numéraire`}
 
+N.B : Indications d'utilisation
+
+Ce cas de figure courant a été conçu pour faciliter et encadrer le processus de création d'entreprise pour une meilleure sécurisation des opérateurs économiques.
+
+1. les espaces en pointillé sont des champs à remplir et à adapter à partir des informations décrites dans les parenthèses qui suivent ;
+
+2. établir les statuts en nombre suffisant pour la remise d'un exemplaire original à chaque associé, le dépôt d'un exemplaire au siège social, et l'accomplissement des formalités de constitution.
+
 SARL ${isUnipersonnelle ? 'unipersonnelle' : 'pluripersonnelle'} constituée exclusivement
-Par apports en numéraire
+par apports en numéraire
 
 STATUTS DE LA SOCIETE A RESPONSABILITE LIMITEE DENOMMEE
+«${denominationComplete}
 
-«${company.company_name || '[NOM SOCIÉTÉ]'}${company.sigle ? ' ' + company.sigle : ''} SARL»
+AYANT SON SIEGE SOCIAL A ${adresseComplete}
 
-Au capital de ${capital.toLocaleString('fr-FR')} FCFA, située à ${adresseComplete}
-
-L'An Deux Mil ${anneeWords.charAt(0).toUpperCase() + anneeWords.slice(1)},
+L'An Deux Mille ${anneeWords.replace(/^deux mille /i, '').charAt(0).toUpperCase() + anneeWords.replace(/^deux mille /i, '').slice(1)},
 
 Le ${dateActuelle}
 
@@ -258,7 +233,7 @@ Il est constitué par ${isUnipersonnelle ? 'le soussigné' : 'les soussignés'},
 
 ARTICLE 2- DENOMINATION
 
-La société a pour dénomination : ${company.company_name || '[NOM SOCIÉTÉ]'}
+La société a pour dénomination : ${denominationComplete}
 
 La dénomination sociale doit figurer sur tous les actes et documents émanant de la société et destinés aux tiers, notamment les lettres, les factures, les annonces et publications diverses. Elle doit être précédée ou suivie immédiatement en caractère lisible de l'indication Société à Responsabilité Limitée ou SARL, du montant de son capital social, de l'adresse de son siège social et de la mention de son immatriculation au registre du commerce et du Crédit Mobilier.
 
@@ -647,7 +622,7 @@ ${isUnipersonnelle ? `ARTICLE 22 : ENGAGEMENTS POUR LE COMPTE DE LA SOCIETE
 
 1. Un état des actes accomplis par l'associé unique pour le compte de la société en formation, avec l'indication, de l'engagement qui en résulterait pour la société, est annexé aux présents statuts.
 
-2. En outre, le soussigné se réserve le droit de prendre les engagements suivants au nom et pour le compte de la société : ${company.company_name || '[NOM SOCIÉTÉ]'}` : `ARTICLE 28 : ENGAGEMENTS POUR LE COMPTE DE LA SOCIETE
+2. En outre, le soussigné se réserve le droit de prendre les engagements suivants au nom et pour le compte de la société : ${denominationComplete}` : `ARTICLE 28 : ENGAGEMENTS POUR LE COMPTE DE LA SOCIETE
 
 Un état des actes accomplis par les fondateurs pour le compte de la société en formation, avec indication de l'engagement qui en résulterait, sera présenté à la société qui s'engage à les reprendre.
 
@@ -667,11 +642,27 @@ Pour l'exécution des présentes et de leurs suites, les parties déclarent fair
 
 ${isUnipersonnelle ? `ARTICLE 25 : POUVOIRS
 
-L'associé donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId} de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.` : `ARTICLE 31 : POUVOIRS
+L'associé donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résident à ${gerantAdresse} de nationalité ${gerantNationalite} né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId} de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.
 
-Les associés donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId} à l'effet de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.`}
+Fait à A ${(company.city || 'ABIDJAN').toUpperCase()} le ${dateActuelle}
 
-${isUnipersonnelle ? '' : ''}
+EN QUATRE (2) EXEMPLAIRES ORIGINAUX
+
+M. ${gerantNom}
+
+
+
+Associé unique` : `ARTICLE 31 : POUVOIRS
+
+Les associés donnent tous pouvoirs à M. ${gerantNom}, ${gerantProfession}, résidant à ${gerantAdresse} de nationalité ${gerantNationalite}, né le ${gerantDateNaissance} à ${gerantLieuNaissance} et titulaire de la ${gerantTypeId} ${gerantNumId} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${gerantLieuDelivranceId} à l'effet de procéder à l'enregistrement des présents statuts, accomplir les formalités d'immatriculation au Registre du Commerce et du Crédit Mobilier, et pour les besoins de formalités, de signer tout acte et en donner bonne et valable décharge.
+
+Fait à A ${(company.city || 'ABIDJAN').toUpperCase()} le ${dateActuelle}
+
+EN QUATRE (${associates ? associates.length : 2}) EXEMPLAIRES ORIGINAUX
+
+${associates ? associates.map(a => `M. ${a.name || (a.nom + ' ' + (a.prenoms || '')).trim()}`).join('\n\n') : `M. ${gerantNom}`}
+
+Les associés`}
 `;
 };
 
