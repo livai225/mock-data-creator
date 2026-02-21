@@ -6,6 +6,38 @@ import Document from '../models/Document.js';
 import Company from '../models/Company.js';
 import { generateDocument, generateMultipleDocuments } from '../utils/documentGenerator.js';
 import { generateDocumentFromModel, generateMultipleDocumentsFromModels } from '../utils/modelBasedGenerator.js';
+import { PDFDocument, rgb, degrees } from 'pdf-lib';
+
+// Ajouter un filigrane APERÇU sur un buffer PDF (pour le preview uniquement)
+const addWatermarkToPdf = async (pdfBuffer) => {
+  try {
+    const pdfDoc = await PDFDocument.load(pdfBuffer, { ignoreEncryption: true });
+    const pages = pdfDoc.getPages();
+    for (const page of pages) {
+      const { width, height } = page.getSize();
+      page.drawText('APERÇU', {
+        x: width / 2 - 120,
+        y: height / 2 + 20,
+        size: 80,
+        color: rgb(0.85, 0, 0),
+        opacity: 0.10,
+        rotate: degrees(-40),
+      });
+      page.drawText('PAIEMENT REQUIS', {
+        x: width / 2 - 160,
+        y: height / 2 - 60,
+        size: 36,
+        color: rgb(0.85, 0, 0),
+        opacity: 0.10,
+        rotate: degrees(-40),
+      });
+    }
+    return Buffer.from(await pdfDoc.save());
+  } catch (err) {
+    console.warn('⚠️ Watermark impossible, PDF retourné sans filigrane:', err.message);
+    return pdfBuffer;
+  }
+};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,7 +120,55 @@ export const generateDocuments = async (req, res, next) => {
 
       associates = company.associates || [];
       managers = company.managers || [];
-      console.log(`📊 Données récupérées: ${associates.length} associés, ${managers.length} gérants`);
+
+      // Reconstruire les données bailleur depuis la table leases si présentes
+      if (company.lease) {
+        const lease = company.lease;
+        if (!req.body.bailleur) {
+          req.body.bailleur = {
+            nom: lease.bailleur_nom || '',
+            prenom: lease.bailleur_prenom || '',
+            adresse: lease.bailleur_adresse || '',
+            telephone: lease.bailleur_telephone || '',
+            loyerMensuel: lease.loyer_mensuel || 0,
+            cautionMois: lease.caution_mois || 2,
+            avanceMois: lease.avance_mois || 2,
+            dureeBailAnnees: lease.duree_bail_annees || 1,
+            dateDebutBail: lease.date_debut || null,
+            dateFinBail: lease.date_fin || null
+          };
+        }
+      }
+
+      // Reconstruire les données déclarant depuis la company si pas dans le body
+      if (!req.body.declarant && company.declarant_nom) {
+        req.body.declarant = {
+          nom: company.declarant_nom || '',
+          qualite: company.declarant_qualite || '',
+          adresse: company.declarant_adresse || '',
+          telephone: company.declarant_telephone || '',
+          fax: company.declarant_fax || '',
+          mobile: company.declarant_mobile || '',
+          email: company.declarant_email || '',
+          contact: company.declarant_contact || '',
+          numeroCompte: company.declarant_numero_compte || '',
+          estAssocie: company.declarant_est_associe === 1 || company.declarant_est_associe === true
+        };
+      }
+
+      // Reconstruire les projections depuis la company si pas dans le body
+      if (!req.body.projections && company.investissement_annee1) {
+        req.body.projections = {
+          investissementAnnee1: company.investissement_annee1,
+          investissementAnnee2: company.investissement_annee2,
+          investissementAnnee3: company.investissement_annee3,
+          emploisAnnee1: company.emplois_annee1,
+          emploisAnnee2: company.emplois_annee2,
+          emploisAnnee3: company.emplois_annee3
+        };
+      }
+
+      console.log(`📊 Données récupérées: ${associates.length} associés, ${managers.length} gérants, lease: ${!!company.lease}`);
     } else {
       // Si pas de companyId, utiliser les données fournies dans le body
       console.log('⚠️ Pas de companyId fourni, utilisation des données du body');
@@ -657,8 +737,9 @@ export const generateDocumentManual = async (req, res, next) => {
 export const previewDocuments = async (req, res, next) => {
   try {
     const { company, associates = [], managers: rawManagers = [], docs, formats = ['pdf'] } = req.body;
+    const normalizedCompany = { ...company };
 
-    if (!company || !company.company_name) {
+    if (!normalizedCompany || !normalizedCompany.company_name) {
       return next(new AppError('Données d\'entreprise manquantes', 400));
     }
 
@@ -681,19 +762,20 @@ export const previewDocuments = async (req, res, next) => {
         date_delivrance_id: m.date_delivrance_id || m.dateDelivranceId || null,
         date_validite_id: m.date_validite_id || m.dateValiditeId || null,
         lieu_delivrance_id: m.lieu_delivrance_id || m.lieuDelivranceId || '',
+        ville_residence: m.ville_residence || m.villeResidence || '',
         pere_nom: m.pere_nom || m.pereNom || null,
         mere_nom: m.mere_nom || m.mereNom || null,
         duree_mandat: m.duree_mandat || m.dureeMandat || null,
         duree_mandat_annees: m.duree_mandat_annees || m.dureeMandatAnnees || null
       };
-      
+
       // Log pour debug si champs manquants
       const missingFields = [];
       if (!normalized.profession) missingFields.push('profession');
       if (!normalized.nationalite) missingFields.push('nationalite');
       if (!normalized.lieu_naissance) missingFields.push('lieu_naissance');
       if (!normalized.adresse) missingFields.push('adresse');
-      
+
       if (missingFields.length > 0 && m) {
         console.warn(`⚠️ Champs manquants pour manager:`, {
           nom: normalized.nom,
@@ -706,14 +788,27 @@ export const previewDocuments = async (req, res, next) => {
       return normalized;
     });
 
-    console.log(`🔍 Prévisualisation: ${docs.length} documents pour "${company.company_name}"`);
+    const inferredNombreParts = (associates || []).reduce(
+      (sum, a) => sum + (Number(a.parts) || Number(a.nombreParts) || 0),
+      0
+    );
+    if (inferredNombreParts > 0) {
+      normalizedCompany.nombre_parts = inferredNombreParts;
+      if (!normalizedCompany.valeur_part) {
+        const capital = Number(normalizedCompany.capital) || 0;
+        normalizedCompany.valeur_part = capital > 0 ? Math.floor(capital / inferredNombreParts) : null;
+      }
+    }
+
+    console.log(`🔍 Prévisualisation: ${docs.length} documents pour "${normalizedCompany.company_name}"`);
     console.log(`📋 Managers reçus (raw):`, JSON.stringify(rawManagers, null, 2));
     console.log(`📋 Managers normalisés:`, JSON.stringify(managers, null, 2));
 
     // Générer les documents temporairement (sans sauvegarder en DB)
-    const results = await generateMultipleDocuments(
+    // Utilise le même système que la génération finale (docxtemplater pour SARLU)
+    const results = await generateMultipleDocumentsFromModels(
       docs,
-      company,
+      normalizedCompany,
       associates,
       managers,
       req.body.additionalData || {},
@@ -732,9 +827,10 @@ export const previewDocuments = async (req, res, next) => {
         continue;
       }
 
-      // Lire le fichier PDF et le convertir en base64
+      // Lire le fichier PDF, ajouter le filigrane APERÇU, et le convertir en base64
       if (result.pdf && result.pdf.filePath && fs.existsSync(result.pdf.filePath)) {
-        const pdfBuffer = fs.readFileSync(result.pdf.filePath);
+        const rawBuffer = fs.readFileSync(result.pdf.filePath);
+        const pdfBuffer = await addWatermarkToPdf(rawBuffer);
         const pdfBase64 = pdfBuffer.toString('base64');
         
         previews.push({

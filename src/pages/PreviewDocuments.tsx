@@ -12,7 +12,8 @@ import {
   FileText,
   AlertTriangle,
   Eye,
-  Printer
+  Printer,
+  RotateCw
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthContext";
@@ -20,6 +21,7 @@ import { createCompanyApi, generateDocumentsApi, getMyDocumentsApi, viewDocument
 import { SARLUFormData } from "@/lib/sarlu-types";
 import { SARLPluriFormData } from "@/lib/sarl-pluri-types";
 import { Layout } from "@/components/layout/Layout";
+import { SecurePdfViewer } from "@/components/ui/SecurePdfViewer";
 
 // Preview components
 import { DocumentPreviewStatuts } from "@/components/documents/DocumentPreviewStatuts";
@@ -58,10 +60,36 @@ export default function PreviewDocuments() {
   const [documentUrls, setDocumentUrls] = useState<Record<number, string>>({});
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({}); // URLs blob pour prévisualisation
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const hasGeneratedPreview = useRef(false);
 
   const { formData, companyType, payload, price, docs, companyTypeName } = location.state || {};
+
+  const getPluriAssociatesFromForm = useCallback(() => {
+    if (companyType !== 'SARL_PLURI') return [];
+    const pluriData = formData as SARLPluriFormData;
+    return (pluriData.associes || []).map((a) => ({
+      name: `${a.nom || ''} ${a.prenoms || ''}`.trim(),
+      nom: a.nom,
+      prenoms: a.prenoms,
+      parts: Number(a.nombreParts) || 0,
+      nombreParts: Number(a.nombreParts) || 0,
+      apportNumeraire: a.apportNumeraire,
+      apport: a.apportNumeraire,
+      profession: a.profession,
+      nationalite: a.nationalite,
+      dateNaissance: a.dateNaissance,
+      lieuNaissance: a.lieuNaissance,
+      adresseDomicile: a.adresseDomicile,
+      adresse: a.adresseDomicile,
+      typeIdentite: a.typeIdentite,
+      numeroIdentite: a.numeroIdentite,
+      dateDelivranceId: a.dateDelivranceId,
+      dateValiditeId: a.dateValiditeId,
+      lieuDelivranceId: a.lieuDelivranceId,
+    }));
+  }, [companyType, formData]);
 
   const buildAdditionalData = () => {
     const additionalData: any = {};
@@ -387,7 +415,10 @@ export default function PreviewDocuments() {
               console.error(`❌ Erreur chargement document ${doc.id} (${doc.doc_name}):`, error);
             }
           }
-          setDocumentUrls(urls);
+          setDocumentUrls((previousUrls) => {
+            Object.values(previousUrls).forEach((url) => URL.revokeObjectURL(url));
+            return urls;
+          });
           console.log(`📋 Total URLs blob: ${Object.keys(urls).length}`);
         } else {
           console.error('❌ Erreur réponse API:', docsRes);
@@ -410,27 +441,49 @@ export default function PreviewDocuments() {
       try {
         console.log('🔄 Génération de la prévisualisation des documents...');
         
+        const pluriAssociatesFallback = getPluriAssociatesFromForm();
+        const associatesFromPayload = Array.isArray(payload?.associates) ? payload.associates : [];
+        const associates = associatesFromPayload.length > 0 ? associatesFromPayload : pluriAssociatesFallback;
+        const totalPartsFromAssociates = associates.reduce(
+          (sum: number, a: any) => sum + (Number(a.parts) || Number(a.nombreParts) || 0),
+          0
+        );
+        const capitalForCalc = Number(payload?.capital || (formData as SARLPluriFormData).capitalSocial || 0);
+        const derivedNombreParts = companyType === 'SARL_PLURI'
+          ? (totalPartsFromAssociates || payload?.nombreParts || null)
+          : (payload?.nombreParts || (formData as SARLUFormData).nombreParts || null);
+        const derivedValeurPart = companyType === 'SARL_PLURI'
+          ? (derivedNombreParts ? Math.floor(capitalForCalc / derivedNombreParts) : (payload?.valeurPart || null))
+          : (payload?.valeurPart || (formData as SARLUFormData).valeurPart || null);
+
         // Convertir le payload en objet company pour l'API
         const company = {
           company_name: payload.companyName || formData.denominationSociale,
+          sigle: payload.sigle || formData.sigle || '',
+          forme_juridique: payload.formeJuridique || formData.formeJuridique || '',
           capital: payload.capital || (formData.capitalSocial || 0),
+          nombre_parts: derivedNombreParts,
+          valeur_part: derivedValeurPart,
+          capital_en_lettres: payload.capitalEnLettres || formData.capitalEnLettres || '',
           address: payload.address || formData.adresseSiege,
           city: payload.city || formData.ville,
           activity: payload.activity || formData.objetSocial,
+          activite_secondaire: payload.activiteSecondaire || formData.activiteSecondaire || '',
           gerant: payload.gerant || (formData.associeNom ? `${formData.associeNom} ${formData.associePrenoms}` : ''),
           duree_societe: formData.dureeAnnees || 99,
+          date_constitution: payload.dateConstitution || formData.dateConstitution || null,
           chiffre_affaires_prev: payload.chiffreAffairesPrev || formData.chiffreAffairesPrev || null,
           company_type: payload.companyType || companyType,
           banque: payload.banque || formData.banque,
           lot: payload.lot || formData.lot,
           ilot: payload.ilot || formData.ilot,
           commune: payload.commune || formData.commune,
-          quartier: payload.quartier || formData.quartier
+          quartier: payload.quartier || formData.quartier,
+          boite_postale: payload.boitePostale || formData.boitePostale || '',
+          telephone: payload.telephone || formData.telephone || '',
+          email: payload.email || formData.email || ''
         };
 
-        // Préparer les associés
-        const associates = payload.associates || [];
-        
         // Préparer les managers
         const managers = payload.managers || [];
         
@@ -510,7 +563,10 @@ export default function PreviewDocuments() {
             }
           }
           
-          setPreviewUrls(urls);
+          setPreviewUrls((previousUrls) => {
+            Object.values(previousUrls).forEach((url) => URL.revokeObjectURL(url));
+            return urls;
+          });
           console.log(`📋 ${Object.keys(urls).length} URLs blob créées pour prévisualisation:`, Object.keys(urls));
           
           if (Object.keys(urls).length === 0) {
@@ -528,7 +584,7 @@ export default function PreviewDocuments() {
     };
 
     generatePreview();
-  }, [formData, payload, docs, token, companyType]);
+  }, [formData, payload, docs, token, companyType, getPluriAssociatesFromForm, previewRefreshToken]);
 
   // Cleanup: revoquer les URLs blob quand le composant se démonte
   useEffect(() => {
@@ -549,8 +605,22 @@ export default function PreviewDocuments() {
 
     setIsSubmitting(true);
     try {
+      const payloadForSubmit = { ...payload };
+      if (companyType === 'SARL_PLURI') {
+        const associatesFromPayload = Array.isArray(payload?.associates) ? payload.associates : [];
+        const associates = associatesFromPayload.length > 0 ? associatesFromPayload : getPluriAssociatesFromForm();
+        const totalParts = associates.reduce(
+          (sum: number, a: any) => sum + (Number(a.parts) || Number(a.nombreParts) || 0),
+          0
+        );
+        const capital = Number(payload?.capital || (formData as SARLPluriFormData).capitalSocial || 0);
+        payloadForSubmit.associates = associates;
+        payloadForSubmit.nombreParts = totalParts || payloadForSubmit.nombreParts || null;
+        payloadForSubmit.valeurPart = totalParts > 0 ? Math.floor(capital / totalParts) : payloadForSubmit.valeurPart || null;
+      }
+
       // 1. Créer l'entreprise (sans paiement requis)
-      const companyResult = await createCompanyApi(token!, payload);
+      const companyResult = await createCompanyApi(token!, payloadForSubmit);
       
       // 2. Récupérer l'ID de l'entreprise créée
       const newCompanyId = companyResult.data?.id;
@@ -568,10 +638,10 @@ export default function PreviewDocuments() {
         companyId: newCompanyId,
         docs,
         formats: ['pdf', 'docx'], // Générer les deux formats
-        banque: payload?.banque || formData?.banque,
-        bailleur: payload?.bailleur,
-        declarant: payload?.declarant,
-        projections: payload?.projections,
+        banque: payloadForSubmit?.banque || formData?.banque,
+        bailleur: payloadForSubmit?.bailleur,
+        declarant: payloadForSubmit?.declarant,
+        projections: payloadForSubmit?.projections,
         additionalData
       });
       
@@ -613,6 +683,22 @@ export default function PreviewDocuments() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRefreshPreview = () => {
+    hasGeneratedPreview.current = false;
+    setDocumentsGenerated(false);
+    setGeneratedDocuments([]);
+    setDocumentUrls((previousUrls) => {
+      Object.values(previousUrls).forEach((url) => URL.revokeObjectURL(url));
+      return {};
+    });
+    setPreviewUrls((previousUrls) => {
+      Object.values(previousUrls).forEach((url) => URL.revokeObjectURL(url));
+      return {};
+    });
+    setPreviewRefreshToken((value) => value + 1);
+    toast.success("Prévisualisation actualisée avec la dernière version des templates");
   };
 
   const handlePrint = () => {
@@ -812,12 +898,24 @@ export default function PreviewDocuments() {
                         Document {currentTabIndex + 1} sur {documentTabs.length}
                       </CardDescription>
                     </div>
-                    {validatedDocs.includes(activeTab) && (
-                      <Badge variant="default" className="bg-green-500">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Validé
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRefreshPreview}
+                        disabled={isLoadingPreview}
+                        className="gap-2"
+                      >
+                        <RotateCw className={`h-4 w-4 ${isLoadingPreview ? 'animate-spin' : ''}`} />
+                        Actualiser
+                      </Button>
+                      {validatedDocs.includes(activeTab) && (
+                        <Badge variant="default" className="bg-green-500">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Validé
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -832,6 +930,11 @@ export default function PreviewDocuments() {
                           <p className="text-sm text-muted-foreground">
                             Veuillez patienter, les documents sont en cours de génération avec les derniers templates.
                           </p>
+                        </div>
+                      ) : previewUrls[activeTab] ? (
+                        // Afficher en priorité la prévisualisation fraîche (viewer sécurisé, sans bouton de téléchargement)
+                        <div className="w-full overflow-y-auto max-h-[70vh] px-4 py-2">
+                          <SecurePdfViewer url={previewUrls[activeTab]} watermark={true} />
                         </div>
                       ) : documentsGenerated ? (
                         // Afficher les documents PDF générés (après validation)
@@ -872,38 +975,10 @@ export default function PreviewDocuments() {
                             });
 
                             if (generatedDoc && documentUrls[generatedDoc.id]) {
-                              // Afficher le PDF généré dans un iframe avec protections modérées
+                              // Afficher le PDF généré dans le viewer sécurisé (sans bouton de téléchargement)
                               return (
-                                <div key={activeTab} className="h-full w-full relative">
-                                  <iframe
-                                    src={documentUrls[generatedDoc.id]}
-                                    className="w-full h-[70vh] border-0"
-                                    title={documentTabs.find(t => t.id === activeTab)?.label}
-                                    onContextMenu={(e) => {
-                                      e.preventDefault();
-                                      toast.error("Le clic droit est désactivé");
-                                      return false;
-                                    }}
-                                    onLoad={(e) => {
-                                      // Essayer de désactiver le menu contextuel dans l'iframe si possible
-                                      try {
-                                        const iframe = e.target as HTMLIFrameElement;
-                                        if (iframe.contentDocument) {
-                                          iframe.contentDocument.addEventListener('contextmenu', (ev) => {
-                                            ev.preventDefault();
-                                            return false;
-                                          }, true);
-                                          iframe.contentDocument.addEventListener('copy', (ev) => {
-                                            ev.preventDefault();
-                                            return false;
-                                          }, true);
-                                        }
-                                      } catch (err) {
-                                        // Ignorer les erreurs CORS (normal pour les PDF blob)
-                                        console.log('Iframe PDF chargé (protections CORS normales)');
-                                      }
-                                    }}
-                                  />
+                                <div key={activeTab} className="w-full overflow-y-auto max-h-[70vh] px-4 py-2">
+                                  <SecurePdfViewer url={documentUrls[generatedDoc.id]} watermark={true} />
                                 </div>
                               );
                             } else if (generatedDocuments.length > 0) {
@@ -947,47 +1022,6 @@ export default function PreviewDocuments() {
                               return null;
                             }
                           })()}
-                        </div>
-                      ) : previewUrls[activeTab] ? (
-                        // Afficher la prévisualisation générée depuis le backend avec protections modérées
-                        <div className="h-full w-full relative">
-                          <iframe
-                            src={previewUrls[activeTab]}
-                            className="w-full h-[70vh] border-0"
-                            title={documentTabs.find(t => t.id === activeTab)?.label}
-                            onContextMenu={(e) => {
-                              e.preventDefault();
-                              toast.error("Le clic droit est désactivé");
-                              return false;
-                            }}
-                            onLoad={(e) => {
-                              // Essayer de désactiver le menu contextuel dans l'iframe si possible
-                              try {
-                                const iframe = e.target as HTMLIFrameElement;
-                                if (iframe.contentDocument) {
-                                  iframe.contentDocument.addEventListener('contextmenu', (ev) => {
-                                    ev.preventDefault();
-                                    return false;
-                                  }, true);
-                                  iframe.contentDocument.addEventListener('copy', (ev) => {
-                                    ev.preventDefault();
-                                    return false;
-                                  }, true);
-                                  // Désactiver window.print dans l'iframe si possible
-                                  if (iframe.contentWindow) {
-                                    const originalPrint = iframe.contentWindow.print;
-                                    iframe.contentWindow.print = () => {
-                                      toast.error("L'impression est désactivée");
-                                      return;
-                                    };
-                                  }
-                                }
-                              } catch (err) {
-                                // Ignorer les erreurs CORS (normal pour les PDF blob)
-                                console.log('Iframe PDF chargé (protections CORS normales)');
-                              }
-                            }}
-                          />
                         </div>
                       ) : (
                         // Fallback: Afficher les composants React statiques (anciens)
