@@ -2,7 +2,7 @@ import express from 'express';
 import { body } from 'express-validator';
 import { validate } from '../middleware/validate.js';
 import { protect } from '../middleware/auth.js';
-import { documentLimiter } from '../middleware/rateLimiter.js';
+import { companyLimiter } from '../middleware/rateLimiter.js';
 import {
   createCompany,
   getMyCompanies,
@@ -22,7 +22,7 @@ const createCompanyValidation = [
     .withMessage('Type d\'entreprise invalide'),
   body('companyName').trim().notEmpty().withMessage('Le nom de l\'entreprise est requis'),
   body('sigle').optional().trim(),
-  body('activity').trim().notEmpty().withMessage('L\'activité est requise'),
+  body('activity').optional().trim(),
   body('capital').isNumeric().withMessage('Le capital doit être un nombre'),
   body('address').trim().notEmpty().withMessage('L\'adresse est requise'),
   body('city').optional().trim(),
@@ -37,7 +37,7 @@ const createCompanyValidation = [
 router.use(protect);
 
 // Routes
-router.post('/', documentLimiter, createCompanyValidation, validate, createCompany);
+router.post('/', companyLimiter, createCompanyValidation, validate, createCompany);
 router.get('/', getMyCompanies);
 router.get('/stats/me', getMyStats);
 router.get('/:id', getCompanyById);

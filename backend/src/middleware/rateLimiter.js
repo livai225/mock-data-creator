@@ -23,12 +23,32 @@ export const authLimiter = rateLimit({
   skipSuccessfulRequests: true,
 });
 
-// Rate limiter pour la création de documents
+// Rate limiter pour la création d'entreprises
+export const companyLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 heure
+  max: 30, // 30 créations d'entreprise par heure
+  message: {
+    success: false,
+    message: 'Limite de création d\'entreprises atteinte, veuillez réessayer plus tard.'
+  },
+});
+
+// Rate limiter pour la génération de documents (final)
 export const documentLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 heure
-  max: 10, // 10 générations de documents par heure
+  max: 30, // 30 générations de documents par heure
   message: {
     success: false,
     message: 'Limite de génération de documents atteinte, veuillez réessayer plus tard.'
+  },
+});
+
+// Rate limiter pour la prévisualisation (plus permissif)
+export const previewLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 heure
+  max: 50, // 50 prévisualisations par heure
+  message: {
+    success: false,
+    message: 'Limite de prévisualisation atteinte, veuillez réessayer plus tard.'
   },
 });

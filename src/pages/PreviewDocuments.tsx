@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,8 +12,7 @@ import {
   FileText,
   AlertTriangle,
   Eye,
-  Printer,
-  RotateCw
+  Printer
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthContext";
@@ -21,7 +20,6 @@ import { createCompanyApi, generateDocumentsApi, getMyDocumentsApi, viewDocument
 import { SARLUFormData } from "@/lib/sarlu-types";
 import { SARLPluriFormData } from "@/lib/sarl-pluri-types";
 import { Layout } from "@/components/layout/Layout";
-import { SecurePdfViewer } from "@/components/ui/SecurePdfViewer";
 
 // Preview components
 import { DocumentPreviewStatuts } from "@/components/documents/DocumentPreviewStatuts";
@@ -47,11 +45,20 @@ const documentTabs: DocumentTab[] = [
   { id: 'dsv', label: 'Déclaration Souscription/Versement', shortLabel: 'DSV', component: DocumentPreviewDSV },
 ];
 
+// Onglets pour Entreprise Individuelle
+const eiDocumentTabs: DocumentTab[] = [
+  { id: 'cepici', label: 'Formulaire CEPICI', shortLabel: 'CEPICI', component: DocumentPreviewCEPICI },
+  { id: 'bail', label: 'Contrat de bail', shortLabel: 'Bail', component: DocumentPreviewContratBail },
+  { id: 'declaration', label: 'Déclaration sur l\'honneur', shortLabel: 'Déclaration', component: DocumentPreviewDeclaration },
+];
+
 export default function PreviewDocuments() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, token } = useAuth();
-  const [activeTab, setActiveTab] = useState('statuts');
+  const [activeTab, setActiveTab] = useState(() =>
+    (location.state as any)?.companyType === 'EI' ? 'cepici' : 'statuts'
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validatedDocs, setValidatedDocs] = useState<string[]>([]);
   const [generatedDocuments, setGeneratedDocuments] = useState<UserDocument[]>([]);
@@ -60,36 +67,14 @@ export default function PreviewDocuments() {
   const [documentUrls, setDocumentUrls] = useState<Record<number, string>>({});
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({}); // URLs blob pour prévisualisation
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
-  const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
+  const [previewRetryKey, setPreviewRetryKey] = useState(0);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const hasGeneratedPreview = useRef(false);
 
   const { formData, companyType, payload, price, docs, companyTypeName } = location.state || {};
 
-  const getPluriAssociatesFromForm = useCallback(() => {
-    if (companyType !== 'SARL_PLURI') return [];
-    const pluriData = formData as SARLPluriFormData;
-    return (pluriData.associes || []).map((a) => ({
-      name: `${a.nom || ''} ${a.prenoms || ''}`.trim(),
-      nom: a.nom,
-      prenoms: a.prenoms,
-      parts: Number(a.nombreParts) || 0,
-      nombreParts: Number(a.nombreParts) || 0,
-      apportNumeraire: a.apportNumeraire,
-      apport: a.apportNumeraire,
-      profession: a.profession,
-      nationalite: a.nationalite,
-      dateNaissance: a.dateNaissance,
-      lieuNaissance: a.lieuNaissance,
-      adresseDomicile: a.adresseDomicile,
-      adresse: a.adresseDomicile,
-      typeIdentite: a.typeIdentite,
-      numeroIdentite: a.numeroIdentite,
-      dateDelivranceId: a.dateDelivranceId,
-      dateValiditeId: a.dateValiditeId,
-      lieuDelivranceId: a.lieuDelivranceId,
-    }));
-  }, [companyType, formData]);
+  // Onglets actifs selon le type d'entreprise (EI n'a que le formulaire CEPICI)
+  const activeTabs = companyType === 'EI' ? eiDocumentTabs : documentTabs;
 
   const buildAdditionalData = () => {
     const additionalData: any = {};
@@ -127,21 +112,21 @@ export default function PreviewDocuments() {
       };
     }
 
-    // Bailleur
-    if (formData?.bailleurNom) {
-      additionalData.bailleur_nom = `${formData.bailleurNom} ${formData.bailleurPrenom || ''}`.trim();
-      additionalData.bailleur_telephone = formData.bailleurContact || '';
-      additionalData.loyer_mensuel = formData.loyerMensuel || 0;
-      additionalData.caution_mois = formData.cautionMois || 2;
-      additionalData.avance_mois = formData.avanceMois || 2;
-      additionalData.duree_bail = formData.dureeBailAnnees || 1;
-      additionalData.date_debut = formData.dateDebutBail || new Date().toISOString();
-      additionalData.date_fin = formData.dateFinBail || null;
-    }
-
-    // Bailleur adresse
-    if (formData?.bailleurAdresse) {
-      additionalData.bailleur_adresse = formData.bailleurAdresse;
+    // Bailleur — fusionner formData et payload.bailleur (les deux sources possibles)
+    const pb = payload?.bailleur;
+    const bailleurNom = formData?.bailleurNom || pb?.nom;
+    if (bailleurNom) {
+      additionalData.bailleur_nom = (
+        `${formData?.bailleurNom || pb?.nom || ''} ${formData?.bailleurPrenom || pb?.prenom || ''}`.trim()
+      );
+      additionalData.bailleur_adresse = formData?.bailleurAdresse || pb?.adresse || '';
+      additionalData.bailleur_telephone = formData?.bailleurContact || pb?.telephone || '';
+      additionalData.loyer_mensuel = formData?.loyerMensuel ?? pb?.loyerMensuel ?? 0;
+      additionalData.caution_mois = formData?.cautionMois ?? pb?.cautionMois ?? 2;
+      additionalData.avance_mois = formData?.avanceMois ?? pb?.avanceMois ?? 2;
+      additionalData.duree_bail = formData?.dureeBailAnnees ?? pb?.dureeBailAnnees ?? 1;
+      additionalData.date_debut = formData?.dateDebutBail || pb?.dateDebutBail || new Date().toISOString();
+      additionalData.date_fin = formData?.dateFinBail || pb?.dateFinBail || null;
     }
 
     // Champs souvent utilisés par les templates
@@ -151,6 +136,12 @@ export default function PreviewDocuments() {
     if (payload?.ilot || formData?.ilot) additionalData.ilot = payload?.ilot || formData?.ilot;
     if (payload?.commune || formData?.commune) additionalData.commune = payload?.commune || formData?.commune;
     if (payload?.quartier || formData?.quartier) additionalData.quartier = payload?.quartier || formData?.quartier;
+
+    // Données spécifiques Entreprise Individuelle
+    if (companyType === 'EI') {
+      additionalData.companyType = 'EI';
+      if (payload?.eiData) additionalData.eiData = payload.eiData;
+    }
 
     return additionalData;
   };
@@ -383,7 +374,7 @@ export default function PreviewDocuments() {
   const handleValidateDocument = (docId: string) => {
     if (!validatedDocs.includes(docId)) {
       setValidatedDocs([...validatedDocs, docId]);
-      toast.success(`Document "${documentTabs.find(d => d.id === docId)?.label}" validé`);
+      toast.success(`Document "${activeTabs.find(d => d.id === docId)?.label}" validé`);
     }
   };
 
@@ -415,10 +406,7 @@ export default function PreviewDocuments() {
               console.error(`❌ Erreur chargement document ${doc.id} (${doc.doc_name}):`, error);
             }
           }
-          setDocumentUrls((previousUrls) => {
-            Object.values(previousUrls).forEach((url) => URL.revokeObjectURL(url));
-            return urls;
-          });
+          setDocumentUrls(urls);
           console.log(`📋 Total URLs blob: ${Object.keys(urls).length}`);
         } else {
           console.error('❌ Erreur réponse API:', docsRes);
@@ -441,36 +429,20 @@ export default function PreviewDocuments() {
       try {
         console.log('🔄 Génération de la prévisualisation des documents...');
         
-        const pluriAssociatesFallback = getPluriAssociatesFromForm();
-        const associatesFromPayload = Array.isArray(payload?.associates) ? payload.associates : [];
-        const associates = associatesFromPayload.length > 0 ? associatesFromPayload : pluriAssociatesFallback;
-        const totalPartsFromAssociates = associates.reduce(
-          (sum: number, a: any) => sum + (Number(a.parts) || Number(a.nombreParts) || 0),
-          0
-        );
-        const capitalForCalc = Number(payload?.capital || (formData as SARLPluriFormData).capitalSocial || 0);
-        const derivedNombreParts = companyType === 'SARL_PLURI'
-          ? (totalPartsFromAssociates || payload?.nombreParts || null)
-          : (payload?.nombreParts || (formData as SARLUFormData).nombreParts || null);
-        const derivedValeurPart = companyType === 'SARL_PLURI'
-          ? (derivedNombreParts ? Math.floor(capitalForCalc / derivedNombreParts) : (payload?.valeurPart || null))
-          : (payload?.valeurPart || (formData as SARLUFormData).valeurPart || null);
-
         // Convertir le payload en objet company pour l'API
         const company = {
           company_name: payload.companyName || formData.denominationSociale,
-          sigle: payload.sigle || formData.sigle || '',
-          forme_juridique: payload.formeJuridique || formData.formeJuridique || '',
+          sigle: payload.sigle || formData.sigle || null,
+          nom_commercial: payload.nomCommercial || (formData as any).nomCommercial || null,
           capital: payload.capital || (formData.capitalSocial || 0),
-          nombre_parts: derivedNombreParts,
-          valeur_part: derivedValeurPart,
-          capital_en_lettres: payload.capitalEnLettres || formData.capitalEnLettres || '',
+          nombre_parts: payload.nombreParts || formData.nombreParts || null,
+          valeur_part: payload.valeurPart || formData.valeurPart || null,
+          capital_en_lettres: payload.capitalEnLettres || formData.capitalEnLettres || null,
           address: payload.address || formData.adresseSiege,
           city: payload.city || formData.ville,
           activity: payload.activity || formData.objetSocial,
-          activite_secondaire: payload.activiteSecondaire || formData.activiteSecondaire || '',
           gerant: payload.gerant || (formData.associeNom ? `${formData.associeNom} ${formData.associePrenoms}` : ''),
-          duree_societe: formData.dureeAnnees || 99,
+          duree_societe: payload.duree_societe || formData.dureeAnnees || 99,
           date_constitution: payload.dateConstitution || formData.dateConstitution || null,
           chiffre_affaires_prev: payload.chiffreAffairesPrev || formData.chiffreAffairesPrev || null,
           company_type: payload.companyType || companyType,
@@ -478,12 +450,12 @@ export default function PreviewDocuments() {
           lot: payload.lot || formData.lot,
           ilot: payload.ilot || formData.ilot,
           commune: payload.commune || formData.commune,
-          quartier: payload.quartier || formData.quartier,
-          boite_postale: payload.boitePostale || formData.boitePostale || '',
-          telephone: payload.telephone || formData.telephone || '',
-          email: payload.email || formData.email || ''
+          quartier: payload.quartier || formData.quartier
         };
 
+        // Préparer les associés
+        const associates = payload.associates || [];
+        
         // Préparer les managers
         const managers = payload.managers || [];
         
@@ -518,15 +490,16 @@ export default function PreviewDocuments() {
         if (previewRes.success && previewRes.data) {
           console.log(`✅ ${previewRes.data.length} documents générés pour prévisualisation`);
           console.log('📄 Noms des documents:', previewRes.data.map(d => d.docName));
-          
+
           // Convertir les données base64 en URLs blob
           const urls: Record<string, string> = {};
           for (const preview of previewRes.data) {
             if (preview.error) {
               console.error(`❌ Erreur pour ${preview.docName}:`, preview.error);
+              toast.error(`Erreur document "${preview.docName}" : ${preview.error}`);
               continue;
             }
-            
+
             if (preview.pdf && preview.pdf.data) {
               try {
                 // Convertir base64 en blob
@@ -538,7 +511,7 @@ export default function PreviewDocuments() {
                 const byteArray = new Uint8Array(byteNumbers);
                 const blob = new Blob([byteArray], { type: preview.pdf.mimeType });
                 const url = URL.createObjectURL(blob);
-                
+
                 // Trouver l'ID de l'onglet correspondant
                 const docName = preview.docName.toLowerCase();
                 let tabId = '';
@@ -548,7 +521,7 @@ export default function PreviewDocuments() {
                 else if (docName.includes('gérant') || docName.includes('gerant') || docName.includes('dirigeant')) tabId = 'gerants';
                 else if (docName.includes('déclaration') && docName.includes('honneur')) tabId = 'declaration';
                 else if (docName.includes('dsv') || (docName.includes('souscription') && docName.includes('versement'))) tabId = 'dsv';
-                
+
                 if (tabId) {
                   urls[tabId] = url;
                   console.log(`✅ URL blob créée pour prévisualisation: ${tabId} (${preview.docName})`);
@@ -562,29 +535,30 @@ export default function PreviewDocuments() {
               console.warn(`⚠️ Pas de PDF pour ${preview.docName}`);
             }
           }
-          
-          setPreviewUrls((previousUrls) => {
-            Object.values(previousUrls).forEach((url) => URL.revokeObjectURL(url));
-            return urls;
-          });
+
+          setPreviewUrls(urls);
           console.log(`📋 ${Object.keys(urls).length} URLs blob créées pour prévisualisation:`, Object.keys(urls));
-          
+
           if (Object.keys(urls).length === 0) {
             console.error('❌ Aucune URL blob créée ! Vérifiez les logs ci-dessus.');
+            hasGeneratedPreview.current = false; // Permettre un nouvel essai
           }
         } else {
           console.error('❌ Erreur prévisualisation:', previewRes);
-          toast.error('Erreur lors de la génération de la prévisualisation. Vérifiez la console pour plus de détails.');
+          toast.error(`Erreur prévisualisation : ${previewRes.message || 'Erreur inconnue'}`);
+          hasGeneratedPreview.current = false; // Permettre un nouvel essai
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("❌ Erreur génération prévisualisation:", error);
+        toast.error(`Erreur lors de la prévisualisation : ${error?.message || 'Erreur inconnue'}`);
+        hasGeneratedPreview.current = false; // Permettre un nouvel essai
       } finally {
         setIsLoadingPreview(false);
       }
     };
 
     generatePreview();
-  }, [formData, payload, docs, token, companyType, getPluriAssociatesFromForm, previewRefreshToken]);
+  }, [formData, payload, docs, token, companyType, previewRetryKey]);
 
   // Cleanup: revoquer les URLs blob quand le composant se démonte
   useEffect(() => {
@@ -604,53 +578,55 @@ export default function PreviewDocuments() {
     }
 
     setIsSubmitting(true);
+    let newCompanyId: number | null = null;
     try {
-      const payloadForSubmit = { ...payload };
-      if (companyType === 'SARL_PLURI') {
-        const associatesFromPayload = Array.isArray(payload?.associates) ? payload.associates : [];
-        const associates = associatesFromPayload.length > 0 ? associatesFromPayload : getPluriAssociatesFromForm();
-        const totalParts = associates.reduce(
-          (sum: number, a: any) => sum + (Number(a.parts) || Number(a.nombreParts) || 0),
-          0
-        );
-        const capital = Number(payload?.capital || (formData as SARLPluriFormData).capitalSocial || 0);
-        payloadForSubmit.associates = associates;
-        payloadForSubmit.nombreParts = totalParts || payloadForSubmit.nombreParts || null;
-        payloadForSubmit.valeurPart = totalParts > 0 ? Math.floor(capital / totalParts) : payloadForSubmit.valeurPart || null;
+      // 1. Créer l'entreprise (sans paiement requis)
+      let companyResult: any;
+      try {
+        companyResult = await createCompanyApi(token!, payload);
+      } catch (err: any) {
+        const msg = err?.message || "Erreur inconnue";
+        console.error("❌ Erreur création entreprise:", msg);
+        toast.error(`Erreur création entreprise : ${msg}`);
+        return;
       }
 
-      // 1. Créer l'entreprise (sans paiement requis)
-      const companyResult = await createCompanyApi(token!, payloadForSubmit);
-      
       // 2. Récupérer l'ID de l'entreprise créée
-      const newCompanyId = companyResult.data?.id;
-      
+      newCompanyId = companyResult.data?.id;
+
       if (!newCompanyId) {
-        throw new Error("Impossible de récupérer l'ID de l'entreprise créée");
+        toast.error("Impossible de récupérer l'ID de l'entreprise créée");
+        return;
       }
 
       setCompanyId(newCompanyId);
 
       // 3. Générer les documents avec l'ID de l'entreprise (PDF et Word)
-      // Les documents sont générés mais le paiement sera requis pour télécharger
       const additionalData = buildAdditionalData();
-      await generateDocumentsApi(token!, {
-        companyId: newCompanyId,
-        docs,
-        formats: ['pdf', 'docx'], // Générer les deux formats
-        banque: payloadForSubmit?.banque || formData?.banque,
-        bailleur: payloadForSubmit?.bailleur,
-        declarant: payloadForSubmit?.declarant,
-        projections: payloadForSubmit?.projections,
-        additionalData
-      });
-      
+      try {
+        await generateDocumentsApi(token!, {
+          companyId: newCompanyId,
+          docs,
+          formats: ['pdf', 'docx'],
+          banque: payload?.banque || formData?.banque,
+          bailleur: payload?.bailleur,
+          declarant: payload?.declarant,
+          projections: payload?.projections,
+          additionalData
+        });
+      } catch (err: any) {
+        const msg = err?.message || "Erreur inconnue";
+        console.error("❌ Erreur génération documents:", msg);
+        toast.error(`Erreur génération documents : ${msg}`);
+        return;
+      }
+
       setDocumentsGenerated(true);
       toast.success("Documents générés avec succès ! Vous pourrez les télécharger après paiement sur le tableau de bord.");
-      
+
       // Attendre un peu pour que les documents soient bien sauvegardés
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Recharger les documents générés avec cache-busting
       const docsRes = await getMyDocumentsApi(token!);
       if (docsRes.success && docsRes.data) {
@@ -659,7 +635,7 @@ export default function PreviewDocuments() {
         );
         console.log(`📄 ${companyDocs.length} documents PDF trouvés pour l'entreprise ${newCompanyId}:`, companyDocs.map(d => d.doc_name));
         setGeneratedDocuments(companyDocs);
-        
+
         // Créer les URLs blob pour chaque document
         const urls: Record<number, string> = {};
         for (const doc of companyDocs) {
@@ -677,36 +653,20 @@ export default function PreviewDocuments() {
       } else {
         console.error('❌ Erreur lors du chargement des documents:', docsRes);
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de la création de l'entreprise");
+    } catch (error: any) {
+      console.error("❌ Erreur inattendue handleValidateAll:", error);
+      toast.error(error?.message || "Erreur lors de la génération des documents");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleRefreshPreview = () => {
-    hasGeneratedPreview.current = false;
-    setDocumentsGenerated(false);
-    setGeneratedDocuments([]);
-    setDocumentUrls((previousUrls) => {
-      Object.values(previousUrls).forEach((url) => URL.revokeObjectURL(url));
-      return {};
-    });
-    setPreviewUrls((previousUrls) => {
-      Object.values(previousUrls).forEach((url) => URL.revokeObjectURL(url));
-      return {};
-    });
-    setPreviewRefreshToken((value) => value + 1);
-    toast.success("Prévisualisation actualisée avec la dernière version des templates");
   };
 
   const handlePrint = () => {
     toast.info("L'impression est désactivée. Les documents seront disponibles après validation et génération.");
   };
 
-  const allDocsValidated = validatedDocs.length === documentTabs.length;
-  const currentTabIndex = documentTabs.findIndex(t => t.id === activeTab);
+  const allDocsValidated = validatedDocs.length === activeTabs.length;
+  const currentTabIndex = activeTabs.findIndex(t => t.id === activeTab);
 
   return (
     <Layout>
@@ -732,7 +692,7 @@ export default function PreviewDocuments() {
               <div className="flex items-center gap-4">
                 <Badge variant="outline" className="text-sm py-1 px-3">
                   <Eye className="h-4 w-4 mr-1" />
-                  {validatedDocs.length}/{documentTabs.length} vérifiés
+                  {validatedDocs.length}/{activeTabs.length} vérifiés
                 </Badge>
                 <Button 
                   variant="outline" 
@@ -791,7 +751,7 @@ export default function PreviewDocuments() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="space-y-1 p-2">
-                    {documentTabs.map((doc, index) => {
+                    {activeTabs.map((doc, index) => {
                       const isValidated = validatedDocs.includes(doc.id);
                       const isActive = activeTab === doc.id;
                       
@@ -846,12 +806,12 @@ export default function PreviewDocuments() {
                     )}
                   </Button>
                   
-                  {currentTabIndex < documentTabs.length - 1 && (
-                    <Button 
+                  {currentTabIndex < activeTabs.length - 1 && (
+                    <Button
                       variant="outline"
                       onClick={() => {
                         handleValidateDocument(activeTab);
-                        setActiveTab(documentTabs[currentTabIndex + 1].id);
+                        setActiveTab(activeTabs[currentTabIndex + 1].id);
                       }}
                       className="w-full"
                     >
@@ -893,29 +853,17 @@ export default function PreviewDocuments() {
                 <CardHeader className="bg-muted/50 border-b">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>{documentTabs.find(t => t.id === activeTab)?.label}</CardTitle>
+                      <CardTitle>{activeTabs.find(t => t.id === activeTab)?.label}</CardTitle>
                       <CardDescription>
-                        Document {currentTabIndex + 1} sur {documentTabs.length}
+                        Document {currentTabIndex + 1} sur {activeTabs.length}
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRefreshPreview}
-                        disabled={isLoadingPreview}
-                        className="gap-2"
-                      >
-                        <RotateCw className={`h-4 w-4 ${isLoadingPreview ? 'animate-spin' : ''}`} />
-                        Actualiser
-                      </Button>
-                      {validatedDocs.includes(activeTab) && (
-                        <Badge variant="default" className="bg-green-500">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          Validé
-                        </Badge>
-                      )}
-                    </div>
+                    {validatedDocs.includes(activeTab) && (
+                      <Badge variant="default" className="bg-green-500">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Validé
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -930,11 +878,6 @@ export default function PreviewDocuments() {
                           <p className="text-sm text-muted-foreground">
                             Veuillez patienter, les documents sont en cours de génération avec les derniers templates.
                           </p>
-                        </div>
-                      ) : previewUrls[activeTab] ? (
-                        // Afficher en priorité la prévisualisation fraîche (viewer sécurisé, sans bouton de téléchargement)
-                        <div className="w-full overflow-y-auto max-h-[70vh] px-4 py-2">
-                          <SecurePdfViewer url={previewUrls[activeTab]} watermark={true} />
                         </div>
                       ) : documentsGenerated ? (
                         // Afficher les documents PDF générés (après validation)
@@ -975,10 +918,38 @@ export default function PreviewDocuments() {
                             });
 
                             if (generatedDoc && documentUrls[generatedDoc.id]) {
-                              // Afficher le PDF généré dans le viewer sécurisé (sans bouton de téléchargement)
+                              // Afficher le PDF généré dans un iframe avec protections modérées
                               return (
-                                <div key={activeTab} className="w-full overflow-y-auto max-h-[70vh] px-4 py-2">
-                                  <SecurePdfViewer url={documentUrls[generatedDoc.id]} watermark={true} />
+                                <div key={activeTab} className="h-full w-full relative">
+                                  <iframe
+                                    src={documentUrls[generatedDoc.id]}
+                                    className="w-full h-[70vh] border-0"
+                                    title={activeTabs.find(t => t.id === activeTab)?.label}
+                                    onContextMenu={(e) => {
+                                      e.preventDefault();
+                                      toast.error("Le clic droit est désactivé");
+                                      return false;
+                                    }}
+                                    onLoad={(e) => {
+                                      // Essayer de désactiver le menu contextuel dans l'iframe si possible
+                                      try {
+                                        const iframe = e.target as HTMLIFrameElement;
+                                        if (iframe.contentDocument) {
+                                          iframe.contentDocument.addEventListener('contextmenu', (ev) => {
+                                            ev.preventDefault();
+                                            return false;
+                                          }, true);
+                                          iframe.contentDocument.addEventListener('copy', (ev) => {
+                                            ev.preventDefault();
+                                            return false;
+                                          }, true);
+                                        }
+                                      } catch (err) {
+                                        // Ignorer les erreurs CORS (normal pour les PDF blob)
+                                        console.log('Iframe PDF chargé (protections CORS normales)');
+                                      }
+                                    }}
+                                  />
                                 </div>
                               );
                             } else if (generatedDocuments.length > 0) {
@@ -1011,7 +982,7 @@ export default function PreviewDocuments() {
                                   </div>
                                 );
                               }
-                              const DocComponent = documentTabs.find(t => t.id === activeTab)?.component;
+                              const DocComponent = activeTabs.find(t => t.id === activeTab)?.component;
                               if (DocComponent) {
                                 return (
                                   <div className="p-6 bg-gray-100">
@@ -1023,17 +994,77 @@ export default function PreviewDocuments() {
                             }
                           })()}
                         </div>
+                      ) : previewUrls[activeTab] ? (
+                        // Afficher la prévisualisation générée depuis le backend avec protections modérées
+                        <div className="h-full w-full relative">
+                          <iframe
+                            src={previewUrls[activeTab]}
+                            className="w-full h-[70vh] border-0"
+                            title={activeTabs.find(t => t.id === activeTab)?.label}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              toast.error("Le clic droit est désactivé");
+                              return false;
+                            }}
+                            onLoad={(e) => {
+                              // Essayer de désactiver le menu contextuel dans l'iframe si possible
+                              try {
+                                const iframe = e.target as HTMLIFrameElement;
+                                if (iframe.contentDocument) {
+                                  iframe.contentDocument.addEventListener('contextmenu', (ev) => {
+                                    ev.preventDefault();
+                                    return false;
+                                  }, true);
+                                  iframe.contentDocument.addEventListener('copy', (ev) => {
+                                    ev.preventDefault();
+                                    return false;
+                                  }, true);
+                                  // Désactiver window.print dans l'iframe si possible
+                                  if (iframe.contentWindow) {
+                                    const originalPrint = iframe.contentWindow.print;
+                                    iframe.contentWindow.print = () => {
+                                      toast.error("L'impression est désactivée");
+                                      return;
+                                    };
+                                  }
+                                }
+                              } catch (err) {
+                                // Ignorer les erreurs CORS (normal pour les PDF blob)
+                                console.log('Iframe PDF chargé (protections CORS normales)');
+                              }
+                            }}
+                          />
+                        </div>
+                      ) : companyType === 'EI' ? (
+                        // EI: pas de composants React statiques, afficher bouton de réessai
+                        <div className="p-8 text-center space-y-4">
+                          <p className="text-muted-foreground mb-2">
+                            La prévisualisation n'a pas pu être chargée.
+                          </p>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Cliquez sur "Réessayer" pour relancer la génération des aperçus.
+                          </p>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              hasGeneratedPreview.current = false;
+                              setPreviewRetryKey(k => k + 1);
+                            }}
+                          >
+                            Réessayer
+                          </Button>
+                        </div>
                       ) : (
                         // Fallback: Afficher les composants React statiques (anciens)
                         <div className="p-6 bg-gray-100">
-                          {documentTabs.map((doc) => {
+                          {activeTabs.map((doc) => {
                             const DocComponent = doc.component;
                             return (
                               <div
                                 key={doc.id}
                                 className={activeTab === doc.id ? 'block' : 'hidden'}
                               >
-                                <DocComponent formData={formData} companyType={companyType} />
+                                <DocComponent formData={formData} companyType={companyType as 'SARLU' | 'SARL_PLURI'} />
                               </div>
                             );
                           })}
@@ -1057,7 +1088,7 @@ export default function PreviewDocuments() {
                           </span>
                         ) : (
                           <span className="text-muted-foreground">
-                            {documentTabs.length - validatedDocs.length} document(s) restant(s) à vérifier
+                            {activeTabs.length - validatedDocs.length} document(s) restant(s) à vérifier
                           </span>
                         )}
                       </p>
