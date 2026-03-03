@@ -17,8 +17,13 @@ class Company {
         companyType,
         companyName,
         sigle,
+        nomCommercial,
+        formeJuridique,
         activity,
+        activiteSecondaire,
         capital,
+        nombreParts,
+        valeurPart,
         address,
         city,
         gerant, // Legacy field, kept for quick display or backward compat
@@ -27,6 +32,7 @@ class Company {
         managers = [], // New array of managers
         declarant = {}, // Informations du déclarant
         projections = {}, // Projections sur 3 ans
+        bailleur, // Données du bailleur (contrat de bail)
         // Champs de localisation
         commune,
         quartier,
@@ -40,24 +46,35 @@ class Company {
         tfNumero,
         fax,
         adressePostale,
+        boitePostale,
         telephone,
-        email
+        email,
+        // Champs documents
+        banque,
+        dureeSociete,
+        dateConstitution,
+        capitalEnLettres
       } = companyData;
 
       // Insérer l'entreprise
-      // Convertir tous les undefined en null pour MySQL (même les champs obligatoires pour éviter les erreurs)
       const params = [
-        userId, 
-        companyType, 
-        companyName, 
+        userId,
+        companyType,
+        companyName,
         sigle,
-        activity, 
-        capital, 
-        address, 
-        city, 
-        gerant, 
-        paymentAmount, 
+        nomCommercial || null,
+        formeJuridique,
+        activity,
+        activiteSecondaire,
+        capital,
+        nombreParts,
+        valeurPart,
+        address,
+        city,
+        gerant,
+        paymentAmount,
         chiffreAffairesPrev,
+        // Déclarant
         declarant.nom,
         declarant.qualite,
         declarant.adresse,
@@ -65,6 +82,10 @@ class Company {
         declarant.fax,
         declarant.mobile,
         declarant.email,
+        declarant.contact,
+        declarant.numeroCompte,
+        declarant.estAssocie !== undefined ? (declarant.estAssocie ? 1 : 0) : 1,
+        // Projections
         projections.investissementAnnee1,
         projections.investissementAnnee2,
         projections.investissementAnnee3,
@@ -84,20 +105,29 @@ class Company {
         tfNumero,
         fax,
         adressePostale,
+        boitePostale,
         telephone,
-        email
+        email,
+        // Champs documents
+        banque,
+        dureeSociete || 99,
+        dateConstitution,
+        capitalEnLettres
       ];
-      
-      // Nettoyer tous les paramètres pour s'assurer qu'aucun undefined ne passe
+
       const cleanParamsArray = cleanParams(params);
-      
+
       const [result] = await connection.execute(
-        `INSERT INTO companies 
-        (user_id, company_type, company_name, sigle, activity, capital, address, city, gerant, payment_amount, chiffre_affaires_prev, 
+        `INSERT INTO companies
+        (user_id, company_type, company_name, sigle, nom_commercial, forme_juridique,
+         activity, activite_secondaire, capital, nombre_parts, valeur_part,
+         address, city, gerant, payment_amount, chiffre_affaires_prev,
          declarant_nom, declarant_qualite, declarant_adresse, declarant_telephone, declarant_fax, declarant_mobile, declarant_email,
+         declarant_contact, declarant_numero_compte, declarant_est_associe,
          investissement_annee1, investissement_annee2, investissement_annee3, emplois_annee1, emplois_annee2, emplois_annee3,
-         commune, quartier, lot, ilot, nom_immeuble, numero_etage, numero_porte, section, parcelle, tf_numero, fax, adresse_postale, telephone, email, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
+         commune, quartier, lot, ilot, nom_immeuble, numero_etage, numero_porte, section, parcelle, tf_numero, fax, adresse_postale, boite_postale, telephone, email,
+         banque, duree_societe, date_constitution, capital_en_lettres, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`,
         cleanParamsArray
       );
 
@@ -106,13 +136,14 @@ class Company {
       // Insérer les associés avec tous les détails
       if (associates.length > 0) {
         const totalParts = associates.reduce((sum, a) => sum + parseInt(a.parts), 0);
-        
+
         for (const associate of associates) {
           const percentage = (parseInt(associate.parts) / totalParts) * 100;
           const associateParams = [
-            companyId, 
-            associate.name, 
-            associate.parts, 
+            companyId,
+            associate.civilite || 'M.',
+            associate.name,
+            associate.parts,
             percentage.toFixed(2),
             associate.profession,
             associate.nationalite,
@@ -126,10 +157,10 @@ class Company {
             associate.lieuDelivranceId
           ];
           await connection.execute(
-            `INSERT INTO associates 
-            (company_id, name, parts, percentage, profession, nationalite, date_naissance, lieu_naissance, 
-             adresse, type_identite, numero_identite, date_delivrance_id, date_validite_id, lieu_delivrance_id) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO associates
+            (company_id, civilite, name, parts, percentage, profession, nationalite, date_naissance, lieu_naissance,
+             adresse, type_identite, numero_identite, date_delivrance_id, date_validite_id, lieu_delivrance_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             cleanParams(associateParams)
           );
         }
@@ -139,34 +170,60 @@ class Company {
       if (managers.length > 0) {
         for (const mgr of managers) {
           const managerParams = [
-            companyId, 
-            mgr.nom, 
-            mgr.prenoms, 
-            mgr.dateNaissance, 
-            mgr.lieuNaissance, 
-            mgr.nationalite, 
-            mgr.adresse, 
-            mgr.profession,  // Nouveau champ
-            mgr.typeIdentite, 
+            companyId,
+            mgr.civilite || 'M.',
+            mgr.nom,
+            mgr.prenoms,
+            mgr.dateNaissance,
+            mgr.lieuNaissance,
+            mgr.nationalite,
+            mgr.adresse,
+            mgr.profession,
+            mgr.typeIdentite,
             mgr.numeroIdentite,
-            mgr.dateDelivranceId, 
-            mgr.dateValiditeId,  // Nouveau champ
-            mgr.lieuDelivranceId, 
-            mgr.villeResidence,  // Nouveau champ
-            mgr.pereNom, 
+            mgr.dateDelivranceId,
+            mgr.dateValiditeId,
+            mgr.lieuDelivranceId,
+            mgr.villeResidence,
+            mgr.pereNom,
             mgr.mereNom,
-            mgr.dureeMandat, 
+            mgr.dureeMandat,
+            mgr.dureeMandatAnnees,
             mgr.isMain === undefined ? false : mgr.isMain
           ];
           await connection.execute(
-            `INSERT INTO managers 
-            (company_id, nom, prenoms, date_naissance, lieu_naissance, nationalite, adresse, 
+            `INSERT INTO managers
+            (company_id, civilite, nom, prenoms, date_naissance, lieu_naissance, nationalite, adresse,
              profession, type_identite, numero_identite, date_delivrance_id, date_validite_id,
-             lieu_delivrance_id, ville_residence, pere_nom, mere_nom, duree_mandat, is_main)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             lieu_delivrance_id, ville_residence, pere_nom, mere_nom, duree_mandat, duree_mandat_annees, is_main)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             cleanParams(managerParams)
           );
         }
+      }
+
+      // Insérer les données du bailleur (contrat de bail)
+      if (bailleur && (bailleur.nom || bailleur.prenom)) {
+        const leaseParams = [
+          companyId,
+          bailleur.nom,
+          bailleur.prenom,
+          bailleur.adresse,
+          bailleur.telephone || bailleur.contact,
+          bailleur.loyerMensuel || 0,
+          bailleur.cautionMois || 2,
+          bailleur.avanceMois || 2,
+          bailleur.dureeBailAnnees || 1,
+          bailleur.dateDebutBail,
+          bailleur.dateFinBail
+        ];
+        await connection.execute(
+          `INSERT INTO leases
+          (company_id, bailleur_nom, bailleur_prenom, bailleur_adresse, bailleur_telephone,
+           loyer_mensuel, caution_mois, avance_mois, duree_bail_annees, date_debut, date_fin)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          cleanParams(leaseParams)
+        );
       }
 
       return companyId;
@@ -176,22 +233,21 @@ class Company {
   // Trouver une entreprise par ID
   static async findById(id) {
     const sql = `
-      SELECT c.*, 
-        u.email as user_email, 
-        u.first_name as user_first_name, 
+      SELECT c.*,
+        u.email as user_email,
+        u.first_name as user_first_name,
         u.last_name as user_last_name
       FROM companies c
       LEFT JOIN users u ON c.user_id = u.id
       WHERE c.id = ?
     `;
     const companies = await query(sql, [id]);
-    
+
     if (companies.length === 0) return null;
 
     const company = companies[0];
 
     // Normaliser les champs de localisation (DB en snake_case vs templates en camelCase)
-    // Ne pas écraser si déjà présents.
     if (company.nomImmeuble === undefined && company.nom_immeuble !== undefined) {
       company.nomImmeuble = company.nom_immeuble;
     }
@@ -210,9 +266,9 @@ class Company {
 
     // Récupérer les associés avec tous les détails
     const associates = await query(
-      `SELECT id, name, parts, percentage, profession, nationalite, 
+      `SELECT id, civilite, name, parts, percentage, profession, nationalite,
        date_naissance, lieu_naissance, adresse, type_identite, numero_identite,
-       date_delivrance_id, date_validite_id, lieu_delivrance_id 
+       date_delivrance_id, date_validite_id, lieu_delivrance_id
        FROM associates WHERE company_id = ?`,
       [id]
     );
@@ -223,9 +279,16 @@ class Company {
       [id]
     );
 
+    // Récupérer les données du bailleur
+    const leases = await query(
+      'SELECT * FROM leases WHERE company_id = ? LIMIT 1',
+      [id]
+    );
+
     company.associates = associates;
     company.managers = managers;
-    
+    company.lease = leases.length > 0 ? leases[0] : null;
+
     return company;
   }
 
@@ -252,9 +315,9 @@ class Company {
   // Obtenir toutes les entreprises (admin)
   static async getAll(filters = {}) {
     let sql = `
-      SELECT c.*, 
-        u.email as user_email, 
-        u.first_name as user_first_name, 
+      SELECT c.*,
+        u.email as user_email,
+        u.first_name as user_first_name,
         u.last_name as user_last_name
       FROM companies c
       LEFT JOIN users u ON c.user_id = u.id
@@ -316,18 +379,17 @@ class Company {
   // Mettre à jour le statut de paiement
   static async updatePayment(id, paymentData) {
     const { paymentStatus, paymentReference, paymentDate } = paymentData;
-    
+
     const sql = `
-      UPDATE companies 
+      UPDATE companies
       SET payment_status = ?, payment_reference = ?, payment_date = ?
       WHERE id = ?
     `;
-    
-    // Convertir undefined en null pour MySQL
+
     const result = await query(sql, [
-      toNull(paymentStatus), 
-      toNull(paymentReference), 
-      toNull(paymentDate), 
+      toNull(paymentStatus),
+      toNull(paymentReference),
+      toNull(paymentDate),
       toNull(id)
     ]);
     return result.affectedRows > 0;
@@ -339,11 +401,10 @@ class Company {
     const values = [];
 
     const allowedFields = ['company_name', 'sigle', 'activity', 'capital', 'address', 'city', 'gerant', 'notes'];
-    
+
     for (const field of allowedFields) {
       if (companyData[field] !== undefined) {
         fields.push(`${field} = ?`);
-        // Convertir undefined en null pour MySQL
         values.push(companyData[field] === undefined ? null : companyData[field]);
       }
     }
@@ -352,7 +413,7 @@ class Company {
 
     values.push(id);
     const sql = `UPDATE companies SET ${fields.join(', ')} WHERE id = ?`;
-    
+
     const result = await query(sql, values);
     return result.affectedRows > 0;
   }
@@ -379,7 +440,7 @@ class Company {
   // Statistiques
   static async getStats() {
     const stats = await query(`
-      SELECT 
+      SELECT
         COUNT(*) as total,
         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
         SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
@@ -419,7 +480,7 @@ class Company {
 
     values.push(id);
     const sql = `UPDATE companies SET ${fields.join(', ')} WHERE id = ?`;
-    
+
     const result = await query(sql, values);
     return result.affectedRows > 0;
   }

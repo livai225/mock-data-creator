@@ -17,8 +17,13 @@ export const createCompany = async (req, res, next) => {
       companyType,
       companyName,
       sigle,
+      nomCommercial,
+      formeJuridique,
       activity,
+      activiteSecondaire,
       capital,
+      nombreParts,
+      valeurPart,
       address,
       city,
       gerant,
@@ -28,6 +33,7 @@ export const createCompany = async (req, res, next) => {
       paymentAmount,
       declarant,
       projections,
+      bailleur,
       // Champs de localisation
       commune,
       quartier,
@@ -41,8 +47,14 @@ export const createCompany = async (req, res, next) => {
       tfNumero,
       fax,
       adressePostale,
+      boitePostale,
       telephone,
-      email
+      email,
+      // Champs documents
+      banque,
+      duree_societe,
+      dateConstitution,
+      capitalEnLettres
     } = req.body;
 
     const companyData = {
@@ -50,8 +62,13 @@ export const createCompany = async (req, res, next) => {
       companyType,
       companyName,
       sigle,
+      nomCommercial: nomCommercial || null,
+      formeJuridique,
       activity,
+      activiteSecondaire,
       capital,
+      nombreParts,
+      valeurPart,
       address,
       city: city || 'Abidjan',
       gerant,
@@ -60,6 +77,7 @@ export const createCompany = async (req, res, next) => {
       paymentAmount,
       declarant: declarant || {},
       projections: projections || {},
+      bailleur: bailleur || null,
       // Champs de localisation
       commune,
       quartier,
@@ -73,8 +91,14 @@ export const createCompany = async (req, res, next) => {
       tfNumero,
       fax,
       adressePostale,
+      boitePostale,
       telephone,
-      email
+      email,
+      // Champs documents
+      banque,
+      dureeSociete: duree_societe || 99,
+      dateConstitution,
+      capitalEnLettres
     };
 
     const companyId = await Company.create(companyData, associates || []);

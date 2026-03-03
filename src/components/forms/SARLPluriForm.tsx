@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +31,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthContext";
-import { createCompanyApi, generateDocumentsApi } from "@/lib/api";
 
 interface SARLPluriFormProps {
   onBack: () => void;
@@ -40,15 +39,59 @@ interface SARLPluriFormProps {
   companyTypeName: string;
 }
 
+const PLURI_DRAFT_KEY = 'sarl_pluri_form_draft';
+const PLURI_STEP_KEY = 'sarl_pluri_form_step';
+
 export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPluriFormProps) {
   const navigate = useNavigate();
   const { isAuthenticated, token } = useAuth();
-  const [step, setStep] = useState<SARLPluriStep>('societe');
-  const [formData, setFormData] = useState<SARLPluriFormData>(defaultSARLPluriFormData);
+
+  const [formData, setFormData] = useState<SARLPluriFormData>(() => {
+    try {
+      const saved = localStorage.getItem(PLURI_DRAFT_KEY);
+      if (saved) return { ...defaultSARLPluriFormData, ...JSON.parse(saved) };
+    } catch {}
+    return defaultSARLPluriFormData;
+  });
+
+  const [step, setStep] = useState<SARLPluriStep>(() => {
+    try {
+      const saved = localStorage.getItem(PLURI_STEP_KEY) as SARLPluriStep;
+      if (saved) return saved;
+    } catch {}
+    return 'societe';
+  });
+
+  const [showDraftBanner, setShowDraftBanner] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(PLURI_DRAFT_KEY);
+      if (saved) return !!JSON.parse(saved).denominationSociale?.trim();
+    } catch {}
+    return false;
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [missingBank, setMissingBank] = useState(false);
   const [missingAssocies, setMissingAssocies] = useState<Record<number, Array<keyof AssocieInfo>>>({});
   const [missingGerants, setMissingGerants] = useState<Record<number, Array<keyof GerantInfo>>>({});
+  const [missingBailFields, setMissingBailFields] = useState<Array<keyof SARLPluriFormData>>([]);
+
+  // Sauvegarde automatique à chaque changement
+  useEffect(() => {
+    localStorage.setItem(PLURI_DRAFT_KEY, JSON.stringify(formData));
+  }, [formData]);
+
+  useEffect(() => {
+    localStorage.setItem(PLURI_STEP_KEY, step);
+  }, [step]);
+
+  const clearDraft = () => {
+    localStorage.removeItem(PLURI_DRAFT_KEY);
+    localStorage.removeItem(PLURI_STEP_KEY);
+    setFormData(defaultSARLPluriFormData);
+    setStep('societe');
+    setShowDraftBanner(false);
+  };
 
   const currentStepIndex = sarlPluriSteps.findIndex(s => s.id === step);
 
@@ -56,6 +99,9 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
     setFormData(prev => ({ ...prev, [field]: value }));
     if (field === 'banque' && typeof value === 'string' && value.trim()) {
       setMissingBank(false);
+    }
+    if (missingBailFields.includes(field) && typeof value === 'string' && (value as string).trim()) {
+      setMissingBailFields(prev => prev.filter((f) => f !== field));
     }
   };
 
@@ -92,6 +138,33 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
   const inputErrorClass = (isMissing: boolean) => isMissing ? "border-red-500 focus-visible:ring-red-500" : "";
   const isAssocieMissing = (index: number, field: keyof AssocieInfo) => (missingAssocies[index] || []).includes(field);
   const isGerantMissing = (index: number, field: keyof GerantInfo) => (missingGerants[index] || []).includes(field);
+  const isBailMissing = (field: keyof SARLPluriFormData) => missingBailFields.includes(field);
+
+  const bailRequiredFields: Array<keyof SARLPluriFormData> = [
+    'bailleurNom',
+    'bailleurAdresse',
+    'bailleurContact',
+  ];
+
+  const validateBail = () => {
+    const missing = bailRequiredFields.filter((field) => {
+      const value = formData[field];
+      return typeof value === 'string' ? !value.trim() : value === undefined || value === null;
+    });
+    if (missing.length > 0) {
+      setMissingBailFields(missing);
+      const labels: Record<string, string> = {
+        bailleurNom: 'Nom du bailleur',
+        bailleurAdresse: 'Adresse du bailleur',
+        bailleurContact: 'Contact bailleur',
+      };
+      const missingLabels = missing.map((f) => labels[f as string] || String(f)).join(', ');
+      toast.error(`Champs obligatoires manquants : ${missingLabels}`);
+      return false;
+    }
+    setMissingBailFields([]);
+    return true;
+  };
 
   const validateBank = () => {
     if (!formData.banque || !formData.banque.trim()) {
@@ -267,6 +340,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
           ...newGerants[gerantIndex],
           isFromAssociate: true,
           associateId: associateId,
+          civilite: associe.civilite,
           nom: associe.nom,
           prenoms: associe.prenoms,
           dateNaissance: associe.dateNaissance,
@@ -321,6 +395,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
     const currentIndex = sarlPluriSteps.findIndex(s => s.id === step);
     if (currentIndex < sarlPluriSteps.length - 1) {
       if (step === 'societe' && !validateBank()) return;
+      if (step === 'siege' && !validateBail()) return;
       if (step === 'associes' && !validateAssocies()) return;
       if (step === 'gerant' && !validateGerants()) return;
       setStep(sarlPluriSteps[currentIndex + 1].id);
@@ -337,9 +412,11 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
   };
 
   const handleGenerate = async () => {
-    if (!validateBank() || !validateAssocies() || !validateGerants()) {
+    if (!validateBank() || !validateBail() || !validateAssocies() || !validateGerants()) {
       return;
     }
+    const totalParts = formData.associes.reduce((sum, a) => sum + (a.nombreParts || 0), 0);
+    const valeurPart = totalParts > 0 ? Math.floor(formData.capitalSocial / totalParts) : 0;
     const mainManager = formData.gerants[0];
     const gerantName = `${mainManager.nom} ${mainManager.prenoms}`;
 
@@ -347,11 +424,15 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
       companyType: 'SARL_PLURI',
       companyName: formData.denominationSociale,
       sigle: formData.sigle,
+      nomCommercial: formData.nomCommercial || '',
+      formeJuridique: formData.formeJuridique || 'SARL',
       activity: formData.objetSocial,
       capital: formData.capitalSocial,
+      nombreParts: totalParts,
+      valeurPart,
       capitalEnLettres: formData.capitalEnLettres,
       duree_societe: formData.dureeAnnees,
-      date_constitution: formData.dateConstitution,
+      dateConstitution: formData.dateConstitution,
       banque: formData.banque,
       address: formData.adresseSiege,
       commune: formData.commune,
@@ -394,7 +475,8 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         telephone: formData.declarantTelephone,
         fax: formData.declarantFax,
         mobile: formData.declarantMobile,
-        email: formData.declarantEmail
+        email: formData.declarantEmail,
+        numeroCompte: formData.declarantNumeroCompte
       },
       // Projections sur 3 ans
       projections: {
@@ -406,10 +488,14 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         emploisAnnee3: formData.emploisAnnee3
       },
       associates: formData.associes.map(a => ({
+        civilite: a.civilite,
         name: `${a.nom} ${a.prenoms}`,
         nom: a.nom,
         prenoms: a.prenoms,
         parts: a.nombreParts,
+        nombreParts: a.nombreParts,
+        apportNumeraire: a.apportNumeraire,
+        apport: a.apportNumeraire,
         profession: a.profession,
         nationalite: a.nationalite,
         dateNaissance: a.dateNaissance,
@@ -423,6 +509,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         lieuDelivranceId: a.lieuDelivranceId
       })),
       managers: formData.gerants.map((g, idx) => ({
+        civilite: g.civilite,
         nom: g.nom,
         prenoms: g.prenoms,
         dateNaissance: g.dateNaissance,
@@ -492,6 +579,23 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
         </div>
       </div>
 
+      {/* Bannière brouillon restauré */}
+      {showDraftBanner && (
+        <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-center justify-between gap-4">
+          <p className="text-sm text-amber-800 font-medium">
+            📂 Brouillon restauré — votre saisie précédente a été récupérée.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearDraft}
+            className="border-amber-400 text-amber-700 hover:bg-amber-100 shrink-0"
+          >
+            Effacer et recommencer
+          </Button>
+        </div>
+      )}
+
       {/* Progress */}
       <div className="bg-muted/50 p-6 rounded-lg">
         <div className="flex items-center justify-between max-w-3xl mx-auto">
@@ -556,6 +660,15 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                   onChange={(e) => updateField('sigle', e.target.value)}
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="nomCommercial">Nom commercial (optionnel)</Label>
+                <Input
+                  id="nomCommercial"
+                  placeholder="Ex: ARCH EXCELLENCE"
+                  value={formData.nomCommercial}
+                  onChange={(e) => updateField('nomCommercial', e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -581,7 +694,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="objetSocial">Objet social (activité) *</Label>
+              <Label htmlFor="objetSocial">Objet social (activité principale) *</Label>
               <Textarea
                 id="objetSocial"
                 placeholder="Décrivez l'activité principale de votre entreprise..."
@@ -589,6 +702,12 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                 value={formData.objetSocial}
                 onChange={(e) => updateField('objetSocial', e.target.value)}
               />
+              <div className={`text-xs text-right ${(formData.objetSocial?.length || 0) > 200 ? 'text-orange-500 font-medium' : 'text-gray-400'}`}>
+                {formData.objetSocial?.length || 0} caractères
+                {(formData.objetSocial?.length || 0) > 200 && (
+                  <span className="ml-1">(le formulaire CEPICI sera limité à 200 caractères)</span>
+                )}
+              </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -831,6 +950,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     placeholder="Nom de famille"
                     value={formData.bailleurNom}
                     onChange={(e) => updateField('bailleurNom', e.target.value)}
+                    className={inputErrorClass(isBailMissing('bailleurNom'))}
                   />
                 </div>
                 <div className="space-y-2">
@@ -847,6 +967,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     id="bailleurAdresse"
                     value={formData.bailleurAdresse}
                     onChange={(e) => updateField('bailleurAdresse', e.target.value)}
+                    className={inputErrorClass(isBailMissing('bailleurAdresse'))}
                   />
                 </div>
                 <div className="space-y-2">
@@ -856,6 +977,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     placeholder="Téléphone"
                     value={formData.bailleurContact}
                     onChange={(e) => updateField('bailleurContact', e.target.value)}
+                    className={inputErrorClass(isBailMissing('bailleurContact'))}
                   />
                 </div>
               </div>
@@ -964,6 +1086,19 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
+                    <Label>Civilité *</Label>
+                    <Select value={associe.civilite} onValueChange={(v) => updateAssocie(index, 'civilite', v)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M.">M. (Monsieur)</SelectItem>
+                        <SelectItem value="Mme">Mme (Madame)</SelectItem>
+                        <SelectItem value="Mlle">Mlle (Mademoiselle)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label>Nom *</Label>
                     <Input
                       placeholder="Nom de famille"
@@ -1034,7 +1169,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       <SelectContent>
                         <SelectItem value="CNI">CNI</SelectItem>
                         <SelectItem value="Passeport">Passeport</SelectItem>
-                        <SelectItem value="Carte de séjour">Carte de séjour</SelectItem>
+                        <SelectItem value="Carte consulaire">Carte consulaire</SelectItem>
                         <SelectItem value="Carte de résident">Carte de résident</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1204,6 +1339,23 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
+                    <Label>Civilité *</Label>
+                    <Select
+                      value={gerant.civilite}
+                      onValueChange={(v) => updateGerant(index, 'civilite', v)}
+                      disabled={gerant.isFromAssociate}
+                    >
+                      <SelectTrigger className={gerant.isFromAssociate ? "bg-muted" : ""}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M.">M. (Monsieur)</SelectItem>
+                        <SelectItem value="Mme">Mme (Madame)</SelectItem>
+                        <SelectItem value="Mlle">Mlle (Mademoiselle)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor={`gerantNom-${index}`}>Nom *</Label>
                     <Input
                       id={`gerantNom-${index}`}
@@ -1280,7 +1432,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                     <Label>Type d'identité *</Label>
                     <Select
                       value={gerant.typeIdentite}
-                      onValueChange={(value: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident') => updateGerant(index, 'typeIdentite', value)}
+                      onValueChange={(value: 'CNI' | 'Passeport' | 'Carte consulaire' | 'Carte de résident') => updateGerant(index, 'typeIdentite', value)}
                       disabled={gerant.isFromAssociate}
                     >
                       <SelectTrigger className={`${gerant.isFromAssociate ? "bg-muted" : ""} ${inputErrorClass(isGerantMissing(index, 'typeIdentite'))}`}>
@@ -1289,7 +1441,7 @@ export function SARLPluriForm({ onBack, price, docs, companyTypeName }: SARLPlur
                       <SelectContent>
                         <SelectItem value="CNI">CNI</SelectItem>
                         <SelectItem value="Passeport">Passeport</SelectItem>
-                        <SelectItem value="Carte de séjour">Carte de séjour</SelectItem>
+                        <SelectItem value="Carte consulaire">Carte consulaire</SelectItem>
                         <SelectItem value="Carte de résident">Carte de résident</SelectItem>
                       </SelectContent>
                     </Select>

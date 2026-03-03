@@ -1,6 +1,6 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
-import { documentLimiter } from '../middleware/rateLimiter.js';
+import { documentLimiter, previewLimiter } from '../middleware/rateLimiter.js';
 import {
   generateDocuments,
   generateDocumentManual,
@@ -18,7 +18,7 @@ const router = express.Router();
 router.get('/templates', getTemplates);
 
 // Route publique pour prévisualiser les documents (sans authentification)
-router.post('/preview', documentLimiter, previewDocuments);
+router.post('/preview', previewLimiter, previewDocuments);
 
 // Toutes les autres routes nécessitent une authentification
 router.use(protect);

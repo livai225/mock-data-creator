@@ -6,7 +6,7 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
-import { generateCepiciHtml } from './cepiciHtmlGenerator.js';
+import { generateCepiciHtml, generateCepiciEIHtml } from './cepiciHtmlGenerator.js';
 import { generateStatutsSARL, generateContratBail, generateDSV, generateListeGerants, generateDeclarationHonneur } from './documentTemplates.js';
 
 // Instance du navigateur (réutilisée pour de meilleures performances)
@@ -577,6 +577,12 @@ const generateStatutsHTML = (company, associates, managers) => {
   
   const annee = new Date().getFullYear();
   const dateActuelle = formatDate(new Date().toISOString());
+
+  // Le modèle référence utilise des séparateurs en points (ex: 1.000.000).
+  const formatFcfa = (n) => {
+    const x = Number.isFinite(Number(n)) ? Number(n) : 0;
+    return x.toLocaleString('fr-FR', { maximumFractionDigits: 0 }).replace(/\s/g, '.');
+  };
   
   // Construire l'objet social
   const objetSocial = company.activity || '[OBJET SOCIAL]';
@@ -675,12 +681,12 @@ const generateStatutsHTML = (company, associates, managers) => {
   const uniIntroHtml = `
     <div class="statuts-uni-date">
       <p>L'An Deux Mille ${numberToWords(annee % 100).charAt(0).toUpperCase() + numberToWords(annee % 100).slice(1)},</p>
-      <p>Le ${dateActuelle}</p>
+      <p class="date-line">Le &nbsp; ${dateActuelle}</p>
     </div>
     <p class="statuts-uni-associe">
-      M. ${escapeHtml(gerantNom.toUpperCase())}, ${escapeHtml(gerantProfession)}, résidant à ${escapeHtml(gerantAdresse.toUpperCase())} de nationalité ${escapeHtml(gerantNationalite)} né le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance.toUpperCase())} et titulaire de la ${gerantTypeId} ${escapeHtml(gerantNumId)} délivrée le ${gerantDateDelivranceId} et valable jusqu'au ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}.
+      M. <strong>${escapeHtml(gerantNom.toUpperCase())}</strong>, ${escapeHtml(gerantProfession)}, résident à ${escapeHtml(gerantVilleResidence)} de nationalité ${escapeHtml(gerantNationalite)} née le ${gerantDateNaissance} à ${escapeHtml(gerantLieuNaissance.toUpperCase())} et titulaire de la ${gerantTypeId} ${escapeHtml(gerantNumId)} délivré le ${gerantDateDelivranceId} et valable ${gerantDateValiditeId} par ${escapeHtml(gerantLieuDelivranceId)}.
     </p>
-    <p class="statuts-uni-soussignes">Le soussigné,</p>
+    <p class="statuts-uni-soussignes">Le &nbsp; soussigné,</p>
     <p class="statuts-uni-intro">
       A établi par les présentes, les statuts de la Société à Responsabilité Limitée dont la teneur suit :
     </p>
@@ -688,24 +694,64 @@ const generateStatutsHTML = (company, associates, managers) => {
 
   const buildStatutsUniArticlesHtml = () => {
     const fullText = generateStatutsSARL(company, associates, managers);
-    const markerApports = 'ARTICLE 7-APPORTS';
-    const markerCapital = 'ARTICLE 8- CAPITAL SOCIAL';
-    const markerNext = 'ARTICLE 9- MODIFICATION DU CAPITAL';
-    const indexApports = fullText.indexOf(markerApports);
-    const indexCapital = fullText.indexOf(markerCapital);
-    const indexNext = fullText.indexOf(markerNext);
+    // Le template texte contient aussi la page de couverture + la page OHADA.
+    // Pour la prévisualisation HTML/PDF, ces pages sont déjà rendues séparément:
+    // on démarre donc au "TITRE I" (début réel des statuts).
+    const idxTitreI = (() => {
+      try {
+        return fullText.search(/TITRE\s*I\s*:/i);
+      } catch {
+        return -1;
+      }
+    })();
+    const statutsText = (idxTitreI > 0) ? fullText.slice(idxTitreI) : fullText;
 
-    const before = indexApports >= 0 ? fullText.slice(0, indexApports) : fullText;
-    const after = indexNext >= 0 ? fullText.slice(indexNext) : '';
+    const findIdx = (re) => {
+      try {
+        return statutsText.search(re);
+      } catch {
+        return -1;
+      }
+    };
+
+    const idxArt7 = findIdx(/ARTICLE\s*7\s*[-–]\s*APPORTS/i);
+    const idxArt9 = findIdx(/ARTICLE\s*9\s*[-–]\s*MODIFICATION\s+DU\s+CAPITAL/i);
+    const idxArt14 = findIdx(/ARTICLE\s*14\s*[-–:]\s*POUVOIRS\s+DU\s+GERANT/i);
+    const idxArt18 = findIdx(/ARTICLE\s*18\s*[-–:]\s*AFFECTATION\s+DES\s+RESULTATS/i);
+    const idxArt20 = findIdx(/ARTICLE\s*20\s*[-–:]/i);
+    const idxArt24 = findIdx(/ARTICLE\s*24\s*[-–:]/i);
+
+    // Le modèle référence coupe l'ARTICLE 2 juste avant "Elle doit être précédée..."
+    const idxArt2Tail = findIdx(/Elle\s+doit\s+être\s+précédée/i);
+    const idxArt3 = findIdx(/ARTICLE\s*3\s*[-–]\s*OBJET/i);
+
+    const safeSlice = (start, end) => {
+      if (start < 0) start = 0;
+      if (end < 0 || end > statutsText.length) end = statutsText.length;
+      if (end < start) end = start;
+      return statutsText.slice(start, end).trim();
+    };
+
+    // Pages 2-3 (début statuts) jusqu'à ARTICLE 7
+    const p2End = (idxArt2Tail > 0 ? idxArt2Tail : (idxArt3 > 0 ? idxArt3 : idxArt7));
+    const p2Text = safeSlice(0, p2End);
+    const p3Text = (idxArt7 > 0) ? safeSlice(p2End, idxArt7) : safeSlice(p2End, statutsText.length);
+
+    // Pages 5-9 (à partir de ARTICLE 9)
+    const p5Text = (idxArt9 > 0 && idxArt14 > idxArt9) ? safeSlice(idxArt9, idxArt14) : '';
+    const p6Text = (idxArt14 > 0 && idxArt18 > idxArt14) ? safeSlice(idxArt14, idxArt18) : '';
+    const p7Text = (idxArt18 > 0 && idxArt20 > idxArt18) ? safeSlice(idxArt18, idxArt20) : '';
+    const p8Text = (idxArt20 > 0 && idxArt24 > idxArt20) ? safeSlice(idxArt20, idxArt24) : '';
+    const p9Text = (idxArt24 > 0) ? safeSlice(idxArt24, fullText.length) : '';
 
     const apportsTableRows = `
       <tr>
         <td>${escapeHtml(gerantNom)}</td>
-        <td>${capital.toLocaleString('fr-FR')} FCFA</td>
+        <td>${formatFcfa(capital)} F CFA</td>
       </tr>
       <tr>
-        <td><strong>Total des apports en numéraire : ${capital.toLocaleString('fr-FR')} de francs CFA,</strong></td>
-        <td><strong>${capital.toLocaleString('fr-FR')} FCFA</strong></td>
+        <td><strong>Total &nbsp; des &nbsp; apports &nbsp; en &nbsp; numéraire : &nbsp; ${formatFcfa(capital)}de francs CFA,</strong></td>
+        <td><strong>${formatFcfa(capital)} F CFA</strong></td>
       </tr>
     `;
 
@@ -736,14 +782,14 @@ const generateStatutsHTML = (company, associates, managers) => {
         </tbody>
       </table>
       <p class="article-content">
-        Les apports en numéraire de ${capitalWords} de francs CFA (${capital.toLocaleString('fr-FR')}) F CFA correspondent à ${nombreParts} parts sociales de ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA entièrement souscrites et libérée intégralement, La somme correspondante a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${escapeHtml(banque)}.
+        Les apports en numéraire de ${capitalWords} de &nbsp; francs CFA &nbsp; (${formatFcfa(capital)}) F CFA correspondent à ${nombreParts} parts sociales de ${formatFcfa(Math.round(valeurPart))} FCFA entièrement souscrites et libérée intégralement, La somme correspondante a été déposée pour le compte de la société et conformément à la loi, dans un compte ouvert à ${escapeHtml(banque)}.
       </p>
     `;
 
     const capitalHtml = `
       <h3 class="article-title">ARTICLE 8- CAPITAL SOCIAL</h3>
       <p class="article-content">
-        Le capital social est fixé à la somme de F CFA ${capital.toLocaleString('fr-FR')} divisé en ${nombreParts} parts sociales de F CFA ${valeurPart.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}, entièrement souscrites et libérées intégralement, numérotées de 1 à ${nombreParts}, attribuées à l'associé unique, à savoir :
+        Le capital social est fixé à la somme de F CFA ${formatFcfa(capital)} divisé en ${nombreParts} parts sociales de F CFA ${formatFcfa(Math.round(valeurPart))}, entièrement souscrites et libérées intégralement, numérotées de 1 à ${nombreParts}, attribuées à l'associé unique, à savoir :
       </p>
       <table class="statuts-uni-table">
         <thead>
@@ -767,13 +813,46 @@ const generateStatutsHTML = (company, associates, managers) => {
       </div>
     `;
 
-    return [
-      buildHtmlFromTemplateText(before),
-      apportsHtml,
-      capitalHtml,
-      buildHtmlFromTemplateText(after),
-      footerHtml,
-    ].join('\n');
+    // Wrapper par page, avec numéros simples (pas de X/Y) et aucune numérotation sur la couverture.
+    const wrapPage = (pageNum, innerHtml, extraClass = '', withBreak = true) => `
+      <div class="statuts-uni-page statuts-body ${extraClass}">
+        ${innerHtml}
+        <div class="statuts-uni-page-number">${pageNum}</div>
+      </div>
+      ${withBreak ? '<div class="page-break"></div>' : ''}
+    `;
+
+    // Fallback si les marqueurs ne sont pas trouvés: on conserve un flux continu (mais avec pagination simple impossible).
+    if (!p2Text || !p3Text || !p9Text) {
+      const before = (idxArt7 > 0) ? safeSlice(0, idxArt7) : statutsText.trim();
+      const after = (idxArt9 > 0) ? safeSlice(idxArt9, statutsText.length) : '';
+      return [
+        wrapPage(2, buildHtmlFromTemplateText(before), 'statuts-uni-flow'),
+        wrapPage(3, apportsHtml + capitalHtml + buildHtmlFromTemplateText(after) + footerHtml, 'statuts-uni-flow'),
+      ].join('\n');
+    }
+
+    const pages = [];
+    pages.push(wrapPage(2, `
+      <div class="statuts-uni-header">
+        <div class="header-title">STATUTS DE LA SOCIETE A<br/>RESPONSABILITE LIMITEE DENOMMEE</div>
+        <div class="header-company">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ', en Abrégée ' + escapeHtml(company.sigle.toUpperCase()) : ''}»</div>
+        <div class="header-address">AYANT SON SIEGE SOCIAL A ${escapeHtml((company.city || 'ABIDJAN').toUpperCase())}<br/>${escapeHtml(adresseComplete.toUpperCase())}</div>
+      </div>
+      ${uniIntroHtml}
+      ${buildHtmlFromTemplateText(p2Text)}
+    `));
+    pages.push(wrapPage(3, buildHtmlFromTemplateText(p3Text)));
+    pages.push(wrapPage(4, apportsHtml + capitalHtml));
+
+    if (p5Text) pages.push(wrapPage(5, buildHtmlFromTemplateText(p5Text)));
+    if (p6Text) pages.push(wrapPage(6, buildHtmlFromTemplateText(p6Text)));
+    if (p7Text) pages.push(wrapPage(7, buildHtmlFromTemplateText(p7Text)));
+    if (p8Text) pages.push(wrapPage(8, buildHtmlFromTemplateText(p8Text)));
+
+    // Dernière page (9) avec signatures.
+    pages.push(wrapPage(9, buildHtmlFromTemplateText(p9Text) + footerHtml, 'statuts-uni-last', false));
+    return pages.join('\n');
   };
 
   return `
@@ -783,10 +862,16 @@ const generateStatutsHTML = (company, associates, managers) => {
       <meta charset="UTF-8">
       <style>
         ${getCommonStyles()}
+
+        /* Le rendu "statuts" utilise des titres de section centrés et soulignés, sans impacter les autres documents. */
+        .statuts-body .title-section {
+          text-align: center;
+          text-decoration: underline;
+        }
         
         /* Styles spécifiques pour Statuts SARL - Format PDF modèle */
         .statuts-uni-frame {
-          border: 2px solid #000;
+          border: 3px solid #2d3e50;
           min-height: 257mm;
           position: relative;
           box-sizing: border-box;
@@ -798,56 +883,61 @@ const generateStatutsHTML = (company, associates, managers) => {
           top: 0;
           height: 100%;
           width: 8mm;
-          background: #3f4f62;
+          background: #2d3e50;
         }
         .statuts-uni-arrow {
           position: absolute;
-          left: 8mm;
-          top: 52mm;
-          width: 55mm;
-          height: 12mm;
-          background: #6aa4d8;
+          left: 0;
+          top: 30mm;
+          width: 50mm;
+          height: 18mm;
+          background: #5b9bd5;
         }
         .statuts-uni-arrow::after {
           content: "";
           position: absolute;
-          right: -12mm;
+          right: -14mm;
           top: 0;
           width: 0;
           height: 0;
-          border-top: 6mm solid transparent;
-          border-bottom: 6mm solid transparent;
-          border-left: 12mm solid #6aa4d8;
+          border-top: 9mm solid transparent;
+          border-bottom: 9mm solid transparent;
+          border-left: 14mm solid #5b9bd5;
         }
         .statuts-uni-curves {
           position: absolute;
           left: 0;
           bottom: 0;
           width: 80mm;
-          height: 90mm;
-          opacity: 0.6;
+          height: 120mm;
+          opacity: 0.5;
         }
         .statuts-uni-cover-text {
           text-align: center;
-          font-style: italic;
           font-weight: bold;
-          font-size: 14pt;
-          line-height: 1.4;
-          margin-top: 40mm;
+          font-size: 24pt;
+          line-height: 1.3;
+          padding: 0 20mm;
+          margin-top: 75mm;
+          color: #000;
+          font-family: Arial, Helvetica, sans-serif;
         }
         .statuts-uni-page2 {
           min-height: 257mm;
           position: relative;
           box-sizing: border-box;
           padding: 20mm 18mm;
+          font-family: "Times New Roman", Georgia, serif;
         }
         .statuts-uni-page2-header {
           border: 1px solid #000;
           padding: 6mm 8mm;
           text-align: center;
-          font-size: 9.5pt;
-          line-height: 1.3;
-          margin-bottom: 10mm;
+          font-size: 10pt;
+          font-weight: bold;
+          line-height: 1.4;
+          margin-bottom: 6mm;
+          margin-top: 20mm;
         }
         .statuts-uni-page2-title {
           text-align: center;
@@ -857,25 +947,39 @@ const generateStatutsHTML = (company, associates, managers) => {
         .statuts-uni-page2-title h1 {
           font-size: 11pt;
           text-transform: uppercase;
-          margin-bottom: 4mm;
+          margin-bottom: 3mm;
         }
         .statuts-uni-page2-title p {
-          font-size: 9.5pt;
+          font-size: 10pt;
+          font-style: italic;
         }
         .statuts-uni-nb {
-          font-size: 9.5pt;
-          line-height: 1.4;
+          font-size: 10pt;
+          line-height: 1.5;
+          margin-top: 6mm;
         }
         .statuts-uni-nb-title {
           text-decoration: underline;
-          font-weight: bold;
-          margin: 6mm 0 3mm 0;
+          font-weight: normal;
+          margin: 6mm 0 2mm 0;
+        }
+        .statuts-uni-nb ol {
+          margin-left: 10mm;
+          margin-top: 4mm;
+        }
+        .statuts-uni-nb ol li {
+          margin-bottom: 4mm;
+          text-align: justify;
+        }
+        .statuts-uni-nb .nb-intro {
+          margin-bottom: 2mm;
+          text-align: justify;
         }
         .statuts-uni-footer {
           text-align: center;
-          margin-top: 30mm;
+          margin-top: 40mm;
           font-weight: bold;
-          font-size: 12pt;
+          font-size: 16pt;
         }
         .statuts-uni-page-number {
           position: absolute;
@@ -883,27 +987,55 @@ const generateStatutsHTML = (company, associates, managers) => {
           right: 15mm;
           font-size: 10pt;
         }
+        .statuts-uni-page {
+          min-height: 257mm;
+          position: relative;
+          box-sizing: border-box;
+          padding: 10mm 15mm;
+          font-family: "Times New Roman", Georgia, serif;
+          font-size: 11pt;
+          line-height: 1.25;
+        }
         .statuts-uni-header {
-          border: 1px solid #000;
+          border: 2px solid #000;
           padding: 6mm 8mm;
           text-align: center;
           font-weight: bold;
           text-transform: uppercase;
-          font-size: 10.5pt;
-          line-height: 1.3;
+          font-size: 13pt;
+          line-height: 1.4;
           margin-bottom: 8mm;
+        }
+        .statuts-uni-header .header-title {
+          text-decoration: underline;
+          font-size: 13pt;
+        }
+        .statuts-uni-header .header-company {
+          text-decoration: underline;
+          font-size: 13pt;
+        }
+        .statuts-uni-header .header-address {
+          font-style: italic;
+          font-size: 13pt;
+          margin-top: 4mm;
         }
         .statuts-uni-date p {
           margin: 0 0 2mm 0;
         }
+        .statuts-uni-date .date-line {
+          font-style: italic;
+        }
         .statuts-uni-associe {
-          margin: 4mm 0 4mm 0;
+          margin: 6mm 0 4mm 0;
+          text-align: justify;
         }
         .statuts-uni-soussignes {
           margin: 6mm 0 2mm 0;
+          font-weight: bold;
         }
         .statuts-uni-intro {
           margin-bottom: 6mm;
+          font-weight: bold;
         }
         .statuts-uni-table {
           width: 100%;
@@ -927,11 +1059,11 @@ const generateStatutsHTML = (company, associates, managers) => {
           font-size: 10.5pt;
         }
         .statuts-uni-footer-name {
-          margin-top: 6mm;
+          margin-top: 8mm;
           font-weight: bold;
         }
         .statuts-uni-footer-role {
-          margin-top: 8mm;
+          margin-top: 20mm;
           font-weight: bold;
         }
         .statuts-cover {
@@ -1039,14 +1171,14 @@ const generateStatutsHTML = (company, associates, managers) => {
           <div class="statuts-uni-frame">
             <div class="statuts-uni-bar"></div>
             <div class="statuts-uni-arrow"></div>
-            <svg class="statuts-uni-curves" viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5,195 C15,140 35,105 70,70" fill="none" stroke="#9aa2ad" stroke-width="1.2"/>
-              <path d="M0,200 C10,150 28,115 60,85" fill="none" stroke="#aeb4bc" stroke-width="0.9"/>
-              <path d="M12,200 C20,155 40,125 85,90" fill="none" stroke="#8f97a3" stroke-width="1.4"/>
+            <svg class="statuts-uni-curves" viewBox="0 0 150 300" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10,295 C15,230 30,180 65,120" fill="none" stroke="#c0c4ca" stroke-width="1.0"/>
+              <path d="M5,300 C8,240 22,190 55,135" fill="none" stroke="#d0d3d8" stroke-width="0.7"/>
+              <path d="M18,300 C22,245 42,195 90,130" fill="none" stroke="#2d3e50" stroke-width="1.5"/>
             </svg>
             <div class="statuts-uni-cover-text">
-              LES STATUTS DE LA SOCIETE «<br/>
-              ${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ', en Abrégée ' + escapeHtml(company.sigle.toUpperCase()) : ''}»
+              LES STATUTS DE LA SOCIETE<br/>
+              &laquo; ${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ', en<br/>Abrégée ' + escapeHtml(company.sigle.toUpperCase()) : ''}&raquo;
             </div>
           </div>
 
@@ -1062,23 +1194,17 @@ const generateStatutsHTML = (company, associates, managers) => {
             </div>
             <div class="statuts-uni-nb">
               <div class="statuts-uni-nb-title">N.B : Indications d'utilisation</div>
-              <p>Ce cas de figure courant a été conçu pour faciliter et encadrer le processus de création d'entreprise pour une meilleure sécurisation des opérateurs économiques.</p>
-              <p>1. les espaces en pointillé sont des champs à remplir et à adapter à partir des informations décrites dans les parenthèses qui suivent ;</p>
-              <p>2. établir les statuts en nombre suffisant pour la remise d'un exemplaire original à chaque associé, le dépôt d'un exemplaire au siège social, et l'accomplissement des formalités de constitution.</p>
+              <p class="nb-intro">Ce cas de figure courant a été conçu pour faciliter et encadrer le processus de création d'entreprise pour une meilleure sécurisation des opérateurs économiques.</p>
+              <ol>
+                <li>les espaces en pointillé sont des champs à remplir et à adapter à partir des informations décrites dans les parenthèses qui suivent ;</li>
+                <li>établir les statuts en nombre suffisant pour la remise d'un exemplaire original à chaque associé, le dépôt d'un exemplaire au siège social, et l'accomplissement des formalités de constitution.</li>
+              </ol>
             </div>
-            <div class="statuts-uni-footer">SARL unipersonnelleconstituée exclusivement<br/>par apportsen numéraire</div>
+            <div class="statuts-uni-footer">SARL unipersonnelle constituée exclusivement<br/>par apports en numéraire</div>
             <div class="statuts-uni-page-number">1</div>
           </div>
 
           <!-- PAGE 3+ : STATUTS -->
-          <div class="page-break"></div>
-          <div class="statuts-uni-header">
-            STATUTS DE LA SOCIETE A<br/>
-            RESPONSABILITE LIMITEE DENOMMEE<br/>
-            «${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ', en Abrégée ' + escapeHtml(company.sigle.toUpperCase()) : ''}»<br/>
-            AYANT SON SIEGE SOCIAL A ${escapeHtml(adresseComplete.toUpperCase())}
-          </div>
-          ${uniIntroHtml}
           ${buildStatutsUniArticlesHtml()}
         ` : `
           <!-- PAGE 1 : PAGE DE COUVERTURE -->
@@ -1086,7 +1212,7 @@ const generateStatutsHTML = (company, associates, managers) => {
             <div class="statuts-cover-content">
               <div class="statuts-cover-title">STATUTS DE LA SOCIETE</div>
               <div class="statuts-cover-company">«${escapeHtml((company.company_name || '[NOM SOCIÉTÉ]').toUpperCase())}${company.sigle ? ', en Abrégée ' + escapeHtml(company.sigle.toUpperCase()) : ''} SARL »</div>
-              <div class="statuts-cover-capital">AU CAPITAL DE ${capital.toLocaleString('fr-FR').replace(/\s/g, '.')} FCFA</div>
+              <div class="statuts-cover-capital">AU CAPITAL DE ${formatFcfa(capital)} FCFA</div>
             </div>
           </div>
 
@@ -2237,7 +2363,7 @@ const generateFormulaireCEPICIHTML = (company, managers, associates, additionalD
         <!-- II- ACTIVITÉ -->
         <p class="section-title">II- ACTIVITÉ (renseignements sur la personne morale)</p>
         
-        <div class="form-line">Activité principale : <strong>${escapeHtml(company.activity || '')}</strong></div>
+        <div class="form-line">Activité principale : <strong>${escapeHtml((company.activity || '').length > 200 ? (company.activity || '').substring(0, 200) + '...' : (company.activity || ''))}</strong></div>
         <div class="form-line">Activités secondaires : ………………………………</div>
         <div class="form-line">Chiffre d'affaires prévisionnel : ………… <strong>${company.chiffre_affaires_prev ? parseInt(company.chiffre_affaires_prev).toLocaleString('fr-FR') : '5 000 001'} FCFA</strong> / TAXE D'ÉTAT DE L'ENTREPRENEUR</div>
         <div class="form-line">Nombre d'employés : ………… <strong>1 (UN)</strong> ………… Date embauche 1er employé : <strong>${dateActuelle}</strong></div>
@@ -2405,7 +2531,11 @@ export const generateDocumentPDF = async (docName, company, associates = [], man
   // CEPICI: utiliser le nouveau générateur HTML + Puppeteer (rendu pixel-perfect)
   if (docName.toLowerCase().includes('cepici')) {
     console.log(`   🧾 [CEPICI] Génération via HTML + Puppeteer: ${outputPath}`);
-    const htmlContent = generateCepiciHtml(company, managers, associates, additionalData);
+    // EI = Entreprise Individuelle → formulaire Personnes Physiques
+    const isEI = company.company_type === 'EI' || additionalData.companyType === 'EI';
+    const htmlContent = isEI
+      ? generateCepiciEIHtml(company, managers, additionalData)
+      : generateCepiciHtml(company, managers, associates, additionalData);
     
     const browser = await getBrowser();
     const page = await browser.newPage();
@@ -2456,7 +2586,18 @@ export const generateDocumentPDF = async (docName, company, associates = [], man
   const htmlContent = generator(company, associates, managers, additionalData);
   
   // Générer le PDF
-  await generatePDFWithPuppeteer(htmlContent, outputPath);
+  // Statuts (prévisualisation): numéros simples par page intégrés dans le HTML.
+  // On désactive le header/footer Puppeteer et on fixe des marges pour matcher le modèle.
+  if (docName.toLowerCase().includes('statuts')) {
+    await generatePDFWithPuppeteer(htmlContent, outputPath, {
+      format: 'A4',
+      printBackground: true,
+      preferCSSPageSize: false,
+      margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' }
+    });
+  } else {
+    await generatePDFWithPuppeteer(htmlContent, outputPath);
+  }
   
   return outputPath;
 };

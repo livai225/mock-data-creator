@@ -14,6 +14,16 @@ import {
   updateUserRole,
   updateCompanyStatus
 } from '../controllers/admin.controller.js';
+import {
+  getAdminBanner,
+  updateAdminBanner,
+  getAdminPricing,
+  updateAdminPricing,
+  getAdminServicesContent,
+  updateAdminServicesContent,
+  getAdminFiscaliteContent,
+  updateAdminFiscaliteContent,
+} from '../controllers/settings.controller.js';
 
 const router = express.Router();
 
@@ -39,5 +49,15 @@ router.put('/companies/:id/status', updateCompanyStatus);
 // Gestion des documents
 router.get('/documents', getAllDocuments);
 router.get('/companies-list', getCompaniesList);
+
+// Paramètres du site (admin)
+router.get('/settings/banner', getAdminBanner);
+router.put('/settings/banner', updateAdminBanner);
+router.get('/settings/pricing', getAdminPricing);
+router.put('/settings/pricing', updateAdminPricing);
+router.get('/settings/services-content', getAdminServicesContent);
+router.put('/settings/services-content', updateAdminServicesContent);
+router.get('/settings/fiscalite-content', getAdminFiscaliteContent);
+router.put('/settings/fiscalite-content', updateAdminFiscaliteContent);
 
 export default router;

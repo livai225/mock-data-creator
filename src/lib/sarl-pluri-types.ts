@@ -2,6 +2,7 @@
 
 export interface AssocieInfo {
   id: string;
+  civilite: 'M.' | 'Mme' | 'Mlle';
   nom: string;
   prenoms: string;
   dateNaissance: string;
@@ -9,7 +10,7 @@ export interface AssocieInfo {
   nationalite: string;
   profession: string;
   adresseDomicile: string;
-  typeIdentite: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident';
+  typeIdentite: 'CNI' | 'Passeport' | 'Carte consulaire' | 'Carte de résident';
   numeroIdentite: string;
   dateDelivranceId: string;
   dateValiditeId: string;
@@ -23,6 +24,7 @@ export interface SARLPluriFormData {
   // Société
   denominationSociale: string;
   sigle: string;
+  nomCommercial: string;
   formeJuridique: string;
   capitalSocial: number;
   capitalEnLettres: string;
@@ -90,6 +92,7 @@ export interface SARLPluriFormData {
 
 export interface GerantInfo {
   id: string;
+  civilite: 'M.' | 'Mme' | 'Mlle';
   isFromAssociate: boolean; // true si le gérant est sélectionné parmi les associés
   associateId?: string; // ID de l'associé si isFromAssociate est true
   nom: string;
@@ -99,7 +102,7 @@ export interface GerantInfo {
   nationalite: string;
   profession: string;
   adresse: string;
-  typeIdentite: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident';
+  typeIdentite: 'CNI' | 'Passeport' | 'Carte consulaire' | 'Carte de résident';
   numeroIdentite: string;
   dateDelivranceId: string;
   dateValiditeId: string;
@@ -112,6 +115,7 @@ export interface GerantInfo {
 
 export const defaultAssocieInfo: AssocieInfo = {
   id: '',
+  civilite: 'M.',
   nom: '',
   prenoms: '',
   dateNaissance: '',
@@ -131,6 +135,7 @@ export const defaultAssocieInfo: AssocieInfo = {
 
 export const defaultGerantInfo: GerantInfo = {
   id: '',
+  civilite: 'M.',
   isFromAssociate: false,
   associateId: undefined,
   nom: '',
@@ -154,6 +159,7 @@ export const defaultGerantInfo: GerantInfo = {
 export const defaultSARLPluriFormData: SARLPluriFormData = {
   denominationSociale: '',
   sigle: '',
+  nomCommercial: '',
   formeJuridique: 'SARL',
   capitalSocial: 1000000,
   capitalEnLettres: '',

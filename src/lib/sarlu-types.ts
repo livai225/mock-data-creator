@@ -4,6 +4,7 @@ export interface SARLUFormData {
   // Société
   denominationSociale: string;
   sigle: string;
+  nomCommercial: string;
   formeJuridique: string;
   capitalSocial: number;
   capitalEnLettres: string;
@@ -41,6 +42,7 @@ export interface SARLUFormData {
   dateFinBail: string;
   
   // Associé unique (qui est aussi le gérant)
+  associeCivilite: 'M.' | 'Mme' | 'Mlle';
   associeNom: string;
   associePrenoms: string;
   associeDateNaissance: string;
@@ -49,7 +51,7 @@ export interface SARLUFormData {
   associeProfession: string;
   associeAdresseDomicile: string;
   associeVilleResidence: string;
-  associeTypeIdentite: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident';
+  associeTypeIdentite: 'CNI' | 'Passeport' | 'Carte consulaire' | 'Carte de résident';
   associeNumeroIdentite: string;
   associeDateDelivranceId: string;
   associeDateValiditeId: string;
@@ -79,11 +81,31 @@ export interface SARLUFormData {
   
   // Durée du mandat du gérant
   gerantDureeMandat: number;
+
+  // Gérant (si différent de l'associé)
+  gerantEstAssocie: boolean;
+  gerantCivilite: 'M.' | 'Mme' | 'Mlle';
+  gerantNom: string;
+  gerantPrenoms: string;
+  gerantDateNaissance: string;
+  gerantLieuNaissance: string;
+  gerantNationalite: string;
+  gerantProfession: string;
+  gerantAdresseDomicile: string;
+  gerantVilleResidence: string;
+  gerantTypeIdentite: 'CNI' | 'Passeport' | 'Carte consulaire' | 'Carte de résident';
+  gerantNumeroIdentite: string;
+  gerantDateDelivranceId: string;
+  gerantDateValiditeId: string;
+  gerantLieuDelivranceId: string;
+  gerantPereNom: string;
+  gerantMereNom: string;
 }
 
 export const defaultSARLUFormData: SARLUFormData = {
   denominationSociale: '',
   sigle: '',
+  nomCommercial: '',
   formeJuridique: 'SARL Unipersonnelle',
   capitalSocial: 1000000,
   capitalEnLettres: '',
@@ -118,6 +140,7 @@ export const defaultSARLUFormData: SARLUFormData = {
   dateDebutBail: new Date().toISOString().split('T')[0],
   dateFinBail: '',
   
+  associeCivilite: 'M.',
   associeNom: '',
   associePrenoms: '',
   associeDateNaissance: '',
@@ -153,6 +176,24 @@ export const defaultSARLUFormData: SARLUFormData = {
   emploisAnnee3: 0,
   
   gerantDureeMandat: 99,
+
+  gerantEstAssocie: true,
+  gerantCivilite: 'M.',
+  gerantNom: '',
+  gerantPrenoms: '',
+  gerantDateNaissance: '',
+  gerantLieuNaissance: '',
+  gerantNationalite: 'Ivoirienne',
+  gerantProfession: '',
+  gerantAdresseDomicile: '',
+  gerantVilleResidence: '',
+  gerantTypeIdentite: 'CNI',
+  gerantNumeroIdentite: '',
+  gerantDateDelivranceId: '',
+  gerantDateValiditeId: '',
+  gerantLieuDelivranceId: '',
+  gerantPereNom: '',
+  gerantMereNom: '',
 };
 
 export type SARLUStep = 'societe' | 'siege' | 'associe' | 'bail' | 'cepici' | 'recap';

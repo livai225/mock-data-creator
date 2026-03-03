@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import {
   Zap
 } from "lucide-react";
 import { companyTypes, services, testimonials, stats } from "@/lib/mock-data";
+import { getPublicPricingApi, type PricingSetting } from "@/lib/api";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -29,6 +31,26 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export default function Index() {
+  const [pricing, setPricing] = useState<PricingSetting | null>(null);
+
+  useEffect(() => {
+    getPublicPricingApi()
+      .then((res) => setPricing(res.data ?? null))
+      .catch(() => setPricing(null));
+  }, []);
+
+  const effectiveCompanyTypes = useMemo(() => {
+    const priceOverride = pricing?.companyTypePrices ?? {};
+    const timeOverride = pricing?.companyTypeEstimatedTimes ?? {};
+    return companyTypes.map((ct) => ({
+      ...ct,
+      price: typeof priceOverride[ct.id] === "number" ? priceOverride[ct.id] : ct.price,
+      estimatedTime: typeof timeOverride[ct.id] === "string" && timeOverride[ct.id].trim().length > 0
+        ? timeOverride[ct.id]
+        : ct.estimatedTime,
+    }));
+  }, [pricing?.companyTypePrices, pricing?.companyTypeEstimatedTimes]);
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -63,8 +85,8 @@ export default function Index() {
               </h1>
               
               <p className="text-lg text-primary-foreground/80 max-w-xl leading-relaxed">
-                Plateforme officielle de génération automatique de documents administratifs. 
-                Statuts, DSV, contrat de bail... Tous vos documents CEPICI conformes en 24-48h.
+                Plateforme de génération automatique de documents administratifs. 
+                Statuts, DSV, contrat de bail... Tous vos documents CEPICI conformes en 30 min.
               </p>
               
               <div className="flex flex-wrap gap-4">
@@ -93,7 +115,7 @@ export default function Index() {
             <div className="hidden lg:block relative">
               <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-secondary/20 to-transparent rounded-3xl" />
               <div className="relative grid gap-4 p-6">
-                {companyTypes.filter(c => !c.requiresNotary).slice(0, 3).map((company, index) => (
+                {effectiveCompanyTypes.filter(c => !c.requiresNotary).slice(0, 3).map((company, index) => (
                   <Card 
                     key={company.id} 
                     variant="elevated"
@@ -134,7 +156,7 @@ export default function Index() {
           
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             {[
-              { icon: Zap, title: "Rapide", description: "Documents générés en 24-48h maximum" },
+              { icon: Zap, title: "Rapide", description: "Documents générés en 30 min maximum" },
               { icon: Shield, title: "Conforme", description: "100% conformes CEPICI et OHADA" },
               { icon: Clock, title: "Disponible 24/7", description: "Créez votre dossier à tout moment" },
               { icon: Users, title: "Expert dédié", description: "Accompagnement personnalisé" },
@@ -166,7 +188,7 @@ export default function Index() {
           </div>
           
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {companyTypes.filter(c => !c.requiresNotary).map((company) => (
+            {effectiveCompanyTypes.filter(c => !c.requiresNotary).map((company) => (
               <Card key={company.id} variant="elevated" className="group hover:border-secondary/30 flex flex-col h-full">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">

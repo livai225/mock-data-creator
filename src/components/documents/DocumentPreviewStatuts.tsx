@@ -14,12 +14,19 @@ export function DocumentPreviewStatuts({ formData, companyType }: DocumentPrevie
   const capital = isSARLU 
     ? sarluData.nombreParts * sarluData.valeurPart 
     : sarlPluriData.capitalSocial;
+  const totalPluriParts = isSARLU
+    ? 0
+    : (sarlPluriData.associes || []).reduce((sum, a) => sum + (a.nombreParts || 0), 0);
+  const valeurPartPluri = !isSARLU && totalPluriParts > 0
+    ? Math.floor((sarlPluriData.capitalSocial || 0) / totalPluriParts)
+    : 0;
 
   const gerantNom = isSARLU 
     ? `${sarluData.associeNom} ${sarluData.associePrenoms}`
     : sarlPluriData.gerants?.[0] 
       ? `${sarlPluriData.gerants[0].nom} ${sarlPluriData.gerants[0].prenoms}`
       : '';
+  const pluriAssocies = sarlPluriData.associes || [];
 
   return (
     <div className="bg-white text-black p-8 shadow-lg max-w-4xl mx-auto font-serif">
@@ -111,8 +118,7 @@ export function DocumentPreviewStatuts({ formData, companyType }: DocumentPrevie
               sociales de <span className="bg-yellow-100 px-1">{sarluData.valeurPart.toLocaleString('fr-FR')} FCFA</span> chacune, 
               entièrement souscrites et libérées par l'associé unique.</span>
             ) : (
-              <span> ({sarlPluriData.capitalEnLettres || "[EN LETTRES]"}), divisé en parts sociales 
-              entièrement souscrites et libérées par les associés.</span>
+              <span> ({sarlPluriData.capitalEnLettres || "[EN LETTRES]"}), divisé en <span className="bg-yellow-100 px-1">{totalPluriParts || 0}</span> parts sociales de <span className="bg-yellow-100 px-1">{valeurPartPluri.toLocaleString('fr-FR')} FCFA</span> chacune, entièrement souscrites et libérées par les associés.</span>
             )}
           </p>
         </section>
@@ -361,8 +367,18 @@ export function DocumentPreviewStatuts({ formData, companyType }: DocumentPrevie
           </p>
         </section>
 
-        {/* Signature */}
+        {/* Article 30 */}
+        <section>
+          <h3 className="font-bold text-base mb-2">ARTICLE 30 - FORMALITÉS</h3>
+          <p>
+            Tous pouvoirs sont donnés au gérant pour accomplir les formalités de dépôt, publication et
+            immatriculation prévues par les textes en vigueur.
+          </p>
+        </section>
+
+        {/* Article 31 */}
         <section className="mt-12 pt-6 border-t">
+          <h3 className="font-bold text-base mb-3">ARTICLE 31 - SIGNATURES DES ASSOCIÉS</h3>
           <p className="text-center mb-8">
             Fait à {formData.ville || "[VILLE]"}, le {formData.dateConstitution || "[DATE]"}
           </p>
@@ -372,15 +388,19 @@ export function DocumentPreviewStatuts({ formData, companyType }: DocumentPrevie
               <div className="mt-8 border-b border-black w-64 mx-auto"></div>
               <p className="mt-2">{sarluData.associeNom} {sarluData.associePrenoms}</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-8">
-              {sarlPluriData.associes?.slice(0, 4).map((associe, index) => (
+          ) : pluriAssocies.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {pluriAssocies.map((associe, index) => (
                 <div key={associe.id} className="text-center">
                   <p className="font-semibold">Associé {index + 1}</p>
                   <div className="mt-8 border-b border-black w-48 mx-auto"></div>
                   <p className="mt-2">{associe.nom} {associe.prenoms}</p>
                 </div>
               ))}
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground">
+              [LISTE DES ASSOCIÉS NON RENSEIGNÉE]
             </div>
           )}
         </section>

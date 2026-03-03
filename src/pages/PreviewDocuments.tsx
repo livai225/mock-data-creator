@@ -56,8 +56,17 @@ export default function PreviewDocuments() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, token } = useAuth();
+
+  // Restaurer l'état depuis sessionStorage si location.state est perdu (rechargement mobile)
+  const restoredState = location.state || (() => {
+    try {
+      const saved = sessionStorage.getItem("pending_preview_state");
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  })();
+
   const [activeTab, setActiveTab] = useState(() =>
-    (location.state as any)?.companyType === 'EI' ? 'cepici' : 'statuts'
+    restoredState?.companyType === 'EI' ? 'cepici' : 'statuts'
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validatedDocs, setValidatedDocs] = useState<string[]>([]);
@@ -71,7 +80,7 @@ export default function PreviewDocuments() {
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const hasGeneratedPreview = useRef(false);
 
-  const { formData, companyType, payload, price, docs, companyTypeName } = location.state || {};
+  const { formData, companyType, payload, price, docs, companyTypeName } = restoredState || {};
 
   // Onglets actifs selon le type d'entreprise (EI n'a que le formulaire CEPICI)
   const activeTabs = companyType === 'EI' ? eiDocumentTabs : documentTabs;
@@ -418,6 +427,13 @@ export default function PreviewDocuments() {
 
     loadGeneratedDocuments();
   }, [token, companyId, documentsGenerated]);
+
+  // Sauvegarder l'état dans sessionStorage dès le chargement (pour restauration mobile)
+  useEffect(() => {
+    if (location.state) {
+      sessionStorage.setItem("pending_preview_state", JSON.stringify(location.state));
+    }
+  }, [location.state]);
 
   // Générer les documents en mode prévisualisation au chargement de la page
   useEffect(() => {
@@ -995,45 +1011,61 @@ export default function PreviewDocuments() {
                           })()}
                         </div>
                       ) : previewUrls[activeTab] ? (
-                        // Afficher la prévisualisation générée depuis le backend avec protections modérées
+                        // Afficher la prévisualisation générée depuis le backend
                         <div className="h-full w-full relative">
-                          <iframe
-                            src={previewUrls[activeTab]}
-                            className="w-full h-[70vh] border-0"
-                            title={activeTabs.find(t => t.id === activeTab)?.label}
-                            onContextMenu={(e) => {
-                              e.preventDefault();
-                              toast.error("Le clic droit est désactivé");
-                              return false;
-                            }}
-                            onLoad={(e) => {
-                              // Essayer de désactiver le menu contextuel dans l'iframe si possible
-                              try {
-                                const iframe = e.target as HTMLIFrameElement;
-                                if (iframe.contentDocument) {
-                                  iframe.contentDocument.addEventListener('contextmenu', (ev) => {
-                                    ev.preventDefault();
-                                    return false;
-                                  }, true);
-                                  iframe.contentDocument.addEventListener('copy', (ev) => {
-                                    ev.preventDefault();
-                                    return false;
-                                  }, true);
-                                  // Désactiver window.print dans l'iframe si possible
-                                  if (iframe.contentWindow) {
-                                    const originalPrint = iframe.contentWindow.print;
-                                    iframe.contentWindow.print = () => {
-                                      toast.error("L'impression est désactivée");
-                                      return;
-                                    };
+                          {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? (
+                            // Fallback mobile : iOS ne supporte pas les blob PDF dans iframe
+                            <div className="flex flex-col items-center justify-center h-[50vh] gap-4 p-6">
+                              <FileText className="h-12 w-12 text-muted-foreground" />
+                              <p className="text-sm text-muted-foreground text-center">
+                                L'aperçu n'est pas disponible sur mobile.
+                              </p>
+                              <a
+                                href={previewUrls[activeTab]}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Button variant="outline" className="gap-2">
+                                  <Eye className="h-4 w-4" />
+                                  Ouvrir le document
+                                </Button>
+                              </a>
+                            </div>
+                          ) : (
+                            <iframe
+                              src={previewUrls[activeTab]}
+                              className="w-full h-[70vh] border-0"
+                              title={activeTabs.find(t => t.id === activeTab)?.label}
+                              onContextMenu={(e) => {
+                                e.preventDefault();
+                                toast.error("Le clic droit est désactivé");
+                                return false;
+                              }}
+                              onLoad={(e) => {
+                                try {
+                                  const iframe = e.target as HTMLIFrameElement;
+                                  if (iframe.contentDocument) {
+                                    iframe.contentDocument.addEventListener('contextmenu', (ev) => {
+                                      ev.preventDefault();
+                                      return false;
+                                    }, true);
+                                    iframe.contentDocument.addEventListener('copy', (ev) => {
+                                      ev.preventDefault();
+                                      return false;
+                                    }, true);
+                                    if (iframe.contentWindow) {
+                                      iframe.contentWindow.print = () => {
+                                        toast.error("L'impression est désactivée");
+                                        return;
+                                      };
+                                    }
                                   }
+                                } catch (err) {
+                                  console.log('Iframe PDF chargé (protections CORS normales)');
                                 }
-                              } catch (err) {
-                                // Ignorer les erreurs CORS (normal pour les PDF blob)
-                                console.log('Iframe PDF chargé (protections CORS normales)');
-                              }
-                            }}
-                          />
+                              }}
+                            />
+                          )}
                         </div>
                       ) : companyType === 'EI' ? (
                         // EI: pas de composants React statiques, afficher bouton de réessai

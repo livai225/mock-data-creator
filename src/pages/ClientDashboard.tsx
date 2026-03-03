@@ -41,6 +41,7 @@ export default function ClientDashboard() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | "all">("all");
   const [expandedCompanies, setExpandedCompanies] = useState<Set<number>>(new Set());
   const [regeneratingCompanyId, setRegeneratingCompanyId] = useState<number | null>(null);
+  const [finalizingDraftId, setFinalizingDraftId] = useState<number | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedCompanyForPayment, setSelectedCompanyForPayment] = useState<{ id: number; amount: number } | null>(null);
   const [companyPaymentStatus, setCompanyPaymentStatus] = useState<Record<number, boolean>>({});
@@ -355,6 +356,37 @@ export default function ClientDashboard() {
     }
   };
 
+  // Finaliser un brouillon : générer les documents pour une entreprise déjà créée
+  const handleFinalizeDraft = async (companyId: number) => {
+    if (!token) return;
+
+    setFinalizingDraftId(companyId);
+    try {
+      const defaultDocs = [
+        'Statuts SARL',
+        'Contrat de bail commercial',
+        'Formulaire unique CEPICI',
+        'Liste des dirigeants/gérants',
+        "Déclaration sur l'honneur (greffe)",
+        'Déclaration de Souscription et Versement (DSV)'
+      ];
+
+      await generateDocumentsApi(token, {
+        companyId,
+        docs: defaultDocs,
+        formats: ['pdf', 'docx'],
+      });
+
+      toast.success("Documents générés avec succès ! Vous pouvez les télécharger après paiement.");
+      setTimeout(() => loadData(), 1000);
+    } catch (error: any) {
+      console.error("Erreur finalisation brouillon:", error);
+      toast.error(error.message || "Erreur lors de la génération des documents");
+    } finally {
+      setFinalizingDraftId(null);
+    }
+  };
+
   // Obtenir les documents filtrés par entreprise sélectionnée
   const getFilteredDocuments = () => {
     if (selectedCompanyId === "all") {
@@ -484,12 +516,31 @@ export default function ClientDashboard() {
                           <span>{companyDocs.length} document{companyDocs.length > 1 ? 's' : ''}</span>
                         </div>
                         {company.status === 'draft' && (
-                          <div 
-                            className="flex items-center gap-2 text-amber-600 mb-2 cursor-help"
-                            title="Votre dossier est en cours de création. Générez vos documents pour compléter le dossier."
-                          >
-                            <AlertCircle className="h-4 w-4" />
-                            <span>Dossier incomplet</span>
+                          <div className="mb-2">
+                            <div className="flex items-center gap-2 text-amber-600 mb-2">
+                              <AlertCircle className="h-4 w-4" />
+                              <span>Dossier incomplet</span>
+                            </div>
+                            {companyDocs.length === 0 && (
+                              <Button
+                                size="sm"
+                                className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+                                onClick={() => handleFinalizeDraft(company.id)}
+                                disabled={finalizingDraftId === company.id}
+                              >
+                                {finalizingDraftId === company.id ? (
+                                  <>
+                                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                    Génération en cours...
+                                  </>
+                                ) : (
+                                  <>
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Terminer le dossier
+                                  </>
+                                )}
+                              </Button>
+                            )}
                           </div>
                         )}
                         {company.status === 'completed' && (

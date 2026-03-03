@@ -199,6 +199,7 @@ const normalizeCepiciData = (company, managers = [], associates = [], additional
 
   return {
     companyName: company.company_name || '',
+    nomCommercial: company.nom_commercial || '',
     sigle: company.sigle || '',
     dureeSociete: String(dureeSociete),
     capital: formatNumber(capital),
@@ -368,7 +369,7 @@ export const generateCepiciPdfFromTemplate = async (company, managers = [], asso
     drawTextTopLeftMm(p2, `${asUpper(d.companyName)} SARL`, 44, 13, { font: boldFont, size: 9, maxWidth: 155, singleLine: true });
     
     // "Nom commercial :" label finit vers x=37mm (y=19mm)
-    drawTextTopLeftMm(p2, asUpper(d.companyName), 38, 19, { font: boldFont, size: 9, maxWidth: 160, singleLine: true });
+    drawTextTopLeftMm(p2, asUpper(d.nomCommercial), 38, 19, { font: boldFont, size: 9, maxWidth: 160, singleLine: true });
     
     // "Sigle :" label finit vers x=15mm (y=25mm)
     drawTextTopLeftMm(p2, asUpper(d.sigle), 16, 25, { font: boldFont, size: 9, maxWidth: 180, singleLine: true });

@@ -51,23 +51,24 @@ export function Header() {
           </div>
         </div>
       ) : null}
-      <div className="container flex h-20 items-center justify-between">
+      <div className="container flex h-20 items-center justify-between gap-3">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 shrink-0">
           <img src={logo} alt="ARCH EXCELLENCE" className="h-14 w-auto" />
           <div className="hidden sm:block">
-            <p className="text-xs text-muted-foreground">Cabinet Comptable & Conseil</p>
+            <p className="text-xs text-muted-foreground whitespace-nowrap">Conseil, comptabilité et fiscalité</p>
+            <p className="text-[11px] text-muted-foreground/80 whitespace-nowrap">L'excellence nous distingue</p>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-1">
+        <nav className="hidden xl:flex items-center gap-1">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               to={link.href}
               className={cn(
-                "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+                "px-3 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap",
                 location.pathname === link.href
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -79,21 +80,21 @@ export function Header() {
         </nav>
 
         {/* CTA & Mobile Menu */}
-        <div className="flex items-center gap-3">
-          <a href="tel:0151252999" className="hidden md:flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+        <div className="flex items-center gap-2 xl:gap-3 shrink-0">
+          <a href="tel:0151252999" className="hidden xl:flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground whitespace-nowrap">
             <Phone className="h-4 w-4" />
             01 51 25 29 99
           </a>
 
           {isAuthenticated ? (
-            <Button variant="ghost" className="hidden sm:flex" asChild>
+            <Button variant="ghost" className="hidden sm:flex whitespace-nowrap" asChild>
               <Link to={user?.role === "admin" ? "/admin" : "/dashboard"}>
                 <User className="mr-2 h-4 w-4" />
                 Mon Espace
               </Link>
             </Button>
           ) : (
-            <Button variant="ghost" className="hidden sm:flex" asChild>
+            <Button variant="ghost" className="hidden sm:flex whitespace-nowrap" asChild>
               <Link to="/connexion">
                 <LogIn className="mr-2 h-4 w-4" />
                 Connexion
@@ -101,11 +102,11 @@ export function Header() {
             </Button>
           )}
 
-          <Button variant="gold" className="hidden sm:flex" asChild>
+          <Button variant="gold" className="hidden sm:flex whitespace-nowrap" asChild>
             <Link to="/creation-entreprise">Créer mon entreprise</Link>
           </Button>
           <button
-            className="lg:hidden p-2 rounded-lg hover:bg-muted"
+            className="xl:hidden p-2 rounded-lg hover:bg-muted"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -115,7 +116,7 @@ export function Header() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-border bg-background animate-fade-in">
+        <div className="xl:hidden border-t border-border bg-background animate-fade-in">
           <nav className="container py-4 flex flex-col gap-2">
             {navLinks.map((link) => (
               <Link

@@ -4,16 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/auth/AuthContext";
-import { adminGetPricingApi, adminUpdatePricingApi } from "@/lib/api";
+import { adminGetPricingApi, adminUpdatePricingApi, type PricingSetting } from "@/lib/api";
 import { companyTypes, pricingPlans } from "@/lib/mock-data";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { CreditCard, Building2, Save, Check } from "lucide-react";
 import { toast } from "sonner";
-
-type PricingSetting = {
-  pricingPlans: Array<{ id: string; price: number }>;
-  companyTypePrices: Record<string, number>;
-};
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat("fr-FR").format(price) + " FCFA";
@@ -21,14 +16,22 @@ const formatPrice = (price: number) => {
 
 export default function AdminPricing() {
   const { token } = useAuth();
-  const [setting, setSetting] = useState<PricingSetting>({ pricingPlans: [], companyTypePrices: {} });
+  const [setting, setSetting] = useState<PricingSetting>({
+    pricingPlans: [],
+    companyTypePrices: {},
+    companyTypeEstimatedTimes: {},
+  });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!token) return;
     adminGetPricingApi(token)
-      .then((r) => setSetting(r.data))
-      .catch(() => setSetting({ pricingPlans: [], companyTypePrices: {} }));
+      .then((r) => setSetting({
+        pricingPlans: r.data?.pricingPlans ?? [],
+        companyTypePrices: r.data?.companyTypePrices ?? {},
+        companyTypeEstimatedTimes: r.data?.companyTypeEstimatedTimes ?? {},
+      }))
+      .catch(() => setSetting({ pricingPlans: [], companyTypePrices: {}, companyTypeEstimatedTimes: {} }));
   }, [token]);
 
   const planDefaults = useMemo(() => pricingPlans.map((p) => ({ id: p.id, name: p.name, price: p.price, description: p.description })), []);
@@ -43,7 +46,7 @@ export default function AdminPricing() {
     setSaving(true);
     try {
       const res = await adminUpdatePricingApi(token, setting);
-      setSetting(res.data);
+      setSetting(res.data ?? { pricingPlans: [], companyTypePrices: {}, companyTypeEstimatedTimes: {} });
       toast.success("Tarifs enregistrés avec succès");
     } catch {
       toast.error("Erreur lors de l'enregistrement");
@@ -139,6 +142,7 @@ export default function AdminPricing() {
               <div className="space-y-4">
                 {companyTypes.map((ct) => {
                   const currentPrice = setting.companyTypePrices[ct.id] ?? ct.price;
+                  const currentEstimatedTime = setting.companyTypeEstimatedTimes[ct.id] ?? ct.estimatedTime;
                   return (
                     <div key={ct.id} className="flex items-center gap-4 rounded-lg border p-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -149,6 +153,22 @@ export default function AdminPricing() {
                         <p className="text-sm text-muted-foreground truncate">{ct.fullName}</p>
                       </div>
                       <div className="flex items-center gap-3">
+                        <Input
+                          type="text"
+                          className="w-32"
+                          value={currentEstimatedTime}
+                          onChange={(e) => {
+                            const estimatedTime = e.target.value;
+                            setSetting((s) => ({
+                              ...s,
+                              companyTypeEstimatedTimes: {
+                                ...s.companyTypeEstimatedTimes,
+                                [ct.id]: estimatedTime,
+                              },
+                            }));
+                          }}
+                          placeholder="Ex: 30 min"
+                        />
                         <Input
                           type="number"
                           className="w-32"
@@ -203,7 +223,9 @@ export default function AdminPricing() {
               <div className="space-y-2 text-sm">
                 {companyTypes.slice(0, 5).map((ct) => (
                   <div key={ct.id} className="flex justify-between">
-                    <span className="text-muted-foreground">{ct.id}</span>
+                    <span className="text-muted-foreground">
+                      {ct.id} ({setting.companyTypeEstimatedTimes[ct.id] ?? ct.estimatedTime})
+                    </span>
                     <span className="font-medium">
                       {formatPrice(setting.companyTypePrices[ct.id] ?? ct.price)}
                     </span>

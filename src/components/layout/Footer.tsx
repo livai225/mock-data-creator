@@ -35,7 +35,8 @@ export function Footer() {
               </div>
               <div>
                 <p className="font-display text-xl font-bold">ARCH EXCELLENCE</p>
-                <p className="text-xs text-primary-foreground/70">Cabinet Comptable & Conseil</p>
+                <p className="text-xs text-primary-foreground/70">Conseil, comptabilité et fiscalité</p>
+                <p className="text-[11px] text-primary-foreground/60">L'excellence nous distingue</p>
               </div>
             </div>
             <p className="text-sm text-primary-foreground/80 leading-relaxed">
@@ -107,8 +108,8 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-secondary shrink-0" />
-                <a href="mailto:contact@archexcellence.ci" className="text-sm text-primary-foreground/70 hover:text-secondary transition-colors">
-                  contact@archexcellence.ci
+                <a href="mailto:archexcellence18@gmail.com" className="text-sm text-primary-foreground/70 hover:text-secondary transition-colors">
+                  archexcellence18@gmail.com
                 </a>
               </li>
             </ul>

@@ -66,9 +66,23 @@ export default function Connexion() {
                   setSubmitting(true);
                   try {
                     const user = await login(email, password);
-                    
+
                     if (user.role === 'admin') {
                       navigate("/admin", { replace: true });
+                    } else if (redirectTo === "/preview-documents") {
+                      const pendingPreviewStateRaw = sessionStorage.getItem("pending_preview_state");
+                      sessionStorage.removeItem("pending_preview_state");
+                      sessionStorage.removeItem("pending_company_creation");
+                      if (pendingPreviewStateRaw) {
+                        try {
+                          const pendingPreviewState = JSON.parse(pendingPreviewStateRaw);
+                          navigate("/preview-documents", { replace: true, state: pendingPreviewState });
+                          return;
+                        } catch {
+                          // fallback
+                        }
+                      }
+                      navigate("/dashboard", { replace: true });
                     } else {
                       navigate(redirectTo ?? "/dashboard", { replace: true });
                     }

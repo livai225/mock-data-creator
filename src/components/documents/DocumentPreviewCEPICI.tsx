@@ -67,18 +67,22 @@ export function DocumentPreviewCEPICI({ formData, companyType }: DocumentPreview
                 <p className="bg-yellow-100 px-1">{formData.sigle || "-"}</p>
               </div>
               <div className="border p-2">
+                <p className="text-xs text-gray-600">Nom commercial</p>
+                <p className="bg-yellow-100 px-1">{formData.nomCommercial || "-"}</p>
+              </div>
+              <div className="border p-2">
                 <p className="text-xs text-gray-600">Forme juridique</p>
                 <p className="font-semibold bg-yellow-100 px-1">{isSARLU ? "SARL Unipersonnelle" : "SARL"}</p>
               </div>
               <div className="border p-2">
                 <p className="text-xs text-gray-600">Capital social (FCFA)</p>
-                <p className="font-bold bg-yellow-100 px-1">{capital.toLocaleString('fr-FR')}</p>
+                <p className="font-bold bg-yellow-100 px-1">{(capital ?? 0).toLocaleString('fr-FR')}</p>
               </div>
             </div>
 
             <div className="border p-2 mt-4">
               <p className="text-xs text-gray-600">Activité principale (Objet social)</p>
-              <p className="bg-yellow-100 px-1">{formData.objetSocial || "[À REMPLIR]"}</p>
+              <p className="bg-yellow-100 px-1">{formData.objetSocial ? (formData.objetSocial.length > 200 ? formData.objetSocial.substring(0, 200) + '...' : formData.objetSocial) : "[À REMPLIR]"}</p>
             </div>
 
             <div className="border p-2 mt-4">

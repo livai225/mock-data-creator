@@ -242,7 +242,7 @@ export function PaymentModal({
           {/* Note */}
           <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r">
             <p className="text-sm text-amber-800">
-              <strong>Note:</strong> Votre demande sera vérifiée sous 24-48h. Vous recevrez une notification par email une fois le paiement validé.
+              <strong>Note:</strong> Votre demande sera vérifiée sous 30 min. Vous recevrez une notification par email une fois le paiement validé.
             </p>
           </div>
         </div>

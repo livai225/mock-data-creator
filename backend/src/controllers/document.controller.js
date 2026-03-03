@@ -97,6 +97,7 @@ export const generateDocuments = async (req, res, next) => {
       // Normaliser les managers : mapper camelCase vers snake_case
       managers = (req.body.managers || []).map(m => {
         const normalized = {
+          civilite: m.civilite || 'M.',
           nom: m.nom || m.name || '',
           prenoms: m.prenoms || m.firstName || '',
           date_naissance: m.date_naissance || m.dateNaissance || null,
@@ -669,6 +670,7 @@ export const previewDocuments = async (req, res, next) => {
     // Normaliser les managers : mapper camelCase vers snake_case
     const managers = (rawManagers || []).map(m => {
       const normalized = {
+        civilite: m.civilite || 'M.',
         nom: m.nom || m.name || '',
         prenoms: m.prenoms || m.firstName || m.prenoms || '',
         date_naissance: m.date_naissance || m.dateNaissance || null,
@@ -709,9 +711,11 @@ export const previewDocuments = async (req, res, next) => {
     console.log(`🔍 Prévisualisation: ${docs.length} documents pour "${company.company_name}"`);
     console.log(`📋 Managers reçus (raw):`, JSON.stringify(rawManagers, null, 2));
     console.log(`📋 Managers normalisés:`, JSON.stringify(managers, null, 2));
+    console.log(`📋 additionalData reçu:`, JSON.stringify(req.body.additionalData || {}, null, 2));
 
     // Générer les documents temporairement (sans sauvegarder en DB)
-    const results = await generateMultipleDocuments(
+    // Utiliser le même générateur que la génération finale (modèles DOCX)
+    const results = await generateMultipleDocumentsFromModels(
       docs,
       company,
       associates,

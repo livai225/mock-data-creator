@@ -86,7 +86,7 @@ export const companyTypes: CompanyTypeInfo[] = [
       'Liste des dirigeants/gérants',
       'Déclaration sur l\'honneur (greffe)'
     ],
-    estimatedTime: '24-48h',
+    estimatedTime: '30 min',
     price: 75000,
   },
   {
@@ -105,7 +105,7 @@ export const companyTypes: CompanyTypeInfo[] = [
       'Liste des dirigeants/gérants',
       'Déclaration sur l\'honneur (greffe)'
     ],
-    estimatedTime: '48-72h',
+    estimatedTime: '30 min',
     price: 95000,
   },
   {
@@ -115,8 +115,8 @@ export const companyTypes: CompanyTypeInfo[] = [
     description: 'Idéale pour les entrepreneurs individuels. Formalités simplifiées et gestion souple.',
     capitalMin: 0,
     requiresNotary: false,
-    documentsGenerated: ['Déclaration d\'existence', 'Formulaire CEPICI', 'Déclaration sur l\'honneur'],
-    estimatedTime: '24h',
+    documentsGenerated: ['Formulaire CEPICI', 'Contrat de bail', 'Déclaration sur l\'honneur (greffe)'],
+    estimatedTime: '30 min',
     price: 35000,
   },
   {
@@ -127,7 +127,7 @@ export const companyTypes: CompanyTypeInfo[] = [
     capitalMin: 0,
     requiresNotary: false,
     documentsGenerated: ['Statuts', 'DSV', 'Contrat de bail', 'Liste des dirigeants', 'PV de constitution'],
-    estimatedTime: '48h',
+    estimatedTime: '30 min',
     price: 85000,
   },
   {
@@ -138,7 +138,7 @@ export const companyTypes: CompanyTypeInfo[] = [
     capitalMin: 0,
     requiresNotary: false,
     documentsGenerated: ['Statuts', 'DSV', 'Contrat de bail', 'Liste des dirigeants', 'PV de constitution'],
-    estimatedTime: '48h',
+    estimatedTime: '30 min',
     price: 95000,
   },
   {
@@ -149,7 +149,7 @@ export const companyTypes: CompanyTypeInfo[] = [
     capitalMin: 0,
     requiresNotary: false,
     documentsGenerated: ['Statuts', 'Contrat de groupement', 'Liste des membres', 'PV de constitution'],
-    estimatedTime: '48-72h',
+    estimatedTime: '30 min',
     price: 120000,
   },
   {
@@ -353,7 +353,7 @@ export const testimonials: Testimonial[] = [
     id: '1',
     name: 'Aminata Koné',
     company: 'AK Fashion SARL',
-    content: 'Service exceptionnel ! J\'ai créé ma SARL en moins de 48h. Les documents étaient conformes et j\'ai pu démarrer mon activité rapidement.',
+    content: 'Service exceptionnel ! J\'ai créé ma SARL en 30 min. Les documents étaient conformes et j\'ai pu démarrer mon activité rapidement.',
     rating: 5,
   },
   {
@@ -373,8 +373,8 @@ export const testimonials: Testimonial[] = [
 ];
 
 export const stats = [
-  { label: 'Entreprises créées', value: '500+' },
-  { label: 'Clients satisfaits', value: '98%' },
-  { label: 'Années d\'expérience', value: '15+' },
+  { label: 'entreprises crée', value: '+100' },
+  { label: 'Clients satisfaits', value: '99%' },
+  { label: 'd\'expérience', value: '+10' },
   { label: 'Experts certifiés', value: '12' },
 ];

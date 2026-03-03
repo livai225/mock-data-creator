@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ArrowRight, 
   ArrowLeft,
@@ -36,14 +35,58 @@ interface SARLUFormProps {
   companyTypeName: string;
 }
 
+const SARLU_DRAFT_KEY = 'sarlu_form_draft';
+const SARLU_STEP_KEY = 'sarlu_form_step';
+
 export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormProps) {
   const navigate = useNavigate();
   const { isAuthenticated, token } = useAuth();
-  const [step, setStep] = useState<SARLUStep>('societe');
-  const [formData, setFormData] = useState<SARLUFormData>(defaultSARLUFormData);
+
+  const [formData, setFormData] = useState<SARLUFormData>(() => {
+    try {
+      const saved = localStorage.getItem(SARLU_DRAFT_KEY);
+      if (saved) return { ...defaultSARLUFormData, ...JSON.parse(saved) };
+    } catch {}
+    return defaultSARLUFormData;
+  });
+
+  const [step, setStep] = useState<SARLUStep>(() => {
+    try {
+      const saved = localStorage.getItem(SARLU_STEP_KEY) as SARLUStep;
+      if (saved) return saved;
+    } catch {}
+    return 'societe';
+  });
+
+  const [showDraftBanner, setShowDraftBanner] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(SARLU_DRAFT_KEY);
+      if (saved) return !!JSON.parse(saved).denominationSociale?.trim();
+    } catch {}
+    return false;
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [missingBank, setMissingBank] = useState(false);
   const [missingAssocieFields, setMissingAssocieFields] = useState<Array<keyof SARLUFormData>>([]);
+  const [missingBailFields, setMissingBailFields] = useState<Array<keyof SARLUFormData>>([]);
+
+  // Sauvegarde automatique à chaque changement
+  useEffect(() => {
+    localStorage.setItem(SARLU_DRAFT_KEY, JSON.stringify(formData));
+  }, [formData]);
+
+  useEffect(() => {
+    localStorage.setItem(SARLU_STEP_KEY, step);
+  }, [step]);
+
+  const clearDraft = () => {
+    localStorage.removeItem(SARLU_DRAFT_KEY);
+    localStorage.removeItem(SARLU_STEP_KEY);
+    setFormData(defaultSARLUFormData);
+    setStep('societe');
+    setShowDraftBanner(false);
+  };
 
   const currentStepIndex = sarluSteps.findIndex(s => s.id === step);
 
@@ -54,6 +97,9 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
     }
     if (missingAssocieFields.includes(field) && typeof value === 'string' && value.trim()) {
       setMissingAssocieFields(prev => prev.filter((f) => f !== field));
+    }
+    if (missingBailFields.includes(field) && typeof value === 'string' && value.trim()) {
+      setMissingBailFields(prev => prev.filter((f) => f !== field));
     }
   };
 
@@ -73,7 +119,29 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
   ];
 
   const isAssocieMissing = (field: keyof SARLUFormData) => missingAssocieFields.includes(field);
+  const isBailMissing = (field: keyof SARLUFormData) => missingBailFields.includes(field);
   const inputErrorClass = (isMissing: boolean) => isMissing ? "border-red-500 focus-visible:ring-red-500" : "";
+
+  const bailRequiredFields: Array<keyof SARLUFormData> = [
+    'bailleurNom',
+    'bailleurAdresse',
+    'bailleurContact',
+  ];
+
+  const validateBail = () => {
+    const missing = bailRequiredFields.filter((field) => {
+      const value = formData[field];
+      return typeof value === 'string' ? !value.trim() : value === undefined || value === null;
+    });
+    if (missing.length > 0) {
+      setMissingBailFields(missing);
+      const missingLabels = missing.map((field) => associeFieldLabels[field]).join(', ');
+      toast.error(`Champs obligatoires manquants : ${missingLabels}`);
+      return false;
+    }
+    setMissingBailFields([]);
+    return true;
+  };
 
   const validateBank = () => {
     if (!formData.banque || !formData.banque.trim()) {
@@ -151,6 +219,22 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
     emploisAnnee2: 'Emplois année 2',
     emploisAnnee3: 'Emplois année 3',
     gerantDureeMandat: 'Durée du mandat',
+    gerantEstAssocie: 'Gérant est associé',
+    gerantNom: 'Nom du gérant',
+    gerantPrenoms: 'Prénom(s) du gérant',
+    gerantDateNaissance: 'Date de naissance du gérant',
+    gerantLieuNaissance: 'Lieu de naissance du gérant',
+    gerantNationalite: 'Nationalité du gérant',
+    gerantProfession: 'Profession du gérant',
+    gerantAdresseDomicile: 'Adresse domicile du gérant',
+    gerantVilleResidence: 'Ville de résidence du gérant',
+    gerantTypeIdentite: "Type d'identité du gérant",
+    gerantNumeroIdentite: "N° d'identité du gérant",
+    gerantDateDelivranceId: 'Date de délivrance (gérant)',
+    gerantDateValiditeId: 'Date de validité (gérant)',
+    gerantLieuDelivranceId: 'Lieu de délivrance (gérant)',
+    gerantPereNom: 'Nom du père (gérant)',
+    gerantMereNom: 'Nom de la mère (gérant)',
   };
 
   const validateAssocie = () => {
@@ -174,6 +258,7 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
     if (currentIndex < sarluSteps.length - 1) {
       if (step === 'societe' && !validateBank()) return;
       if (step === 'associe' && !validateAssocie()) return;
+      if (step === 'bail' && !validateBail()) return;
       setStep(sarluSteps[currentIndex + 1].id);
     }
   };
@@ -188,18 +273,24 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
   };
 
   const handleGenerate = async () => {
-    if (!validateBank() || !validateAssocie()) {
+    if (!validateBank() || !validateAssocie() || !validateBail()) {
       return;
     }
     const payload = {
       companyType: 'SARLU',
       companyName: formData.denominationSociale,
       sigle: formData.sigle,
+      nomCommercial: formData.nomCommercial || '',
+      formeJuridique: formData.formeJuridique || 'SARL Unipersonnelle',
       activity: formData.objetSocial,
+      activiteSecondaire: formData.activiteSecondaire,
       capital: formData.nombreParts * formData.valeurPart,
+      nombreParts: formData.nombreParts,
+      valeurPart: formData.valeurPart,
       capitalEnLettres: formData.capitalEnLettres,
       banque: formData.banque,
       duree_societe: formData.dureeAnnees,
+      dateConstitution: formData.dateConstitution,
       address: formData.adresseSiege,
       commune: formData.commune,
       quartier: formData.quartier || '',
@@ -209,7 +300,9 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
       telephone: formData.telephone || formData.mobile,
       email: formData.email,
       boitePostale: formData.boitePostale,
-      gerant: `${formData.associeNom} ${formData.associePrenoms}`,
+      gerant: formData.gerantEstAssocie
+        ? `${formData.associeNom} ${formData.associePrenoms}`
+        : `${formData.gerantNom} ${formData.gerantPrenoms}`,
       paymentAmount: price,
       chiffreAffairesPrev: formData.chiffreAffairesPrev,
       declarant: {
@@ -219,7 +312,10 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
         telephone: formData.declarantTelephone,
         fax: formData.declarantFax,
         mobile: formData.declarantMobile,
-        email: formData.declarantEmail
+        email: formData.declarantEmail,
+        contact: formData.declarantContact,
+        numeroCompte: formData.declarantNumeroCompte,
+        estAssocie: formData.declarantEstAssocie
       },
       projections: {
         investissementAnnee1: formData.investissementAnnee1,
@@ -242,6 +338,7 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
         dateDebutBail: formData.dateDebutBail
       },
       associates: [{
+        civilite: formData.associeCivilite,
         name: `${formData.associeNom} ${formData.associePrenoms}`,
         parts: formData.nombreParts,
         profession: formData.associeProfession,
@@ -249,27 +346,30 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
         dateNaissance: formData.associeDateNaissance,
         lieuNaissance: formData.associeLieuNaissance,
         adresse: formData.associeAdresseDomicile,
-        typeIdentite: formData.associeTypeIdentite,
-        numeroIdentite: formData.associeNumeroIdentite,
-        dateDelivranceId: formData.associeDateDelivranceId,
-        lieuDelivranceId: formData.associeLieuDelivranceId
-      }],
-      managers: [{
-        nom: formData.associeNom,
-        prenoms: formData.associePrenoms,
-        dateNaissance: formData.associeDateNaissance,
-        lieuNaissance: formData.associeLieuNaissance,
-        nationalite: formData.associeNationalite,
-        profession: formData.associeProfession,
-        adresse: formData.associeAdresseDomicile,
         villeResidence: formData.associeVilleResidence,
-        pereNom: formData.associePereNom,
-        mereNom: formData.associeMereNom,
         typeIdentite: formData.associeTypeIdentite,
         numeroIdentite: formData.associeNumeroIdentite,
         dateDelivranceId: formData.associeDateDelivranceId,
         dateValiditeId: formData.associeDateValiditeId,
-        lieuDelivranceId: formData.associeLieuDelivranceId,
+        lieuDelivranceId: formData.associeLieuDelivranceId
+      }],
+      managers: [{
+        civilite: formData.gerantEstAssocie ? formData.associeCivilite : formData.gerantCivilite,
+        nom: formData.gerantEstAssocie ? formData.associeNom : formData.gerantNom,
+        prenoms: formData.gerantEstAssocie ? formData.associePrenoms : formData.gerantPrenoms,
+        dateNaissance: formData.gerantEstAssocie ? formData.associeDateNaissance : formData.gerantDateNaissance,
+        lieuNaissance: formData.gerantEstAssocie ? formData.associeLieuNaissance : formData.gerantLieuNaissance,
+        nationalite: formData.gerantEstAssocie ? formData.associeNationalite : formData.gerantNationalite,
+        profession: formData.gerantEstAssocie ? formData.associeProfession : formData.gerantProfession,
+        adresse: formData.gerantEstAssocie ? formData.associeAdresseDomicile : formData.gerantAdresseDomicile,
+        villeResidence: formData.gerantEstAssocie ? formData.associeVilleResidence : formData.gerantVilleResidence,
+        pereNom: formData.gerantEstAssocie ? formData.associePereNom : formData.gerantPereNom,
+        mereNom: formData.gerantEstAssocie ? formData.associeMereNom : formData.gerantMereNom,
+        typeIdentite: formData.gerantEstAssocie ? formData.associeTypeIdentite : formData.gerantTypeIdentite,
+        numeroIdentite: formData.gerantEstAssocie ? formData.associeNumeroIdentite : formData.gerantNumeroIdentite,
+        dateDelivranceId: formData.gerantEstAssocie ? formData.associeDateDelivranceId : formData.gerantDateDelivranceId,
+        dateValiditeId: formData.gerantEstAssocie ? formData.associeDateValiditeId : formData.gerantDateValiditeId,
+        lieuDelivranceId: formData.gerantEstAssocie ? formData.associeLieuDelivranceId : formData.gerantLieuDelivranceId,
         dureeMandat: `${formData.gerantDureeMandat} ans`,
         dureeMandatAnnees: formData.gerantDureeMandat
       }],
@@ -324,6 +424,23 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
           </Button>
         </div>
       </div>
+
+      {/* Bannière brouillon restauré */}
+      {showDraftBanner && (
+        <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-center justify-between gap-4">
+          <p className="text-sm text-amber-800 font-medium">
+            📂 Brouillon restauré — votre saisie précédente a été récupérée.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearDraft}
+            className="border-amber-400 text-amber-700 hover:bg-amber-100 shrink-0"
+          >
+            Effacer et recommencer
+          </Button>
+        </div>
+      )}
 
       {/* Progress */}
       <div className="bg-muted/50 p-6 rounded-lg">
@@ -389,6 +506,15 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                   onChange={(e) => updateField('sigle', e.target.value)}
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="nomCommercial">Nom commercial (optionnel)</Label>
+                <Input
+                  id="nomCommercial"
+                  placeholder="Ex: ARCH EXCELLENCE"
+                  value={formData.nomCommercial}
+                  onChange={(e) => updateField('nomCommercial', e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="border-t pt-4 mt-4">
@@ -452,6 +578,12 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                 value={formData.objetSocial}
                 onChange={(e) => updateField('objetSocial', e.target.value)}
               />
+              <div className={`text-xs text-right ${(formData.objetSocial?.length || 0) > 200 ? 'text-orange-500 font-medium' : 'text-gray-400'}`}>
+                {formData.objetSocial?.length || 0} caractères
+                {(formData.objetSocial?.length || 0) > 200 && (
+                  <span className="ml-1">(le formulaire CEPICI sera limité à 200 caractères)</span>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -654,6 +786,19 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
           <CardContent className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
+                <Label>Civilité *</Label>
+                <Select value={formData.associeCivilite} onValueChange={(v) => updateField('associeCivilite', v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="M.">M. (Monsieur)</SelectItem>
+                    <SelectItem value="Mme">Mme (Madame)</SelectItem>
+                    <SelectItem value="Mlle">Mlle (Mademoiselle)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="associeNom">Nom *</Label>
                 <Input
                   id="associeNom"
@@ -769,7 +914,7 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                   <Label>Type d'identité *</Label>
                   <Select
                     value={formData.associeTypeIdentite}
-                    onValueChange={(value: 'CNI' | 'Passeport' | 'Carte de séjour' | 'Carte de résident') => updateField('associeTypeIdentite', value)}
+                    onValueChange={(value: 'CNI' | 'Passeport' | 'Carte consulaire' | 'Carte de résident') => updateField('associeTypeIdentite', value)}
                   >
                     <SelectTrigger className={inputErrorClass(isAssocieMissing('associeTypeIdentite'))}>
                       <SelectValue />
@@ -777,7 +922,7 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                     <SelectContent>
                       <SelectItem value="CNI">CNI</SelectItem>
                       <SelectItem value="Passeport">Passeport</SelectItem>
-                      <SelectItem value="Carte de séjour">Carte de séjour</SelectItem>
+                      <SelectItem value="Carte consulaire">Carte consulaire</SelectItem>
                       <SelectItem value="Carte de résident">Carte de résident</SelectItem>
                     </SelectContent>
                   </Select>
@@ -826,8 +971,217 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
             </div>
 
             <div className="border-t pt-4 mt-4">
-              <h4 className="font-semibold mb-4">Mandat de gérant</h4>
-              <div className="space-y-2">
+              <h4 className="font-semibold mb-3">Gérant</h4>
+              <p className="text-sm text-muted-foreground mb-3">Qui va gérer la société ?</p>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={() => updateField('gerantEstAssocie', true)}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-center transition-all cursor-pointer ${
+                    formData.gerantEstAssocie
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-muted bg-muted/30 text-muted-foreground hover:border-muted-foreground/40'
+                  }`}
+                >
+                  <User className={`h-6 w-6 ${formData.gerantEstAssocie ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div>
+                    <p className="font-semibold text-sm">L'associé unique</p>
+                    <p className="text-xs mt-0.5 opacity-75">Même personne</p>
+                  </div>
+                  {formData.gerantEstAssocie && (
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateField('gerantEstAssocie', false)}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-center transition-all cursor-pointer ${
+                    !formData.gerantEstAssocie
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-muted bg-muted/30 text-muted-foreground hover:border-muted-foreground/40'
+                  }`}
+                >
+                  <User className={`h-6 w-6 ${!formData.gerantEstAssocie ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div>
+                    <p className="font-semibold text-sm">Une autre personne</p>
+                    <p className="text-xs mt-0.5 opacity-75">Gérant distinct</p>
+                  </div>
+                  {!formData.gerantEstAssocie && (
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                  )}
+                </button>
+              </div>
+
+              {!formData.gerantEstAssocie && (
+                <div className="space-y-4 mt-4 p-4 border rounded-lg bg-amber-50 border-amber-200">
+                  <p className="text-sm text-amber-800 font-medium">Informations du gérant (personne différente de l'associé)</p>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Civilité *</Label>
+                      <Select value={formData.gerantCivilite} onValueChange={(v) => updateField('gerantCivilite', v)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="M.">M. (Monsieur)</SelectItem>
+                          <SelectItem value="Mme">Mme (Madame)</SelectItem>
+                          <SelectItem value="Mlle">Mlle (Mademoiselle)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gerantNom">Nom *</Label>
+                      <Input
+                        id="gerantNom"
+                        placeholder="Nom de famille"
+                        value={formData.gerantNom}
+                        onChange={(e) => updateField('gerantNom', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gerantPrenoms">Prénom(s) *</Label>
+                      <Input
+                        id="gerantPrenoms"
+                        placeholder="Prénoms"
+                        value={formData.gerantPrenoms}
+                        onChange={(e) => updateField('gerantPrenoms', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gerantDateNaissance">Date de naissance *</Label>
+                      <Input
+                        id="gerantDateNaissance"
+                        type="date"
+                        value={formData.gerantDateNaissance}
+                        onChange={(e) => updateField('gerantDateNaissance', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gerantLieuNaissance">Lieu de naissance *</Label>
+                      <Input
+                        id="gerantLieuNaissance"
+                        placeholder="Ex: Abidjan"
+                        value={formData.gerantLieuNaissance}
+                        onChange={(e) => updateField('gerantLieuNaissance', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gerantNationalite">Nationalité *</Label>
+                      <Input
+                        id="gerantNationalite"
+                        placeholder="Ex: Ivoirienne"
+                        value={formData.gerantNationalite}
+                        onChange={(e) => updateField('gerantNationalite', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gerantProfession">Profession *</Label>
+                      <Input
+                        id="gerantProfession"
+                        placeholder="Ex: Commerçant"
+                        value={formData.gerantProfession}
+                        onChange={(e) => updateField('gerantProfession', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="gerantAdresseDomicile">Adresse de domicile *</Label>
+                      <Input
+                        id="gerantAdresseDomicile"
+                        placeholder="Ex: Cocody Angré, 7ème Tranche"
+                        value={formData.gerantAdresseDomicile}
+                        onChange={(e) => updateField('gerantAdresseDomicile', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gerantVilleResidence">Ville de résidence</Label>
+                      <Input
+                        id="gerantVilleResidence"
+                        value={formData.gerantVilleResidence}
+                        onChange={(e) => updateField('gerantVilleResidence', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gerantPereNom">Nom du père</Label>
+                      <Input
+                        id="gerantPereNom"
+                        placeholder="Nom complet du père"
+                        value={formData.gerantPereNom}
+                        onChange={(e) => updateField('gerantPereNom', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gerantMereNom">Nom de la mère</Label>
+                      <Input
+                        id="gerantMereNom"
+                        placeholder="Nom complet de la mère"
+                        value={formData.gerantMereNom}
+                        onChange={(e) => updateField('gerantMereNom', e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4 mt-2">
+                    <h5 className="font-medium mb-3">Pièce d'identité du gérant</h5>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Type d'identité *</Label>
+                        <Select
+                          value={formData.gerantTypeIdentite}
+                          onValueChange={(value: 'CNI' | 'Passeport' | 'Carte consulaire' | 'Carte de résident') => updateField('gerantTypeIdentite', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="CNI">CNI</SelectItem>
+                            <SelectItem value="Passeport">Passeport</SelectItem>
+                            <SelectItem value="Carte consulaire">Carte consulaire</SelectItem>
+                            <SelectItem value="Carte de résident">Carte de résident</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gerantNumeroIdentite">N° d'identité *</Label>
+                        <Input
+                          id="gerantNumeroIdentite"
+                          placeholder="Ex: CI002317170"
+                          value={formData.gerantNumeroIdentite}
+                          onChange={(e) => updateField('gerantNumeroIdentite', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gerantDateDelivranceId">Date de délivrance *</Label>
+                        <Input
+                          id="gerantDateDelivranceId"
+                          type="date"
+                          value={formData.gerantDateDelivranceId}
+                          onChange={(e) => updateField('gerantDateDelivranceId', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gerantDateValiditeId">Date de validité *</Label>
+                        <Input
+                          id="gerantDateValiditeId"
+                          type="date"
+                          value={formData.gerantDateValiditeId}
+                          onChange={(e) => updateField('gerantDateValiditeId', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="gerantLieuDelivranceId">Lieu de délivrance *</Label>
+                        <Input
+                          id="gerantLieuDelivranceId"
+                          placeholder="Ex: République de Côte d'Ivoire"
+                          value={formData.gerantLieuDelivranceId}
+                          onChange={(e) => updateField('gerantLieuDelivranceId', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2 mt-4">
                 <Label htmlFor="gerantDureeMandat">Durée du mandat (années) *</Label>
                 <Input
                   id="gerantDureeMandat"
@@ -877,6 +1231,7 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                   placeholder="Nom de famille"
                   value={formData.bailleurNom}
                   onChange={(e) => updateField('bailleurNom', e.target.value)}
+                  className={inputErrorClass(isBailMissing('bailleurNom'))}
                 />
               </div>
               <div className="space-y-2">
@@ -896,6 +1251,7 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                   id="bailleurAdresse"
                   value={formData.bailleurAdresse}
                   onChange={(e) => updateField('bailleurAdresse', e.target.value)}
+                  className={inputErrorClass(isBailMissing('bailleurAdresse'))}
                 />
               </div>
               <div className="space-y-2">
@@ -905,6 +1261,7 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                   placeholder="Ex: 05 05 44 33 78"
                   value={formData.bailleurContact}
                   onChange={(e) => updateField('bailleurContact', e.target.value)}
+                  className={inputErrorClass(isBailMissing('bailleurContact'))}
                 />
               </div>
             </div>
@@ -1262,20 +1619,12 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
               <div className="space-y-4">
                 <h4 className="font-semibold flex items-center gap-2">
                   <User className="h-4 w-4 text-secondary" />
-                  Associé unique / Gérant
+                  Associé unique
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Nom</span>
                     <span className="font-medium">{formData.associeNom} {formData.associePrenoms}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Père</span>
-                    <span className="font-medium">{formData.associePereNom}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Mère</span>
-                    <span className="font-medium">{formData.associeMereNom}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Profession</span>
@@ -1285,6 +1634,36 @@ export function SARLUForm({ onBack, price, docs, companyTypeName }: SARLUFormPro
                     <span className="text-muted-foreground">{formData.associeTypeIdentite}</span>
                     <span className="font-medium">{formData.associeNumeroIdentite}</span>
                   </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <User className="h-4 w-4 text-secondary" />
+                  Gérant {formData.gerantEstAssocie && <span className="text-xs text-muted-foreground font-normal">(= associé unique)</span>}
+                </h4>
+                <div className="space-y-2 text-sm">
+                  {formData.gerantEstAssocie ? (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Nom</span>
+                      <span className="font-medium">{formData.associeNom} {formData.associePrenoms}</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Nom</span>
+                        <span className="font-medium">{formData.gerantNom} {formData.gerantPrenoms}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Profession</span>
+                        <span className="font-medium">{formData.gerantProfession}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{formData.gerantTypeIdentite}</span>
+                        <span className="font-medium">{formData.gerantNumeroIdentite}</span>
+                      </div>
+                    </>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Mandat</span>
                     <span className="font-medium">{formData.gerantDureeMandat} ans</span>

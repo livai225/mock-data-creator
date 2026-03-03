@@ -28,9 +28,10 @@ import { companyTypes, type CompanyTypeInfo } from "@/lib/mock-data";
 import { toast } from "sonner";
 import { SARLPluriForm } from "@/components/forms/SARLPluriForm";
 import { SARLUForm } from "@/components/forms/SARLUForm";
+import { EIForm } from "@/components/forms/EIForm";
 import { getPublicPricingApi, type PricingSetting } from "@/lib/api";
 
-type Step = 'type' | 'info' | 'associes' | 'recap' | 'contact' | 'sarl-pluri' | 'sarlu';
+type Step = 'type' | 'info' | 'associes' | 'recap' | 'contact' | 'sarl-pluri' | 'sarlu' | 'ei';
 
 interface FormData {
   companyType: CompanyTypeInfo | null;
@@ -78,6 +79,8 @@ export default function CreationEntreprise() {
       setStep('sarl-pluri');
     } else if (company.id === 'SARLU') {
       setStep('sarlu');
+    } else if (company.id === 'EI') {
+      setStep('ei');
     } else {
       setStep('info');
     }
@@ -90,12 +93,16 @@ export default function CreationEntreprise() {
   }, []);
 
   const effectiveCompanyTypes = useMemo(() => {
-    const override = pricing?.companyTypePrices ?? {};
+    const priceOverride = pricing?.companyTypePrices ?? {};
+    const timeOverride = pricing?.companyTypeEstimatedTimes ?? {};
     return companyTypes.map((ct) => ({
       ...ct,
-      price: typeof override[ct.id] === 'number' ? override[ct.id] : ct.price,
+      price: typeof priceOverride[ct.id] === 'number' ? priceOverride[ct.id] : ct.price,
+      estimatedTime: typeof timeOverride[ct.id] === 'string' && timeOverride[ct.id].trim().length > 0
+        ? timeOverride[ct.id]
+        : ct.estimatedTime,
     }));
-  }, [pricing?.companyTypePrices]);
+  }, [pricing?.companyTypePrices, pricing?.companyTypeEstimatedTimes]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -113,6 +120,8 @@ export default function CreationEntreprise() {
       setStep('sarl-pluri');
     } else if (found.id === 'SARLU') {
       setStep('sarlu');
+    } else if (found.id === 'EI') {
+      setStep('ei');
     } else {
       setStep('info');
     }
@@ -290,7 +299,7 @@ export default function CreationEntreprise() {
       </section>
 
       {/* Progress - Only for standard forms, not SARL Pluri or SARLU */}
-      {step !== 'contact' && step !== 'sarl-pluri' && step !== 'sarlu' && (
+      {step !== 'contact' && step !== 'sarl-pluri' && step !== 'sarlu' && step !== 'ei' && (
         <div className="bg-muted/50 py-6">
           <div className="container">
             <div className="flex items-center justify-between max-w-2xl mx-auto">
@@ -456,13 +465,24 @@ export default function CreationEntreprise() {
 
           {/* SARL Unipersonnelle Form */}
           {step === 'sarlu' && formData.companyType && (
-            <SARLUForm 
-              onBack={() => setStep('type')} 
+            <SARLUForm
+              onBack={() => setStep('type')}
               price={formData.companyType.price}
               docs={formData.companyType.documentsGenerated}
               companyTypeName={formData.companyType.fullName}
             />
           )}
+
+          {/* Entreprise Individuelle Form */}
+          {step === 'ei' && formData.companyType && (
+            <EIForm
+              onBack={() => setStep('type')}
+              price={formData.companyType.price}
+              docs={formData.companyType.documentsGenerated}
+              companyTypeName={formData.companyType.fullName}
+            />
+          )}
+
           {step === 'info' && formData.companyType && (
             <div className="space-y-8">
               {/* Type de société - Indicateur permanent */}

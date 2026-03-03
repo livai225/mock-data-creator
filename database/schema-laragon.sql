@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS companies (
 CREATE TABLE IF NOT EXISTS associates (
   id INT AUTO_INCREMENT PRIMARY KEY,
   company_id INT NOT NULL,
+  civilite ENUM('M.', 'Mme', 'Mlle') DEFAULT 'M.',
   name VARCHAR(255) NOT NULL,
   parts INT NOT NULL,
   percentage DECIMAL(5, 2),
@@ -184,7 +185,7 @@ VALUES (
 -- Paramètres par défaut
 INSERT INTO settings (setting_key, setting_value, description) VALUES
 ('site_name', 'ARCH EXCELLENCE', 'Nom du site'),
-('site_email', 'contact@archexcellence.ci', 'Email de contact'),
+('site_email', 'archexcellence18@gmail.com', 'Email de contact'),
 ('site_phone', '01 51 25 29 99', 'Téléphone de contact'),
 ('maintenance_mode', 'false', 'Mode maintenance'),
 ('allow_registration', 'true', 'Autoriser les inscriptions'),

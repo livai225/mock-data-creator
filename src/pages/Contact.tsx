@@ -9,10 +9,22 @@ import {
   Mail, 
   MapPin, 
   Clock, 
-  Send,
-  MessageSquare
+  Send
 } from "lucide-react";
 import { toast } from "sonner";
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M20.52 3.48A11.86 11.86 0 0 0 12.06 0C5.48 0 .12 5.36.12 11.94c0 2.1.55 4.16 1.59 5.98L0 24l6.24-1.64a11.9 11.9 0 0 0 5.82 1.49h.01c6.58 0 11.94-5.36 11.94-11.94a11.86 11.86 0 0 0-3.49-8.43Zm-8.45 18.35h-.01a9.9 9.9 0 0 1-5.04-1.38l-.36-.21-3.7.97.99-3.6-.24-.37A9.89 9.89 0 0 1 2.14 11.94c0-5.48 4.45-9.93 9.93-9.93 2.65 0 5.14 1.03 7.02 2.91a9.86 9.86 0 0 1 2.9 7.02c0 5.47-4.45 9.92-9.92 9.92Zm5.45-7.44c-.3-.15-1.78-.88-2.06-.98-.27-.1-.47-.15-.67.15-.2.3-.76.98-.93 1.18-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.88-.78-1.48-1.74-1.66-2.04-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.52-.08-.15-.67-1.62-.92-2.23-.24-.58-.49-.5-.67-.5h-.57c-.2 0-.52.08-.8.38-.28.3-1.05 1.03-1.05 2.51 0 1.48 1.08 2.9 1.23 3.1.15.2 2.11 3.22 5.11 4.51.71.31 1.27.49 1.7.63.71.23 1.36.2 1.87.12.57-.08 1.78-.73 2.03-1.43.25-.7.25-1.3.17-1.43-.08-.13-.27-.2-.57-.35Z" />
+    </svg>
+  );
+}
 
 export default function Contact() {
   const handleSubmit = (e: React.FormEvent) => {
@@ -121,11 +133,11 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg mb-1">Email</h3>
-                      <a href="mailto:contact@archexcellence.ci" className="text-secondary font-medium hover:underline">
-                        contact@archexcellence.ci
+                      <a href="mailto:archexcellence18@gmail.com" className="text-secondary font-medium hover:underline">
+                        archexcellence18@gmail.com
                       </a>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Réponse sous 24-48h ouvrées
+                        Réponse sous 30 min ouvrées
                       </p>
                     </div>
                   </div>
@@ -141,8 +153,7 @@ export default function Contact() {
                     <div>
                       <h3 className="font-semibold text-lg mb-1">Adresse</h3>
                       <p className="text-muted-foreground">
-                        Abidjan, Côte d'Ivoire<br />
-                        Cocody - Riviera Palmeraie
+                        Cocody , Riviera
                       </p>
                     </div>
                   </div>
@@ -156,10 +167,10 @@ export default function Contact() {
                       <Clock className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg mb-1">Horaires d'ouverture</h3>
+                      <h3 className="font-semibold text-lg mb-1">Horaire</h3>
                       <div className="space-y-1 text-sm text-muted-foreground">
-                        <p><span className="font-medium text-foreground">Lundi - Vendredi :</span> 8h00 - 18h00</p>
-                        <p><span className="font-medium text-foreground">Samedi :</span> 9h00 - 13h00</p>
+                        <p><span className="font-medium text-foreground">Lundi - Vendredi :</span> 8h - 17h</p>
+                        <p><span className="font-medium text-foreground">Samedi :</span> Fermé</p>
                         <p><span className="font-medium text-foreground">Dimanche :</span> Fermé</p>
                       </div>
                     </div>
@@ -172,17 +183,17 @@ export default function Contact() {
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent">
-                      <MessageSquare className="h-6 w-6 text-accent-foreground" />
+                      <WhatsAppIcon className="h-6 w-6 text-accent-foreground" />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg mb-1">WhatsApp</h3>
                       <p className="text-sm text-muted-foreground">
-                        Besoin d'une réponse rapide ?
+                        Envoyez un message à Arch Excellence SARL
                       </p>
                     </div>
                     <Button variant="gold" asChild>
-                      <a href="https://wa.me/2250151252999" target="_blank" rel="noopener noreferrer">
-                        Écrire
+                      <a href="https://wa.me/message/WAPHCIKXX77DE1" target="_blank" rel="noopener noreferrer">
+                        Envoyer un message
                       </a>
                     </Button>
                   </div>
@@ -209,7 +220,7 @@ export default function Contact() {
             {[
               {
                 q: "Combien de temps faut-il pour créer une SARL ?",
-                a: "Avec notre plateforme, vous recevez vos documents sous 24-48h. Le dépôt au CEPICI prend ensuite 3-5 jours ouvrés.",
+                a: "Avec notre plateforme, vous recevez vos documents sous 30 min. Le dépôt au CEPICI prend ensuite 3-5 jours ouvrés.",
               },
               {
                 q: "Quels documents dois-je fournir ?",

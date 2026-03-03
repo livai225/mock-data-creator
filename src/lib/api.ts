@@ -64,15 +64,19 @@ export type SiteBanner = {
 export type PricingSetting = {
   pricingPlans: Array<{ id: string; price: number }>;
   companyTypePrices: Record<string, number>;
+  companyTypeEstimatedTimes: Record<string, string>;
 };
+
+export type ServicesContentSetting = Record<string, any>;
+export type FiscaliteContentSetting = Record<string, any>;
 
 // Fonction pour gérer la déconnexion automatique en cas de token expiré
 const handleTokenExpired = () => {
   console.warn('🔐 Token expiré - Déconnexion automatique');
   localStorage.removeItem('arch_excellence_token');
-  // Rediriger vers la page de login
-  if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
-    window.location.href = '/login?expired=true';
+  // Rediriger vers la page de connexion
+  if (window.location.pathname !== '/connexion' && window.location.pathname !== '/inscription') {
+    window.location.href = '/connexion?expired=true';
   }
 };
 
@@ -362,6 +366,14 @@ export async function getPublicPricingApi() {
   return apiRequest<ApiResult<PricingSetting>>("/api/settings/pricing", { method: "GET" });
 }
 
+export async function getPublicServicesContentApi() {
+  return apiRequest<ApiResult<ServicesContentSetting>>("/api/settings/services-content", { method: "GET" });
+}
+
+export async function getPublicFiscaliteContentApi() {
+  return apiRequest<ApiResult<FiscaliteContentSetting>>("/api/settings/fiscalite-content", { method: "GET" });
+}
+
 export async function adminDashboardApi(token: string) {
   return apiRequest<any>("/api/admin/dashboard", { method: "GET", token });
 }
@@ -427,6 +439,30 @@ export async function adminGetPricingApi(token: string) {
 
 export async function adminUpdatePricingApi(token: string, payload: PricingSetting) {
   return apiRequest<ApiResult<PricingSetting>>("/api/admin/settings/pricing", {
+    method: "PUT",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminGetServicesContentApi(token: string) {
+  return apiRequest<ApiResult<ServicesContentSetting>>("/api/admin/settings/services-content", { method: "GET", token });
+}
+
+export async function adminUpdateServicesContentApi(token: string, payload: ServicesContentSetting) {
+  return apiRequest<ApiResult<ServicesContentSetting>>("/api/admin/settings/services-content", {
+    method: "PUT",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminGetFiscaliteContentApi(token: string) {
+  return apiRequest<ApiResult<FiscaliteContentSetting>>("/api/admin/settings/fiscalite-content", { method: "GET", token });
+}
+
+export async function adminUpdateFiscaliteContentApi(token: string, payload: FiscaliteContentSetting) {
+  return apiRequest<ApiResult<FiscaliteContentSetting>>("/api/admin/settings/fiscalite-content", {
     method: "PUT",
     token,
     body: JSON.stringify(payload),

@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import mammoth from 'mammoth';
 import { generateDocument } from './documentGenerator.js';
+import { generateDocxDocument, canGenerateWithDocx } from './docxGenerator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -205,11 +206,26 @@ const formatDate = (dateString) => {
  */
 export const generateDocumentFromModel = async (docName, company, associates = [], managers = [], additionalData = {}, options = { formats: ['pdf', 'docx'] }) => {
   console.log(`\n🔧 [ModelBasedGenerator] Génération de: "${docName}"`);
-  
+
   // Déterminer le type de SARL
   const sarlType = getSarlType(associates);
   console.log(`   Type SARL: ${sarlType}`);
-  
+
+  // ===== Utiliser docxtemplater pour les documents SARLU =====
+  if (canGenerateWithDocx(docName, associates)) {
+    console.log(`   📄 Utilisation de docxtemplater pour: ${docName}`);
+    try {
+      const result = await generateDocxDocument(docName, company, associates, managers, additionalData, options);
+      console.log(`   ✅ Document généré avec docxtemplater`);
+      return result;
+    } catch (docxError) {
+      console.error(`   ❌ Erreur docxtemplater:`, docxError.message);
+      console.log(`   🔄 Fallback vers le système par défaut`);
+      // Fallback vers l'ancien système
+    }
+  }
+  // =====
+
   // Obtenir le chemin du modèle
   const modelPath = getModelPath(docName, company, associates);
   if (!modelPath) {
@@ -217,27 +233,27 @@ export const generateDocumentFromModel = async (docName, company, associates = [
     // Retourner au système par défaut
     return await generateDocument(docName, company, associates, managers, additionalData, options);
   }
-  
+
   console.log(`   📄 Modèle utilisé: ${path.relative(process.cwd(), modelPath)}`);
-  
+
   try {
     // Extraire le texte du modèle
     const templateText = await extractModelText(modelPath);
     console.log(`   ✅ Template extrait: ${templateText.length} caractères`);
-    
+
     // Remplacer les placeholders
     const processedText = replacePlaceholders(templateText, company, associates, managers, additionalData);
     console.log(`   ✅ Texte traité: ${processedText.length} caractères`);
-    
+
     // Utiliser le système de génération existant avec le texte traité
     const result = await generateDocument(docName, company, associates, managers, additionalData, {
       ...options,
       customContent: processedText
     });
-    
+
     console.log(`   ✅ Document généré avec succès`);
     return result;
-    
+
   } catch (error) {
     console.error(`   ❌ Erreur génération modèle:`, error.message);
     // Retourner au système par défaut en cas d'erreur

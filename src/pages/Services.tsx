@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,8 @@ import {
   Phone
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { services } from "@/lib/mock-data";
+import { getPublicServicesContentApi } from "@/lib/api";
+import { defaultServicesContent, normalizeServicesContent, type ServicesContent } from "@/lib/site-content";
 
 const iconMap: Record<string, React.ElementType> = {
   Calculator,
@@ -25,6 +27,16 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export default function Services() {
+  const [content, setContent] = useState<ServicesContent>(defaultServicesContent);
+
+  useEffect(() => {
+    getPublicServicesContentApi()
+      .then((res) => setContent(normalizeServicesContent(res.data)))
+      .catch(() => setContent(defaultServicesContent));
+  }, []);
+
+  const servicesList = useMemo(() => content.services, [content.services]);
+
   return (
     <Layout>
       {/* Header */}
@@ -32,11 +44,10 @@ export default function Services() {
         <div className="container">
           <div className="max-w-3xl">
             <h1 className="font-display text-4xl sm:text-5xl font-bold text-primary-foreground mb-6">
-              Nos Services d'Excellence
+              {content.header.title}
             </h1>
             <p className="text-xl text-primary-foreground/80 leading-relaxed">
-              ARCH EXCELLENCE SARL vous accompagne dans tous les aspects comptables, fiscaux, 
-              juridiques et administratifs de votre entreprise en Côte d'Ivoire.
+              {content.header.description}
             </p>
           </div>
         </div>
@@ -46,7 +57,7 @@ export default function Services() {
       <section className="py-20">
         <div className="container">
           <div className="grid gap-8 lg:grid-cols-2">
-            {services.map((service, index) => {
+            {servicesList.map((service, index) => {
               const Icon = iconMap[service.icon] || Building2;
               return (
                 <Card 
@@ -89,24 +100,16 @@ export default function Services() {
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div>
               <span className="inline-block px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-4">
-                Pour les investisseurs étrangers
+                {content.investor.badge}
               </span>
               <h2 className="font-display text-3xl sm:text-4xl font-bold mb-6">
-                Accompagnement Investisseurs Internationaux
+                {content.investor.title}
               </h2>
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                Vous souhaitez investir en Côte d'Ivoire ? Notre équipe spécialisée vous accompagne 
-                dans toutes vos démarches administratives et juridiques.
+                {content.investor.description}
               </p>
               <ul className="space-y-4 mb-8">
-                {[
-                  "Obtention de la carte de résident",
-                  "Déclaration d'existence fiscale",
-                  "Ouverture de compte bancaire professionnel",
-                  "Demande d'agréments sectoriels",
-                  "Accompagnement démarches CEPICI",
-                  "Conseil fiscal et juridique",
-                ].map((item) => (
+                {content.investor.items.map((item) => (
                   <li key={item} className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-secondary shrink-0" />
                     <span>{item}</span>
@@ -115,24 +118,18 @@ export default function Services() {
               </ul>
               <Button variant="gold" size="lg" asChild>
                 <Link to="/contact">
-                  Demander un accompagnement
+                  {content.investor.ctaLabel}
                   <ArrowRight className="h-5 w-5" />
                 </Link>
               </Button>
             </div>
             <Card variant="gold" className="p-8">
-              <h3 className="font-display text-2xl font-bold mb-4">Pack Investisseur Premium</h3>
+              <h3 className="font-display text-2xl font-bold mb-4">{content.investor.packTitle}</h3>
               <p className="text-muted-foreground mb-6">
-                Solution tout-en-un pour les investisseurs souhaitant s'implanter en Côte d'Ivoire.
+                {content.investor.packDescription}
               </p>
               <ul className="space-y-3 mb-8">
-                {[
-                  "Création d'entreprise complète",
-                  "Accompagnement administratif",
-                  "Conseil juridique personnalisé",
-                  "Suivi pendant 3 mois",
-                  "Expert dédié",
-                ].map((item) => (
+                {content.investor.packItems.map((item) => (
                   <li key={item} className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-secondary" />
                     <span>{item}</span>
@@ -141,9 +138,9 @@ export default function Services() {
               </ul>
               <div className="border-t pt-6">
                 <p className="text-sm text-muted-foreground mb-2">À partir de</p>
-                <p className="text-3xl font-bold text-secondary mb-4">500 000 FCFA</p>
+                <p className="text-3xl font-bold text-secondary mb-4">{content.investor.packPrice}</p>
                 <Button variant="navy" className="w-full" asChild>
-                  <Link to="/contact">Nous contacter</Link>
+                  <Link to="/contact">{content.investor.packCtaLabel}</Link>
                 </Button>
               </div>
             </Card>
@@ -157,21 +154,21 @@ export default function Services() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="font-display text-2xl font-bold text-secondary-foreground mb-2">
-                Besoin d'un conseil personnalisé ?
+                {content.cta.title}
               </h3>
               <p className="text-secondary-foreground/80">
-                Nos experts sont disponibles pour répondre à vos questions.
+                {content.cta.description}
               </p>
             </div>
             <div className="flex gap-4">
               <Button variant="navy" size="lg" asChild>
                 <a href="tel:0151252999">
                   <Phone className="h-5 w-5" />
-                  Appeler maintenant
+                  {content.cta.callLabel}
                 </a>
               </Button>
               <Button variant="outline" size="lg" className="border-secondary-foreground/30 text-secondary-foreground hover:bg-secondary-foreground/10" asChild>
-                <Link to="/contact">Formulaire de contact</Link>
+                <Link to="/contact">{content.cta.contactLabel}</Link>
               </Button>
             </div>
           </div>

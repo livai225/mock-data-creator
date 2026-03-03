@@ -21,6 +21,8 @@ import AdminCompanies from "./pages/admin/AdminCompanies";
 import AdminDocuments from "./pages/admin/AdminDocuments";
 import AdminPricing from "./pages/admin/AdminPricing";
 import AdminBanner from "./pages/admin/AdminBanner";
+import AdminServicesContent from "./pages/admin/AdminServicesContent";
+import AdminFiscaliteContent from "./pages/admin/AdminFiscaliteContent";
 import AdminPayments from "./pages/AdminPayments";
 import Services from "./pages/Services";
 import Fiscalite from "./pages/Fiscalite";
@@ -66,6 +68,8 @@ const App = () => (
               <Route path="paiements" element={<AdminPayments />} />
               <Route path="tarifs" element={<AdminPricing />} />
               <Route path="banniere" element={<AdminBanner />} />
+              <Route path="contenu-services" element={<AdminServicesContent />} />
+              <Route path="contenu-fiscalite" element={<AdminFiscaliteContent />} />
             </Route>
 
             <Route path="/services" element={<Services />} />

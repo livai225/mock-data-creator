@@ -8,6 +8,7 @@ import {
   FileText, 
   CreditCard, 
   Bell,
+  FileEdit,
   ChevronRight,
   LogOut
 } from "lucide-react";
@@ -23,6 +24,8 @@ const adminLinks = [
   { href: "/admin/paiements", label: "Paiements", icon: CreditCard },
   { href: "/admin/tarifs", label: "Tarifs", icon: CreditCard },
   { href: "/admin/banniere", label: "Bannière", icon: Bell },
+  { href: "/admin/contenu-services", label: "Contenu Services", icon: FileEdit },
+  { href: "/admin/contenu-fiscalite", label: "Contenu Fiscalité", icon: FileEdit },
 ];
 
 export default function AdminLayout() {
