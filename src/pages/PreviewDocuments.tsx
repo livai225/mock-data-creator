@@ -637,38 +637,8 @@ export default function PreviewDocuments() {
         return;
       }
 
-      setDocumentsGenerated(true);
-      toast.success("Documents générés avec succès ! Vous pourrez les télécharger après paiement sur le tableau de bord.");
-
-      // Attendre un peu pour que les documents soient bien sauvegardés
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Recharger les documents générés avec cache-busting
-      const docsRes = await getMyDocumentsApi(token!);
-      if (docsRes.success && docsRes.data) {
-        const companyDocs = docsRes.data.filter(
-          (doc: UserDocument) => doc.company_id === newCompanyId && doc.mime_type === 'application/pdf'
-        );
-        console.log(`📄 ${companyDocs.length} documents PDF trouvés pour l'entreprise ${newCompanyId}:`, companyDocs.map(d => d.doc_name));
-        setGeneratedDocuments(companyDocs);
-
-        // Créer les URLs blob pour chaque document
-        const urls: Record<number, string> = {};
-        for (const doc of companyDocs) {
-          try {
-            const blob = await viewDocumentApi(token!, doc.id);
-            const url = URL.createObjectURL(blob);
-            urls[doc.id] = url;
-            console.log(`✅ URL blob créée pour document: ${doc.doc_name} (ID: ${doc.id})`);
-          } catch (error) {
-            console.error(`❌ Erreur chargement document ${doc.id} (${doc.doc_name}):`, error);
-          }
-        }
-        setDocumentUrls(urls);
-        console.log(`📋 URLs blob créées:`, Object.keys(urls).length);
-      } else {
-        console.error('❌ Erreur lors du chargement des documents:', docsRes);
-      }
+      toast.success("Documents générés avec succès ! Retrouvez-les sur votre tableau de bord.");
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("❌ Erreur inattendue handleValidateAll:", error);
       toast.error(error?.message || "Erreur lors de la génération des documents");
