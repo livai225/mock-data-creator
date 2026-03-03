@@ -6,6 +6,47 @@ import Document from '../models/Document.js';
 import Company from '../models/Company.js';
 import { generateDocument, generateMultipleDocuments } from '../utils/documentGenerator.js';
 import { generateDocumentFromModel, generateMultipleDocumentsFromModels } from '../utils/modelBasedGenerator.js';
+import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
+
+// Ajoute un filigrane diagonal "APERÇU" sur chaque page d'un PDF
+const addWatermarkToPdf = async (pdfBuffer) => {
+  try {
+    const pdfDoc = await PDFDocument.load(pdfBuffer);
+    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const pages = pdfDoc.getPages();
+
+    for (const page of pages) {
+      const { width, height } = page.getSize();
+
+      // Filigrane diagonal principal "APERÇU"
+      page.drawText('APERÇU', {
+        x: width / 2 - 130,
+        y: height / 2 - 20,
+        size: 90,
+        font,
+        color: rgb(0.82, 0.82, 0.82),
+        opacity: 0.45,
+        rotate: degrees(45),
+      });
+
+      // Sous-texte "PAIEMENT REQUIS"
+      page.drawText('PAIEMENT REQUIS', {
+        x: width / 2 - 145,
+        y: height / 2 - 90,
+        size: 32,
+        font,
+        color: rgb(0.82, 0.82, 0.82),
+        opacity: 0.45,
+        rotate: degrees(45),
+      });
+    }
+
+    return Buffer.from(await pdfDoc.save());
+  } catch (err) {
+    console.warn('⚠️ Impossible d\'ajouter le filigrane:', err.message);
+    return pdfBuffer; // Retourner le PDF original en cas d'erreur
+  }
+};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -736,11 +777,12 @@ export const previewDocuments = async (req, res, next) => {
         continue;
       }
 
-      // Lire le fichier PDF et le convertir en base64
+      // Lire le fichier PDF, ajouter le filigrane, puis convertir en base64
       if (result.pdf && result.pdf.filePath && fs.existsSync(result.pdf.filePath)) {
-        const pdfBuffer = fs.readFileSync(result.pdf.filePath);
-        const pdfBase64 = pdfBuffer.toString('base64');
-        
+        const rawBuffer = fs.readFileSync(result.pdf.filePath);
+        const watermarkedBuffer = await addWatermarkToPdf(rawBuffer);
+        const pdfBase64 = watermarkedBuffer.toString('base64');
+
         previews.push({
           docName: result.docName,
           pdf: {
