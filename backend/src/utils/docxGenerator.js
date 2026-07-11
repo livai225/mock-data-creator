@@ -146,15 +146,17 @@ const getCommonData = (company, associates = [], managers = []) => {
   const denominationCourte = company.company_name || '[DENOMINATION]';
   const sigle = company.sigle;
   const nomCommercial = company.nom_commercial || null;
+  // Exigence CEPICI : ne jamais écrire "SARL" seul, toujours préciser la forme
+  const formeSarl = associates.length > 1 ? 'SARL pluripersonnelle' : 'SARL unipersonnelle';
   let denominationComplete;
   if (sigle && nomCommercial) {
     denominationComplete = `${denominationCourte}, en abrégée ${sigle} et qui a pour nom commercial ${nomCommercial}`;
   } else if (sigle) {
     denominationComplete = `${denominationCourte}, en abrégée ${sigle}`;
   } else if (nomCommercial) {
-    denominationComplete = `${denominationCourte} SARL et qui a pour nom commercial ${nomCommercial}`;
+    denominationComplete = `${denominationCourte} ${formeSarl} et qui a pour nom commercial ${nomCommercial}`;
   } else {
-    denominationComplete = `${denominationCourte} SARL`;
+    denominationComplete = `${denominationCourte} ${formeSarl}`;
   }
 
   const siegeParts = [
@@ -416,10 +418,14 @@ const prepareContratBailEIData = (company, managers = [], additionalData = {}) =
 
   const nomCommercial = company.nom_commercial || '';
 
+  // Civilité du propriétaire (M. → Monsieur, Mme → Madame, Mlle → Mademoiselle)
+  const civiliteMap = { 'M.': 'Monsieur', 'Mme': 'Madame', 'Mlle': 'Mademoiselle' };
+  const proprietaireCivilite = civiliteMap[proprietaire.civilite] || 'Monsieur';
+
   // Ligne identifiant le preneur EI
   const preneurEiDescription = nomCommercial
-    ? `${proprietaireNomComplet} ayant pour nom commercial « ${nomCommercial} » Représenté par son exploitant(e) Monsieur ${proprietaireNomComplet}`
-    : `${proprietaireNomComplet} Représenté par son exploitant(e) Monsieur ${proprietaireNomComplet}`;
+    ? `${proprietaireNomComplet} ayant pour nom commercial « ${nomCommercial} » Représenté par son exploitant(e) ${proprietaireCivilite} ${proprietaireNomComplet}`
+    : `${proprietaireNomComplet} Représenté par son exploitant(e) ${proprietaireCivilite} ${proprietaireNomComplet}`;
 
   // Objet d'exploitation
   const objetExploitationEi = nomCommercial
@@ -658,7 +664,7 @@ const buildDsvPluriDocument = (common, rows) => {
   cc.push(_dsvPara([_dsvRun(`Par Acte sous seing Privé en date du ${common.date_constitution},`)],
     { spacing: SP }));
   cc.push(_dsvPara([
-    _dsvRun('Ont établi, les statuts de la Société à Responsabilité Limitée', { bold: true }),
+    _dsvRun('Ont établi, les statuts de la Société à Responsabilité Limitée pluripersonnelle', { bold: true }),
     _dsvRun(' devant exister entre eux et tous propriétaires de parts sociales ultérieures,' +
             ' dont les principales caractéristiques sont les suivantes :'),
   ], { spacing: SP }));
@@ -666,7 +672,7 @@ const buildDsvPluriDocument = (common, rows) => {
   // 1-FORME
   cc.push(_dsvParaL([_dsvRun('1-FORME', { bold: true, underline: true })], { spacing: SPH }));
   cc.push(_dsvPara([_dsvRun(
-    'La société constituée est une société à Responsabilité Limitée régie par les dispositions' +
+    'La société constituée est une société à Responsabilité Limitée pluripersonnelle régie par les dispositions' +
     ' de l\'Acte uniforme révisé de l\'OHADA du 30 janvier 2014 relatif au droit des Sociétés' +
     ' commerciales et du Groupement d\'intérêt économique (GIE), ainsi que par toutes autres' +
     ' dispositions légales ou réglementaires applicables et ses présents statuts.')],
@@ -1122,8 +1128,9 @@ const generateListeGerantsPluriProgrammatic = async (company, associates, manage
     const ni = m.numeroIdentite || m.numero_identite || '[N°]';
     const dd = formatDate(m.dateDelivranceId || m.date_delivrance_id);
     const dv = formatDate(m.dateValiditeId || m.date_validite_id);
+    const ld = m.lieuDelivranceId || m.lieu_delivrance_id || "la République de Côte d'Ivoire";
 
-    const gerantText = `${m.civilite || 'M.'} ${nom}, ${prof}, résident à ${ville} de nationalité ${nat} née le ${dn} à ${ln} et titulaire de la ${ti} ${ni} délivré le ${dd} et valable ${dv} par la République de Côte d'Ivoire.`;
+    const gerantText = `${m.civilite || 'M.'} ${nom}, ${prof}, résident à ${ville} de nationalité ${nat} née le ${dn} à ${ln} et titulaire de la ${ti} ${ni} délivré le ${dd} et valable ${dv} par ${ld}.`;
     paragraphs.push(new DocxParagraph({
       children: [t(gerantText)],
       alignment: AlignmentType.JUSTIFIED,

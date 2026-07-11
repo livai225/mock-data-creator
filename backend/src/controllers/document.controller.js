@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { AppError } from '../middleware/errorHandler.js';
 import Document from '../models/Document.js';
 import Company from '../models/Company.js';
+import { query } from '../config/database.js';
 import { generateDocument, generateMultipleDocuments } from '../utils/documentGenerator.js';
 import { generateDocumentFromModel, generateMultipleDocumentsFromModels } from '../utils/modelBasedGenerator.js';
 import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
@@ -192,9 +193,41 @@ export const generateDocuments = async (req, res, next) => {
     // Construire les données additionnelles (bailleur, etc.)
     const additionalData = req.body.additionalData || {};
     
-    // Si bailleur est fourni dans le body, le convertir au format attendu par les templates
-    if (req.body.bailleur) {
-      const b = req.body.bailleur;
+    // Résoudre le bailleur : priorité au body, sinon repli sur la table `leases`
+    // (les générations depuis le tableau de bord n'envoient pas le bailleur,
+    //  mais il a été persisté à la création de l'entreprise)
+    let bailleurSource = req.body.bailleur;
+    if (!bailleurSource && companyId) {
+      try {
+        const leaseRows = await query(
+          'SELECT * FROM leases WHERE company_id = ? ORDER BY id DESC LIMIT 1',
+          [companyId]
+        );
+        if (leaseRows && leaseRows.length > 0) {
+          const l = leaseRows[0];
+          const toISO = (d) => (d ? new Date(d).toISOString().split('T')[0] : null);
+          bailleurSource = {
+            nom: l.bailleur_nom,
+            prenom: l.bailleur_prenom,
+            adresse: l.bailleur_adresse,
+            telephone: l.bailleur_telephone,
+            loyerMensuel: l.loyer_mensuel,
+            cautionMois: l.caution_mois,
+            avanceMois: l.avance_mois,
+            dureeBailAnnees: l.duree_bail_annees,
+            dateDebutBail: toISO(l.date_debut),
+            dateFinBail: toISO(l.date_fin)
+          };
+          console.log(`📋 Bailleur chargé depuis la table leases pour company_id=${companyId}`);
+        }
+      } catch (e) {
+        console.warn('⚠️ Impossible de charger le bailleur depuis leases:', e.message);
+      }
+    }
+
+    // Si un bailleur est disponible (body ou base), le convertir au format attendu par les templates
+    if (bailleurSource) {
+      const b = bailleurSource;
       additionalData.bailleur_nom = b.nom && b.prenom 
         ? `${b.nom} ${b.prenom}`.trim() 
         : b.nom || '[NOM DU BAILLEUR]';

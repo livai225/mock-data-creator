@@ -57,6 +57,13 @@ const escapeHtml = (str) => {
 
 const upper = (str) => escapeHtml(str).toUpperCase();
 
+// Tronque le texte pour qu'il tienne dans une case CEPICI (une seule ligne)
+const truncateCepici = (str, max = 80) => {
+  if (!str) return '';
+  const s = String(str);
+  return s.length > max ? s.slice(0, max).trimEnd() + '...' : s;
+};
+
 /**
  * Normalise les données pour le formulaire CEPICI
  */
@@ -83,7 +90,7 @@ const normalizeCepiciData = (company, managers = [], associates = [], additional
     capital: formatNumber(capital),
     capitalNumeraire: formatNumber(capital),
     apportsNature: '0',
-    formeJuridique: 'SARL' + ((!associates || associates.length <= 1) ? ' U' : ''),
+    formeJuridique: (!associates || associates.length <= 1) ? 'SARL unipersonnelle' : 'SARL pluripersonnelle',
     activitePrincipale: company.activity || '',
     activitesSecondaires: company.activites_secondaires || additionalData.activites_secondaires || '',
     chiffreAffairesPrev: formatNumber(company.chiffre_affaires_prev || additionalData.chiffre_affaires_prev || ''),
@@ -557,7 +564,7 @@ export const generateCepiciHtml = (company, managers = [], associates = [], addi
       <div class="sectionTitle"><span class="roman">I-</span> IDENTIFICATION</div>
 
       <div class="fieldLine">
-        <div class="label">Dénomination sociale :</div><div class="dots">${upper(d.companyName)} SARL</div>
+        <div class="label">Dénomination sociale :</div><div class="dots">${upper(d.companyName)} ${escapeHtml(d.formeJuridique)}</div>
       </div>
       <div class="fieldLine">
         <div class="label">Nom commercial :</div><div class="dots">${upper(d.nomCommercial)}</div>
@@ -590,10 +597,10 @@ export const generateCepiciHtml = (company, managers = [], associates = [], addi
       <div class="sectionTitle"><span class="roman">II-</span> ACTIVITÉ <span class="muted">(renseignements sur la personne morale)</span></div>
 
       <div class="fieldLine">
-        <div class="label">Activité principale :</div><div class="dots">${escapeHtml(d.activitePrincipale)}</div>
+        <div class="label">Activité principale :</div><div class="dots">${escapeHtml(truncateCepici(d.activitePrincipale))}</div>
       </div>
       <div class="fieldLine">
-        <div class="label">Activités secondaires :</div><div class="dots">${escapeHtml(d.activitesSecondaires)}</div>
+        <div class="label">Activités secondaires :</div><div class="dots">${escapeHtml(truncateCepici(d.activitesSecondaires))}</div>
       </div>
       <div class="fieldLine">
         <div class="label">Chiffre d'affaires prévisionnel :</div><div class="dots">${d.chiffreAffairesPrev ? escapeHtml(d.chiffreAffairesPrev) + ' FCFA' : ''}</div>
@@ -942,7 +949,7 @@ export const generateCepiciEIHtml = (company, managers = [], additionalData = {}
 
   <div class="section">
     <div class="sectionTitle">III- <span class="u">ACTIVITES</span> <span style="font-weight:400;">(renseignements relatifs à l'entreprise)</span></div>
-    <div class="fieldLine"><div class="label">Activités exercées :</div><div class="dots">${escapeHtml(company.activity || '')}</div></div>
+    <div class="fieldLine"><div class="label">Activités exercées :</div><div class="dots">${escapeHtml(truncateCepici(company.activity || ''))}</div></div>
     <div class="fieldLine"><div class="label">Forme d'exploitation :</div><div class="dots">${escapeHtml(eiData.formeExploitation || '')}</div></div>
     <div style="display:grid; grid-template-columns: 130px 1fr 160px 1fr; gap:4px; margin:3px 0; align-items:end;">
       <div class="label">Nombre d'employés :</div><div class="dots">${escapeHtml(eiData.nombreEmployes || '')}</div>
@@ -955,7 +962,7 @@ export const generateCepiciEIHtml = (company, managers = [], additionalData = {}
     <div class="fieldLine"><div class="label">Chiffre d'affaires prévisionnel :</div><div class="dots">${escapeHtml(company.chiffre_affaires_prev || '')}</div></div>
     <div class="fieldLine"><div class="label">Nom commercial :</div><div class="dots">${upper(company.nom_commercial || company.company_name || '')}</div></div>
     <div class="fieldLine"><div class="label">Sigle utilisé :</div><div class="dots">${upper(company.sigle || '')}</div></div>
-    <div class="fieldLine"><div class="label">Objet de l'entreprise :</div><div class="dots">${escapeHtml(company.activity || '')}</div></div>
+    <div class="fieldLine"><div class="label">Objet de l'entreprise :</div><div class="dots">${escapeHtml(truncateCepici(company.activity || ''))}</div></div>
   </div>
 
   <div class="section">
