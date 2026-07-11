@@ -5,6 +5,7 @@ import { protect, adminOnly } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import {
   initiatePayment,
+  verifyPaymentByReference,
   checkPaymentStatus,
   checkCompanyPayment,
   paymentWebhook,
@@ -27,12 +28,13 @@ const router = express.Router();
 const initiatePaymentValidation = [
   body('company_id').isInt().withMessage('company_id doit être un entier'),
   body('amount').isFloat({ min: 0 }).withMessage('amount doit être un nombre positif'),
-  body('payment_method').optional().isIn(['mobile_money', 'card', 'bank_transfer']).withMessage('Méthode de paiement invalide')
+  body('payment_method').optional().isIn(['mobile_money', 'card', 'bank_transfer', 'genius_pay']).withMessage('Méthode de paiement invalide')
 ];
 
 // Routes protégées
 router.post('/initiate', protect, initiatePaymentValidation, validate, initiatePayment);
 router.post('/:id/simulate', protect, simulatePayment); // Mode TEST uniquement
+router.get('/verify/:reference', protect, verifyPaymentByReference);
 router.get('/:id/status', protect, checkPaymentStatus);
 router.get('/company/:companyId/check', protect, checkCompanyPayment);
 router.get('/history', protect, getPaymentHistory);

@@ -4,6 +4,7 @@ import AppError from '../utils/errorHandler.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 import multer from 'multer';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -76,61 +77,138 @@ export const initiatePayment = async (req, res, next) => {
       });
     }
 
-    // Créer un nouveau paiement
+    // Créer un nouveau paiement en base
     const paymentId = await Payment.create({
       user_id: userId,
       company_id,
       amount: parseFloat(amount),
-      currency: 'FCFA',
-      payment_method
+      currency: 'XOF',
+      payment_method: 'genius_pay'
     });
 
     const payment = await Payment.findById(paymentId);
 
-    // Mode TEST : Simuler un paiement réussi après 3 secondes
-    // En production, cela sera remplacé par l'intégration Flutterwave/Paystack
-    const isTestMode = process.env.NODE_ENV !== 'production' || process.env.ENABLE_TEST_PAYMENT === 'true';
-    
-    if (isTestMode) {
-      // Simuler le paiement après 3 secondes
-      setTimeout(async () => {
-        try {
-          await Payment.updateStatus(payment.id, 'completed', `TEST-${payment.payment_reference}`, {
-            test_mode: true,
-            simulated_at: new Date().toISOString()
-          });
-          
-          // Mettre à jour le statut de paiement de l'entreprise
-          await Company.updatePaymentStatus(company_id, 'paid', payment.amount, payment.payment_reference);
-          
-          console.log(`✅ [TEST] Paiement simulé réussi pour ${payment.payment_reference}`);
-        } catch (error) {
-          console.error('❌ [TEST] Erreur simulation paiement:', error);
-        }
-      }, 3000);
+    // Appel à l'API Genius Pay
+    const frontendUrl = process.env.FRONTEND_URL || 'https://archexcellence.ci';
+    const geniusRes = await fetch(`${process.env.GENIUS_PAY_BASE_URL}/payments`, {
+      method: 'POST',
+      headers: {
+        'X-API-Key': process.env.GENIUS_PAY_API_KEY,
+        'X-API-Secret': process.env.GENIUS_PAY_API_SECRET,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        currency: 'XOF',
+        description: `Création d'entreprise - ${company.company_name}`,
+        customer: {
+          name: `${req.user.first_name || ''} ${req.user.last_name || ''}`.trim() || req.user.email,
+          email: req.user.email,
+          country: 'CI'
+        },
+        metadata: {
+          payment_reference: payment.payment_reference,
+          company_id: String(company_id)
+        },
+        success_url: `${frontendUrl}/paiement-succes?ref=${payment.payment_reference}`,
+        error_url: `${frontendUrl}/paiement-erreur?ref=${payment.payment_reference}`
+      })
+    });
+
+    const geniusData = await geniusRes.json();
+
+    if (!geniusData.success) {
+      console.error('❌ Genius Pay error:', geniusData);
+      return next(new AppError(geniusData.message || 'Erreur lors de la création du paiement Genius Pay', 502));
     }
+
+    // Stocker la référence Genius Pay
+    await Payment.updateStatus(payment.id, 'pending', geniusData.data.reference, {
+      genius_pay_id: geniusData.data.id,
+      genius_pay_reference: geniusData.data.reference
+    });
+
+    console.log(`✅ Paiement Genius Pay créé : ${geniusData.data.reference} → ${geniusData.data.checkout_url}`);
 
     res.status(201).json({
       success: true,
-      message: isTestMode 
-        ? 'Paiement initié en mode TEST (sera confirmé automatiquement dans 3 secondes)'
-        : 'Paiement initié avec succès',
+      message: 'Paiement initié avec succès',
       data: {
-        payment,
-        payment_url: null, // Sera rempli avec l'URL de paiement Flutterwave/Paystack
-        test_mode: isTestMode,
-        instructions: {
-          method: payment_method,
-          amount: payment.amount,
-          currency: payment.currency,
-          reference: payment.payment_reference,
-          ...(isTestMode && {
-            test_note: 'Mode TEST activé - Le paiement sera confirmé automatiquement'
-          })
-        }
+        payment_reference: payment.payment_reference,
+        checkout_url: geniusData.data.checkout_url,
+        amount: parseFloat(amount),
+        currency: 'XOF'
       }
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Vérifier activement un paiement auprès de Genius Pay (fallback webhook)
+// @route   GET /api/payments/verify/:reference
+// @access  Private
+export const verifyPaymentByReference = async (req, res, next) => {
+  try {
+    const { reference } = req.params; // référence interne PAY-xxxx
+    const userId = req.user.id;
+
+    const payment = await Payment.findByReference(reference);
+    if (!payment) {
+      return next(new AppError('Paiement non trouvé', 404));
+    }
+
+    if (payment.user_id !== userId && req.user.role !== 'admin') {
+      return next(new AppError('Accès non autorisé', 403));
+    }
+
+    // Déjà confirmé en base : rien à faire
+    if (payment.status === 'completed') {
+      return res.json({
+        success: true,
+        data: { status: 'completed', is_paid: true, payment_reference: reference }
+      });
+    }
+
+    // Pas de référence Genius Pay → impossible de vérifier
+    if (!payment.transaction_reference) {
+      return res.json({
+        success: true,
+        data: { status: payment.status, is_paid: false, payment_reference: reference }
+      });
+    }
+
+    // Interroger l'API Genius Pay sur le vrai statut
+    const geniusRes = await fetch(
+      `${process.env.GENIUS_PAY_BASE_URL}/payments/${payment.transaction_reference}/status`,
+      {
+        headers: {
+          'X-API-Key': process.env.GENIUS_PAY_API_KEY,
+          'X-API-Secret': process.env.GENIUS_PAY_API_SECRET
+        }
+      }
+    );
+    const geniusData = await geniusRes.json();
+    const remoteStatus = geniusData?.data?.status;
+
+    if (remoteStatus === 'completed') {
+      await Payment.updateStatus(payment.id, 'completed', payment.transaction_reference, geniusData.data);
+      if (payment.company_id) {
+        await Company.updatePaymentStatus(payment.company_id, 'paid', payment.amount, payment.payment_reference);
+      }
+      console.log(`✅ [Genius Pay] Paiement vérifié (fallback) : ${reference} → company_id=${payment.company_id}`);
+      return res.json({
+        success: true,
+        data: { status: 'completed', is_paid: true, payment_reference: reference }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { status: remoteStatus || payment.status, is_paid: false, payment_reference: reference }
+    });
+  } catch (error) {
+    console.error('Erreur vérification paiement:', error);
     next(error);
   }
 };
@@ -256,42 +334,66 @@ export const simulatePayment = async (req, res, next) => {
   }
 };
 
-// @desc    Webhook pour confirmer un paiement (appelé par Flutterwave/Paystack)
+// @desc    Webhook Genius Pay — confirmation automatique de paiement
 // @route   POST /api/payments/webhook
-// @access  Public (avec vérification de signature)
+// @access  Public
 export const paymentWebhook = async (req, res, next) => {
   try {
-    const { reference, transaction_id, status, amount, metadata } = req.body;
+    const event     = req.headers['x-webhook-event'];
+    const signature = req.headers['x-webhook-signature'];
+    const timestamp = req.headers['x-webhook-timestamp'];
 
-    // TODO: Vérifier la signature du webhook (Flutterwave/Paystack)
-    // Pour l'instant, on fait confiance (à sécuriser en production)
+    // Vérification de la signature HMAC-SHA256
+    if (process.env.GENIUS_PAY_WEBHOOK_SECRET && signature && timestamp) {
+      const payload   = JSON.stringify(req.body);
+      const expected  = crypto
+        .createHmac('sha256', process.env.GENIUS_PAY_WEBHOOK_SECRET)
+        .update(`${timestamp}.${payload}`)
+        .digest('hex');
 
-    const payment = await Payment.findByReference(reference);
+      if (signature !== expected) {
+        console.warn('[Genius Pay Webhook] Signature invalide — requête rejetée');
+        return res.status(401).json({ success: false, message: 'Signature invalide' });
+      }
+    }
+
+    const { data } = req.body;
+
+    if (!data) {
+      return res.status(400).json({ success: false, message: 'Payload manquant' });
+    }
+
+    console.log(`[Genius Pay Webhook] event=${event} reference=${data.reference} status=${data.status}`);
+
+    // Retrouver le paiement via la référence interne stockée dans metadata
+    const internalRef = data.metadata?.payment_reference;
+    let payment = null;
+
+    if (internalRef) {
+      payment = await Payment.findByReference(internalRef);
+    }
+    // Fallback : chercher par la référence Genius Pay
+    if (!payment && data.reference) {
+      payment = await Payment.findByTransactionId(data.reference);
+    }
+
     if (!payment) {
-      return res.status(404).json({ success: false, message: 'Paiement non trouvé' });
+      console.warn(`[Genius Pay Webhook] Paiement introuvable pour ref=${internalRef || data.reference}`);
+      return res.status(200).json({ success: true, message: 'Paiement non trouvé, ignoré' });
     }
 
-    // Mettre à jour le statut du paiement
-    let paymentStatus = 'pending';
-    if (status === 'successful' || status === 'completed') {
-      paymentStatus = 'completed';
-    } else if (status === 'failed') {
-      paymentStatus = 'failed';
-    }
+    const paymentStatus = data.status === 'completed' ? 'completed' : 'failed';
 
-    await Payment.updateStatus(payment.id, paymentStatus, transaction_id, metadata);
+    await Payment.updateStatus(payment.id, paymentStatus, data.reference, data);
 
-    // Mettre à jour le statut de paiement de l'entreprise
     if (paymentStatus === 'completed' && payment.company_id) {
-      await Company.updatePaymentStatus(payment.company_id, 'paid', payment.amount, payment.payment_reference);
+      await Company.updatePaymentStatus(payment.company_id, 'paid', payment.amount, data.reference);
+      console.log(`✅ [Genius Pay] Paiement confirmé pour company_id=${payment.company_id}`);
     }
 
-    res.json({
-      success: true,
-      message: 'Webhook traité avec succès'
-    });
+    res.json({ success: true });
   } catch (error) {
-    console.error('Erreur webhook paiement:', error);
+    console.error('Erreur webhook Genius Pay:', error);
     next(error);
   }
 };

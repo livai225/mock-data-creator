@@ -1,41 +1,75 @@
 import { query } from '../config/database.js';
 
 class Payment {
+  // Générer une référence de paiement unique
+  static generateReference() {
+    const ts = Date.now().toString(36).toUpperCase();
+    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `PAY-${ts}-${rand}`;
+  }
+
   // Créer une demande de paiement
   static async create(paymentData) {
     const {
-      companyId,
-      userId,
+      // snake_case (nouveau style)
+      user_id, company_id, payment_method, currency,
+      // camelCase (ancien style — compatibilité)
+      userId, companyId, paymentMethod,
       amount,
-      paymentMethod = 'mobile_money',
-      phoneNumber,
-      transactionReference,
-      proofImagePath
+      phoneNumber, phone_number,
+      transactionReference, transaction_reference,
+      proofImagePath, proof_image_path,
+      status = 'pending',
+      metadata, payment_proof_path, transaction_reference: txRef
     } = paymentData;
 
+    const uid = user_id || userId;
+    const cid = company_id || companyId;
+    const method = payment_method || paymentMethod || 'genius_pay';
+    const phone = phone_number || phoneNumber || null;
+    const txReference = transaction_reference || transactionReference || txRef || null;
+    const proofPath = payment_proof_path || proof_image_path || proofImagePath || null;
+    const curr = currency || 'XOF';
+    const ref = this.generateReference();
+
     const sql = `
-      INSERT INTO payments 
-      (company_id, user_id, amount, payment_method, phone_number, transaction_reference, proof_image_path, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
+      INSERT INTO payments
+      (payment_reference, company_id, user_id, amount, currency, payment_method, phone_number, transaction_reference, proof_image_path, metadata, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const result = await query(sql, [
-      companyId,
-      userId,
-      amount,
-      paymentMethod,
-      phoneNumber || null,
-      transactionReference || null,
-      proofImagePath || null
+      ref, cid, uid, amount, curr, method, phone, txReference, proofPath,
+      metadata ? JSON.stringify(metadata) : null,
+      status
     ]);
 
-    // Mettre à jour le statut de paiement de l'entreprise
-    await query(
-      'UPDATE companies SET payment_status = ? WHERE id = ?',
-      ['pending', companyId]
-    );
-
     return result.insertId;
+  }
+
+  // Mettre à jour le statut d'un paiement
+  static async updateStatus(id, status, transactionId = null, metadata = null) {
+    const sql = `
+      UPDATE payments
+      SET status = ?,
+          transaction_reference = COALESCE(?, transaction_reference),
+          metadata = COALESCE(?, metadata),
+          updated_at = NOW()
+      WHERE id = ?
+    `;
+    await query(sql, [status, transactionId || null, metadata ? JSON.stringify(metadata) : null, id]);
+  }
+
+  // Trouver un paiement par sa référence interne (PAY-xxx)
+  static async findByReference(reference) {
+    const results = await query('SELECT * FROM payments WHERE payment_reference = ? LIMIT 1', [reference]);
+    return results[0] || null;
+  }
+
+  // Trouver un paiement par la référence de transaction (Genius Pay)
+  static async findByTransactionId(transactionId) {
+    const results = await query('SELECT * FROM payments WHERE transaction_reference = ? LIMIT 1', [transactionId]);
+    return results[0] || null;
   }
 
   // Trouver un paiement par ID
