@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 type FilterType = "all" | string;
 type CompanyFilterType = "all" | string;
+type CompanyTypeFilter = "all" | string;
 
 const ITEMS_PER_PAGE = 25;
 
@@ -21,6 +22,7 @@ export default function AdminDocuments() {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [companyFilter, setCompanyFilter] = useState<CompanyFilterType>("all");
+  const [companyTypeFilter, setCompanyTypeFilter] = useState<CompanyTypeFilter>("all");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -52,6 +54,15 @@ export default function AdminDocuments() {
     );
   }, [rows]);
 
+  const companyTypes = useMemo(() => {
+    const types = new Set(
+      rows
+        .map((d) => d.company_type)
+        .filter((t): t is string => typeof t === "string" && t.trim().length > 0)
+    );
+    return Array.from(types).sort();
+  }, [rows]);
+
   const filteredRows = useMemo(() => {
     return rows.filter((d) => {
       const matchSearch = d.doc_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -59,9 +70,10 @@ export default function AdminDocuments() {
         d.company_name?.toLowerCase().includes(search.toLowerCase());
       const matchType = filterType === "all" || d.doc_name === filterType;
       const matchCompany = companyFilter === "all" || d.company_id?.toString() === companyFilter;
-      return matchSearch && matchType && matchCompany;
+      const matchCompanyType = companyTypeFilter === "all" || d.company_type === companyTypeFilter;
+      return matchSearch && matchType && matchCompany && matchCompanyType;
     });
-  }, [rows, search, filterType, companyFilter]);
+  }, [rows, search, filterType, companyFilter, companyTypeFilter]);
 
   // Pagination
   const totalPages = Math.ceil(filteredRows.length / ITEMS_PER_PAGE);
@@ -73,7 +85,7 @@ export default function AdminDocuments() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, filterType, companyFilter]);
+  }, [search, filterType, companyFilter, companyTypeFilter]);
 
   const stats = useMemo(() => ({
     total: rows.length,
@@ -223,6 +235,17 @@ export default function AdminDocuments() {
                 <SelectItem value="all">Tous les types</SelectItem>
                 {documentTypes.map((t) => (
                   <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={companyTypeFilter} onValueChange={(v) => setCompanyTypeFilter(v)}>
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Modèle entreprise" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les modèles</SelectItem>
+                {companyTypes.map((type) => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

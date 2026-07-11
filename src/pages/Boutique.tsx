@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Book, Download, ShoppingCart, FileText } from "lucide-react";
+import SEO from "@/components/SEO";
 import { ebooks } from "@/lib/mock-data";
 import { toast } from "sonner";
 
@@ -16,6 +17,11 @@ export default function Boutique() {
 
   return (
     <Layout>
+      <SEO
+        title="Boutique — Guides et E-books"
+        description="Téléchargez nos e-books et guides pratiques sur la création d'entreprise, la fiscalité et l'investissement en Côte d'Ivoire."
+        url="https://archexcellence.ci/boutique"
+      />
       {/* Header */}
       <section className="bg-primary py-20">
         <div className="container">

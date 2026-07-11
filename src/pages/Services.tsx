@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Layout } from "@/components/layout/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -39,6 +40,11 @@ export default function Services() {
 
   return (
     <Layout>
+      <SEO
+        title="Nos Services"
+        description="Découvrez les services ARCH EXCELLENCE : création d'entreprise, domiciliation, comptabilité et accompagnement juridique en Côte d'Ivoire."
+        url="https://archexcellence.ci/services"
+      />
       {/* Header */}
       <section className="bg-primary py-20">
         <div className="container">

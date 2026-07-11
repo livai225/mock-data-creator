@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
+import SEO from "@/components/SEO";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Star, ArrowRight } from "lucide-react";
@@ -23,6 +24,11 @@ export default function Tarifs() {
 
   return (
     <Layout>
+      <SEO
+        title="Tarifs"
+        description="Consultez nos tarifs pour la création d'entreprise en Côte d'Ivoire. Formules adaptées à toutes les structures : SARLU, SARL, Entreprise Individuelle."
+        url="https://archexcellence.ci/tarifs"
+      />
       {/* Header */}
       <section className="bg-primary py-20">
         <div className="container text-center">

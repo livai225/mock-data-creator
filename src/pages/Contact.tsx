@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import SEO from "@/components/SEO";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -36,6 +37,11 @@ export default function Contact() {
 
   return (
     <Layout>
+      <SEO
+        title="Contactez-nous"
+        description="Contactez ARCH EXCELLENCE pour toute question sur la création de votre entreprise en Côte d'Ivoire. Nos experts vous répondent rapidement."
+        url="https://archexcellence.ci/contact"
+      />
       {/* Header */}
       <section className="bg-primary py-20">
         <div className="container">

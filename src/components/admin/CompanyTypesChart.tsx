@@ -12,9 +12,13 @@ interface Props {
 }
 
 export function CompanyTypesChart({ data }: Props) {
-  const maxCount = Math.max(...data.map(d => d.count), 1);
-  const totalCompanies = data.reduce((sum, d) => sum + d.count, 0);
-  const totalRevenue = data.reduce((sum, d) => sum + (d.revenue || 0), 0);
+  const toNumber = (value: unknown): number => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+  const maxCount = Math.max(...data.map(d => toNumber(d.count)), 1);
+  const totalCompanies = data.reduce((sum, d) => sum + toNumber(d.count), 0);
+  const totalRevenue = data.reduce((sum, d) => sum + toNumber(d.revenue), 0);
 
   const getColor = (index: number) => {
     const colors = [
@@ -71,11 +75,13 @@ export function CompanyTypesChart({ data }: Props) {
         {/* Bar Chart */}
         <div className="space-y-4">
           {data.map((item, index) => {
+            const count = toNumber(item.count);
+            const revenue = toNumber(item.revenue);
             const percentage = totalCompanies > 0 
-              ? ((item.count / totalCompanies) * 100).toFixed(1)
+              ? ((count / totalCompanies) * 100).toFixed(1)
               : "0";
             const barWidth = maxCount > 0 
-              ? (item.count / maxCount) * 100
+              ? (count / maxCount) * 100
               : 0;
 
             return (
@@ -86,7 +92,7 @@ export function CompanyTypesChart({ data }: Props) {
                     <span className="font-medium">{item.company_type}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-muted-foreground">{item.count} entreprise{item.count > 1 ? 's' : ''}</span>
+                    <span className="text-muted-foreground">{count} entreprise{count > 1 ? 's' : ''}</span>
                     <span className="font-semibold text-primary">{percentage}%</span>
                   </div>
                 </div>
@@ -97,7 +103,7 @@ export function CompanyTypesChart({ data }: Props) {
                   >
                     {barWidth > 20 && (
                       <span className="text-xs font-medium text-white">
-                        {item.revenue > 0 ? `${(item.revenue / 1000).toFixed(0)}K FCFA` : ''}
+                        {revenue > 0 ? `${(revenue / 1000).toFixed(0)}K FCFA` : ''}
                       </span>
                     )}
                   </div>
@@ -118,25 +124,30 @@ export function CompanyTypesChart({ data }: Props) {
         {data.length > 0 && (
           <div className="pt-4 border-t">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {data.map((item, index) => (
-                <div
-                  key={item.company_type}
-                  className={`rounded-lg ${getBgColor(index)} p-3`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className={`h-2 w-2 rounded-full ${getColor(index)}`} />
-                    <p className="text-xs font-medium text-muted-foreground">
-                      {item.company_type}
-                    </p>
+              {data.map((item, index) => {
+                const count = toNumber(item.count);
+                const revenue = toNumber(item.revenue);
+
+                return (
+                  <div
+                    key={item.company_type}
+                    className={`rounded-lg ${getBgColor(index)} p-3`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className={`h-2 w-2 rounded-full ${getColor(index)}`} />
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {item.company_type}
+                      </p>
+                    </div>
+                    <p className="text-lg font-bold">{count}</p>
+                    {revenue > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {(revenue / 1000).toFixed(0)}K FCFA
+                      </p>
+                    )}
                   </div>
-                  <p className="text-lg font-bold">{item.count}</p>
-                  {item.revenue > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {(item.revenue / 1000).toFixed(0)}K FCFA
-                    </p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

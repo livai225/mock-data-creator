@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/auth/AuthContext";
 import RequireAdmin from "@/admin/RequireAdmin";
 import AdminLayout from "@/admin/AdminLayout";
@@ -31,10 +32,13 @@ import Tarifs from "./pages/Tarifs";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import PreviewDocuments from "./pages/PreviewDocuments";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentError from "./pages/PaymentError";
 
 const queryClient = new QueryClient();
 
 const App = () => (
+  <HelmetProvider>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -52,6 +56,8 @@ const App = () => (
             <Route path="/mon-compte" element={<MonCompte />} />
             <Route path="/mes-paiements" element={<MesPaiements />} />
             <Route path="/preview-documents" element={<PreviewDocuments />} />
+            <Route path="/paiement-succes" element={<PaymentSuccess />} />
+            <Route path="/paiement-erreur" element={<PaymentError />} />
 
             <Route
               path="/admin"
@@ -83,6 +89,7 @@ const App = () => (
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Layout } from "@/components/layout/Layout";
+import SEO from "@/components/SEO";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -28,6 +29,11 @@ export default function Fiscalite() {
 
   return (
     <Layout>
+      <SEO
+        title="Fiscalité des entreprises en Côte d'Ivoire"
+        description="Tout savoir sur la fiscalité des entreprises en Côte d'Ivoire : impôts, TVA, obligations déclaratives et conseils pratiques pour votre activité."
+        url="https://archexcellence.ci/fiscalite"
+      />
       {/* Header */}
       <section className="bg-primary py-20">
         <div className="container">

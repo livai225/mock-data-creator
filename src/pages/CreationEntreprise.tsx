@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -285,6 +286,11 @@ export default function CreationEntreprise() {
 
   return (
     <Layout>
+      <SEO
+        title="Créer votre entreprise"
+        description="Lancez la création de votre entreprise en Côte d'Ivoire. Choisissez votre type de structure et obtenez vos documents officiels en quelques minutes."
+        url="https://archexcellence.ci/creation-entreprise"
+      />
       {/* Header */}
       <section className="bg-primary py-16">
         <div className="container">

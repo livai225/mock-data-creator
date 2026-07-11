@@ -101,6 +101,10 @@ export default function AdminDashboard() {
   }
 
   const stats = overviewStats || {};
+  const toNumber = (value: unknown): number => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
 
   return (
     <div className="space-y-6">
@@ -154,7 +158,7 @@ export default function AdminDashboard() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Revenus totaux"
-          value={`${((stats.payments?.total_revenue || 0) / 1000000).toFixed(2)}M`}
+          value={`${(toNumber(stats.payments?.total_revenue) / 1000000).toFixed(2)}M`}
           subtitle="FCFA encaissés"
           icon={DollarSign}
           iconColor="text-green-600"
@@ -162,7 +166,7 @@ export default function AdminDashboard() {
         />
         <StatCard
           title="Ce mois"
-          value={`${((stats.payments?.revenue_last_30_days || 0) / 1000).toFixed(0)}K`}
+          value={`${(toNumber(stats.payments?.revenue_last_30_days) / 1000).toFixed(0)}K`}
           subtitle="FCFA (30 derniers jours)"
           icon={TrendingUp}
           iconColor="text-emerald-600"
@@ -171,15 +175,15 @@ export default function AdminDashboard() {
         <StatCard
           title="En attente"
           value={stats.payments?.pending_count || 0}
-          subtitle={`${((stats.payments?.pending_amount || 0) / 1000).toFixed(0)}K FCFA`}
+          subtitle={`${(toNumber(stats.payments?.pending_amount) / 1000).toFixed(0)}K FCFA`}
           icon={Clock}
           iconColor="text-orange-600"
           iconBgColor="bg-orange-100"
         />
         <StatCard
           title="Taux validation"
-          value={`${(stats.payments?.validation_rate || 0).toFixed(0)}%`}
-          subtitle={`${(stats.payments?.avg_validation_time_minutes || 0).toFixed(0)} min moy.`}
+          value={`${toNumber(stats.payments?.validation_rate).toFixed(0)}%`}
+          subtitle={`${toNumber(stats.payments?.avg_validation_time_minutes).toFixed(0)} min moy.`}
           icon={CheckCircle2}
           iconColor="text-blue-600"
           iconBgColor="bg-blue-100"

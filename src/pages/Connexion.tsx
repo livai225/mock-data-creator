@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,12 @@ export default function Connexion() {
 
   return (
     <Layout>
+      <SEO
+        title="Connexion"
+        description="Connectez-vous à votre espace ARCH EXCELLENCE pour accéder à vos documents d'entreprise et suivre vos dossiers."
+        url="https://archexcellence.ci/connexion"
+        noIndex={true}
+      />
       <section className="py-12">
         <div className="container max-w-md">
           <Card>

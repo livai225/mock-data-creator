@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,12 @@ export default function Inscription() {
 
   return (
     <Layout>
+      <SEO
+        title="Créer un compte"
+        description="Créez votre compte ARCH EXCELLENCE et commencez la création de votre entreprise en Côte d'Ivoire dès aujourd'hui."
+        url="https://archexcellence.ci/inscription"
+        noIndex={true}
+      />
       <section className="py-12">
         <div className="container max-w-md">
           <Card>

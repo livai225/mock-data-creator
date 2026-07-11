@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout } from "@/components/layout/Layout";
@@ -51,8 +52,28 @@ export default function Index() {
     }));
   }, [pricing?.companyTypePrices, pricing?.companyTypeEstimatedTimes]);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "ARCH EXCELLENCE",
+    "url": "https://archexcellence.ci",
+    "description": "Cabinet spécialisé dans la création d'entreprise en Côte d'Ivoire : SARLU, SARL, Entreprise Individuelle.",
+    "areaServed": "Côte d'Ivoire",
+    "serviceType": ["Création d'entreprise", "Documents juridiques", "Domiciliation", "Comptabilité"],
+    "inLanguage": "fr-CI",
+  };
+
   return (
     <Layout>
+      <SEO
+        title="Créez votre entreprise en Côte d'Ivoire rapidement"
+        description="Créez votre SARLU, SARL ou Entreprise Individuelle en Côte d'Ivoire avec ARCH EXCELLENCE. Documents juridiques officiels générés en quelques minutes."
+        url="https://archexcellence.ci/"
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-primary">
         {/* Background Image with Overlay */}

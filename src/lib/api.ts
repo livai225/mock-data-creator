@@ -282,6 +282,13 @@ export async function initiatePaymentApi(token: string, data: { company_id: numb
   });
 }
 
+export async function verifyPaymentApi(token: string, reference: string) {
+  return await apiRequest(`/api/payments/verify/${reference}`, {
+    method: 'GET',
+    token
+  });
+}
+
 export async function checkPaymentStatusApi(token: string, paymentId: number) {
   return await apiRequest(`/api/payments/${paymentId}/status`, {
     method: 'GET',

@@ -6,10 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircle2, CheckCircle, Download, Eye, Plus, Building2, FileText, Clock, AlertCircle, Trash2, ChevronDown, ChevronUp, RefreshCw, User, CreditCard } from "lucide-react";
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { useAuth } from "@/auth/AuthContext";
-import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, deleteCompanyDocumentsApi, getCompanyPaymentStatusApi, type UserDocument } from "@/lib/api";
+import { getMyCompaniesApi, getMyDocumentsApi, downloadDocumentApi, viewDocumentApi, createCompanyApi, generateDocumentsApi, deleteCompanyApi, deleteCompanyDocumentsApi, getCompanyPaymentStatusApi, initiatePaymentApi, type UserDocument } from "@/lib/api";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { toast } from "sonner";
-import { ManualPaymentModal } from "@/components/payment/ManualPaymentModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,9 +41,6 @@ export default function ClientDashboard() {
   const [expandedCompanies, setExpandedCompanies] = useState<Set<number>>(new Set());
   const [regeneratingCompanyId, setRegeneratingCompanyId] = useState<number | null>(null);
   const [finalizingDraftId, setFinalizingDraftId] = useState<number | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedCompanyForPayment, setSelectedCompanyForPayment] = useState<{ id: number; amount: number } | null>(null);
-  const [companyPaymentStatus, setCompanyPaymentStatus] = useState<Record<number, boolean>>({});
 
   // Protection de la route
   useEffect(() => {
@@ -169,54 +165,40 @@ export default function ClientDashboard() {
     }
   };
 
-  const checkPaymentBeforeAction = async (companyId: number | null, action: () => void) => {
-    if (!token || !companyId) return;
-
-    // Vérifier le statut de paiement
+  const handlePayWithGenius = async (companyId: number) => {
+    if (!token) return;
+    const company = companies.find(c => c.id === companyId);
+    const amount = company?.payment_amount || 0;
     try {
-      const response = await getCompanyPaymentStatusApi(token, companyId);
-      if (response.success && response.data) {
-        const canDownload = response.data.canDownload;
-        const paymentStatus = response.data.paymentStatus;
-        
-        if (canDownload && paymentStatus === 'paid') {
-          // Paiement effectué et vérifié, autoriser l'action
-          action();
-        } else {
-          // Vérifier s'il y a un paiement en attente
-          const hasPendingPayment = response.data.payments?.some((p: any) => p.status === 'pending');
-          
-          if (hasPendingPayment) {
-            // Paiement en attente de vérification
-            toast.info("Votre paiement est en cours de vérification. Vous pourrez télécharger les documents une fois validé par un administrateur.");
-          } else {
-            // Pas de paiement, afficher le modal
-            const company = companies.find(c => c.id === companyId);
-            const amount = company?.payment_amount || 0;
-            setSelectedCompanyForPayment({ id: companyId, amount });
-            setShowPaymentModal(true);
-          }
-        }
+      toast.loading("Redirection vers le paiement...");
+      const res = await initiatePaymentApi(token, { company_id: companyId, amount, payment_method: 'genius_pay' });
+      toast.dismiss();
+      if (res.success && res.data?.checkout_url) {
+        window.location.href = res.data.checkout_url;
+      } else {
+        toast.error(res.message || "Impossible d'initier le paiement");
       }
-    } catch (error) {
-      console.error("Erreur vérification paiement:", error);
-      toast.error("Erreur lors de la vérification du paiement");
+    } catch (error: any) {
+      toast.dismiss();
+      toast.error(error?.message || "Erreur lors de l'initiation du paiement");
     }
   };
 
   const handlePreview = async (doc: UserDocument) => {
     if (!token) return;
-    
-    await checkPaymentBeforeAction(doc.company_id || null, async () => {
-      try {
-        const blob = await viewDocumentApi(token, doc.id);
-        const url = URL.createObjectURL(blob);
-        window.open(url, "_blank", "noopener,noreferrer");
-        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      } catch (error) {
-        toast.error("Impossible de prévisualiser le document");
-      }
-    });
+    const company = companies.find(c => c.id === doc.company_id);
+    if (company && company.payment_status !== 'paid') {
+      toast.error("Veuillez payer pour accéder à vos documents.");
+      return;
+    }
+    try {
+      const blob = await viewDocumentApi(token, doc.id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (error) {
+      toast.error("Impossible de prévisualiser le document");
+    }
   };
 
   useEffect(() => {
@@ -225,43 +207,29 @@ export default function ClientDashboard() {
 
   const handleDownload = async (doc: UserDocument) => {
     if (!token) return;
-    
-    await checkPaymentBeforeAction(doc.company_id || null, async () => {
-      setDownloadingId(doc.id);
-      try {
-        const blob = await downloadDocumentApi(token, doc.id);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = doc.file_name || `${doc.doc_name}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      } catch (error) {
-        toast.error("Erreur lors du téléchargement");
-      } finally {
-        setDownloadingId(null);
-      }
-    });
+    const company = companies.find(c => c.id === doc.company_id);
+    if (company && company.payment_status !== 'paid') {
+      toast.error("Veuillez payer pour télécharger vos documents.");
+      return;
+    }
+    setDownloadingId(doc.id);
+    try {
+      const blob = await downloadDocumentApi(token, doc.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.file_name || `${doc.doc_name}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error("Erreur lors du téléchargement");
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
-  const handlePaymentSuccess = async () => {
-    if (selectedCompanyForPayment) {
-      // Marquer la société comme payée dans le state
-      setCompanyPaymentStatus(prev => ({
-        ...prev,
-        [selectedCompanyForPayment.id]: true
-      }));
-      
-      // Recharger les données pour mettre à jour les statuts
-      await loadData();
-      
-      toast.success("Paiement confirmé ! Vous pouvez maintenant télécharger vos documents");
-    }
-    setShowPaymentModal(false);
-    setSelectedCompanyForPayment(null);
-  };
 
   const handleDeleteClick = (companyId: number) => {
     setDeletingCompanyId(companyId);
@@ -553,6 +521,18 @@ export default function ClientDashboard() {
                           </div>
                         )}
                         
+                        {/* Bouton Payer avec Genius Pay */}
+                        {companyDocs.length > 0 && company.payment_status !== 'paid' && (
+                          <Button
+                            size="sm"
+                            className="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white"
+                            onClick={() => handlePayWithGenius(company.id)}
+                          >
+                            <CreditCard className="h-4 w-4 mr-2" />
+                            Payer {company.payment_amount ? `${Number(company.payment_amount).toLocaleString('fr-FR')} FCFA` : ''}
+                          </Button>
+                        )}
+
                         {/* Bouton pour voir les documents de cette entreprise */}
                         {companyDocs.length > 0 && (
                           <Button
@@ -734,19 +714,6 @@ export default function ClientDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-        {/* Manual Payment Modal */}
-        {selectedCompanyForPayment && (
-          <ManualPaymentModal
-            open={showPaymentModal}
-            onClose={() => {
-              setShowPaymentModal(false);
-              setSelectedCompanyForPayment(null);
-            }}
-            companyId={selectedCompanyForPayment.id}
-            amount={selectedCompanyForPayment.amount}
-            onPaymentSubmitted={handlePaymentSuccess}
-          />
-        )}
     </Layout>
   );
 }
