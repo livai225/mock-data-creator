@@ -617,6 +617,21 @@ export default function PreviewDocuments() {
 
       setCompanyId(newCompanyId);
 
+      // Société créée : purger le brouillon local du formulaire correspondant
+      // (sinon il réapparaît pré-rempli à la prochaine visite de la page création)
+      try {
+        if (companyType === 'SARLU') {
+          localStorage.removeItem('sarlu_form_draft');
+          localStorage.removeItem('sarlu_form_step');
+        } else if (companyType === 'SARL_PLURI') {
+          localStorage.removeItem('sarl_pluri_form_draft');
+          localStorage.removeItem('sarl_pluri_form_step');
+        } else if (companyType === 'EI') {
+          localStorage.removeItem('ei_form_draft');
+          localStorage.removeItem('ei_form_step');
+        }
+      } catch {}
+
       // 3. Générer les documents avec l'ID de l'entreprise (PDF et Word)
       const additionalData = buildAdditionalData();
       try {
